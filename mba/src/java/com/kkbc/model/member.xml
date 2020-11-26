@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="member" >
+	<typeAlias alias="Member" type="com.kkbc.entity.Member"/>
+	<typeAlias alias="Degree" type="com.kkbc.entity.MemberDegree"/>
+	<typeAlias alias="Honor" type="com.kkbc.entity.MemberHonor"/>
+	<typeAlias alias="CompanyInfo" type="com.kkbc.entity.CompanyInfo"/>
+	<typeAlias alias="Certificate" type="com.kkbc.entity.MemberCertificate"/>
+	<typeAlias alias="IndustryFunction" type="com.kkbc.entity.IndustryFunction"/>
+	<typeAlias alias="CompanyDetail" type="com.kkbc.vo.CatchWebInfo"/>
+	<typeAlias alias="AppData" type="com.kkbc.vo.AppData"/>
+	
+	<select id="getMember" parameterClass="java.lang.String" resultClass="Member">
+		SELECT `application_id`,`member_serialno`,`name`,`sex`,`toefl_score`,`ielts_score`,`gmat_score`,`gre_score`,`toefl_date`,`ielts_date`,`gmat_date`,`gre_date`,`program`,
+			(	CASE 
+			WHEN locate('省',`province`)>0 THEN LEFT(`province`,LOCATE('省',`province`)-1)
+			WHEN locate('市',`province`)>0 THEN LEFT(`province`,LOCATE('市',`province`)-1)
+			ELSE `province` 
+			END) AS`province`
+			,`diploma`,`degree`,`learn_format`,`avg_point`,`work_time`,`manage_time`,`company`,`company_address`,`job`,`job_level`,`salary`,`company_num`,`staff_num`,`industry`,`job_function`,
+			(CASE 
+			WHEN `degree`='无' THEN (CASE 
+									WHEN locate('毕业',`diploma`)>0 THEN LEFT(`diploma`,LOCATE('毕业',`diploma`)-1)
+									WHEN locate('结业',`diploma`)>0 THEN LEFT(`diploma`,LOCATE('结业',`diploma`)-1)
+									ELSE `diploma` 
+									END)
+			WHEN locate('无学位',`degree`)>0 THEN LEFT(`degree`,LOCATE('无学位',`degree`)-1)
+			WHEN locate('学位',`degree`)>0 THEN LEFT(`degree`,LOCATE('学位',`degree`)-1)
+			ELSE `degree` 
+			END) AS `degree_type`
+		
+		FROM `application_member` 
+		WHERE `member_serialno`=#member_serialno#
+	</select>
+	
+	<select id="getMemberList" parameterClass="java.util.Map" resultClass="Member">
+		SELECT `application_id`,`member_serialno`,`name`,`sex`,`toefl_score`,`ielts_score`,`gmat_score`,`program`,
+			(	CASE 
+			WHEN locate('省',`province`)>0 THEN LEFT(`province`,LOCATE('省',`province`)-1)
+			WHEN locate('市',`province`)>0 THEN LEFT(`province`,LOCATE('市',`province`)-1)
+			ELSE `province` 
+			END) AS`province`
+			,`diploma`,`learn_format`,`avg_point`,`work_time`,`manage_time`,`company`,`company_address`,`job`,`job_level`,`salary`,`company_num`,`staff_num`,
+			(CASE 
+			WHEN `degree`='无' THEN (CASE 
+									WHEN locate('毕业',`diploma`)>0 THEN LEFT(`diploma`,LOCATE('毕业',`diploma`)-1)
+									WHEN locate('结业',`diploma`)>0 THEN LEFT(`diploma`,LOCATE('结业',`diploma`)-1)
+									ELSE `diploma` 
+									END)
+			WHEN locate('无学位',`degree`)>0 THEN LEFT(`degree`,LOCATE('无学位',`degree`)-1)
+			WHEN locate('学位',`degree`)>0 THEN LEFT(`degree`,LOCATE('学位',`degree`)-1)
+			ELSE `degree` 
+			END) AS `degree`
+		
+		FROM `application_member` 
+		<dynamic prepend=" WHERE ">
+			<isNotEmpty prepend=" AND" property="memberNo"> 
+				`member_serialno`=#memberNo#
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="name"> 
+				`name` LIKE '%$name$%'
+			</isNotEmpty>
+		</dynamic>
+		<isNotEmpty prepend=" " property="startIndex"> 
+			LIMIT #startIndex#,#pageSize#
+		</isNotEmpty>
+	</select>
+	
+	<select id="totalCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM `application_member`
+		<dynamic prepend=" WHERE ">
+			<isNotEmpty prepend=" AND" property="memberNo"> 
+				`member_serialno`=#memberNo#
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="name"> 
+				`name` LIKE '%$name$%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="getDegree" parameterClass="java.util.HashMap" resultClass="Degree">
+		SELECT `member_serialno`,`diploma`,`degree`,`degree_type`,`learn_format`,`subject_background`,t.`school_name`,`school_address`,t.`school_location`,`major`,`avg_point`,`degree_time`,t.`comment`,s.`school_type` FROM
+		(
+		SELECT `degree_id`,`member_serialno`,`diploma`,`degree`,`learn_format`,`subject_background`,`school_name`,`school_address`,`school_location`,`major`,`avg_point`,`degree_time`,`comment`,
+		(	CASE 
+			WHEN degree IS NULL OR degree='' OR LOCATE('无',`degree`)>0 THEN (CASE 
+									WHEN locate('毕业',`diploma`)>0 THEN LEFT(`diploma`,LOCATE('毕业',`diploma`)-1)
+									WHEN locate('结业',`diploma`)>0 THEN LEFT(`diploma`,LOCATE('结业',`diploma`)-1)
+									ELSE `diploma` 
+									END)
+			WHEN locate('无学位',`degree`)>0 THEN LEFT(`degree`,LOCATE('无学位',`degree`)-1)
+			WHEN locate('学位',`degree`)>0 THEN LEFT(`degree`,LOCATE('学位',`degree`)-1)
+			ELSE `degree` 
+			END) AS `degree_type`
+		
+		FROM `member_degree` 
+		
+		WHERE `member_serialno`=#member_serialno# AND ((diploma is NOT NULL AND diploma!='') OR (degree is NOT NULL AND degree!='')) AND (( school_name IS NOT NULL AND school_name != '') OR (major IS NOT NULL AND major != ''))
+		
+		)t LEFT JOIN `school` s on t.`school_name`=s.`school_name`
+		
+		<isNotEmpty property="degree">
+			WHERE `degree` IN
+			<iterate  property="degree" conjunction="," close=")" open="(" >  
+                #degree[]#  
+            </iterate>  
+		</isNotEmpty>
+		GROUP BY `member_serialno`,`diploma`,degree,school_name,major
+	</select>
+	
+	<select id="getHonor" parameterClass="java.lang.String" resultClass="Honor">
+		SELECT `member_serialno`,`honor`,`issuing_authority`,`grant_date`,`level` FROM `member_honor`
+		WHERE `member_serialno`=#member_serialno# AND `honor` IS NOT NULL AND `honor`!=''
+		GROUP BY `honor` ORDER BY `grant_date` DESC
+	</select>
+	
+	<select id="getCompanyDetail" parameterClass="java.util.HashMap" resultClass="CompanyDetail">
+		SELECT `search_title` AS title,`search_describle` AS `describe`,`detail_url` AS link FROM `company_detail`
+		WHERE `member_serial`=#memberNo# 
+		<isNotEmpty property="type">
+			AND `type`=#type#
+		</isNotEmpty>
+	</select>
+	
+	<select id="getCompanyInfo" parameterClass="java.lang.String" resultClass="CompanyInfo">
+		SELECT `company_name`,`member_s_count`,`company_s_rank`,`shixin` FROM company_info WHERE `member_serial`=#member_serialno# ORDER BY `in_time` DESC LIMIT 1
+	</select>
+	
+	<select id="getCertificate" parameterClass="java.lang.String" resultClass="Certificate">
+		SELECT T1.certificate_name,CASE WHEN T2.certificate_name IS NOT NULL THEN 1 ELSE 0 END AS calculate FROM member_certificate T1 LEFT JOIN capacity_training T2 ON T1.certificate_name=T2.certificate_name 
+		WHERE T1.member_serialno=#member_serialno# AND T1.certificate_name IS NOT NULL AND T1.certificate_name!=''
+		GROUP BY T1.certificate_name
+	</select>
+	
+	<select id="getIndustryFunction" parameterClass="java.util.HashMap" resultClass="IndustryFunction">
+		SELECT `industry`,`job_function` FROM `industry_function`
+		WHERE `industry`=SUBSTRING_INDEX(#industry#,' ',1) AND `job_function`=SUBSTRING_INDEX(#job_function#,' ',1) LIMIT 1
+	
+	</select>
+	
+	<insert id="saveMember" parameterClass="AppData">
+		INSERT INTO `application_member`
+		(`member_serialno`,`name`,`sex`,`toefl_score`,`ielts_score`,`gmat_score`,`gre_score`,`toefl_date`,`ielts_date`,`gmat_date`,`gre_date`,`program`,`province`,`work_time`,`manage_time`,`company`,`company_address`,`job`,`job_level`,`salary`,`company_num`,`staff_num`,`industry`,`job_function`,`passport_no`,`company_nature`,`asset`,`annual_sales`,`company_abbreviation`,`date`) 
+		VALUES 
+		(#referenceNo#,#name#,#gender#,#toeflTotalScore#,#ieltsTotalScore#,#gmatTotalScore#,#greTotalScore#,#toeflTestDate#,#ieltsTestDate#,#gmatTestDate#,#greTestDate#,#program#,#placeOfBirth#,#workExperience#,#managementExperience#,#company#,#companyAddress#,#position#,#jobTitleLevel#,#annualSalary#,#numberOfEmployees#,#subordinateNumber#,#companyIndustry#,#workFunction#,#passportNo#,#companyNature#,#asset#,#annualSales#,#companyAbbreviation#,current_timestamp())
+	</insert>
+	
+	<insert id="saveDegrees" parameterClass="java.util.HashMap">
+		INSERT INTO `member_degree`(`member_serialno`,`diploma`,`degree`,`learn_format`,`subject_background`,`school_name`,`school_address`,`school_location`,`major`,`avg_point`,`degree_time`,`comment`) VALUES
+		<iterate conjunction="," property="degrees">
+		(#referenceNo#,#degrees[].educationLevel#,#degrees[].degree#,#degrees[].modeOfStudy#,#degrees[].firstLevelDiscipline#,#degrees[].schoolName#,#degrees[].schoolLocation#,#degrees[].schoolLocation#,#degrees[].major#,#degrees[].gpa#,#degrees[].dateOfAward#,#degrees[].schoolNameOther#)
+		</iterate>
+	</insert>
+	
+	<insert id="saveCertificates" parameterClass="java.util.HashMap">
+		INSERT INTO member_certificate(`member_serialno`,`certificate_name`,`issuing_authority`) VALUES
+		<iterate conjunction="," property="certificates"> 
+		(#referenceNo#,#certificates[].certification#,#certificates[].accreditingOrganization#)
+		</iterate>
+	</insert>
+	
+	<insert id="saveHonors" parameterClass="java.util.HashMap">
+		INSERT INTO member_honor(`member_serialno`,`honor`,`issuing_authority`,`level`,`grant_date`) VALUES
+		<iterate conjunction="," property="honorAwards"> 
+		(#referenceNo#,#honorAwards[].haCertificationName#,#honorAwards[].haAccreditingOrganization#,#honorAwards[].haHonorsLevel#,#honorAwards[].haDateofAward#)
+		</iterate>
+	</insert>
+</sqlMap>

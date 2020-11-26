@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="school" >
+	<typeAlias alias="School" type="com.kkbc.entity.School"/>
+	<typeAlias alias="Score" type="com.kkbc.entity.Score"/>
+	<typeAlias alias="MajorScore" type="com.kkbc.entity.MajorScore"/>
+	
+	<typeAlias alias="MajorScoreVO" type="com.kkbc.vo.SchoolProvinceMajorScoreVO"/>
+	
+	<select id="getSchool" parameterClass="java.lang.String" resultClass="School">
+		SELECT `school_id`,`school_name`,`score_url`,`school_type`,`school_level`,`school_location`,`inout`,`ranking` FROM `school` WHERE `school_name`=#school_name# limit 1
+	</select>
+	
+	<select id="getOutSchool" parameterClass="java.util.HashMap" resultClass="School">
+		SELECT `school_id`,`school_name`,`score_url`,`school_type`,`school_level`,`school_location`,`inout`,`ranking` FROM `school` 
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="OR" property="school_name">
+				`school_name`=#school_name# 
+			</isNotEmpty>
+			<isNotEmpty prepend="OR" property="english_name">
+				LOWER(`english_name`)=#english_name# 
+			</isNotEmpty>
+		</dynamic>
+		limit 1
+	</select>
+	
+	<insert id="saveSchool" parameterClass="School">
+		INSERT INTO `school`(`school_name`,`score_url`) VALUES (#school_name#,#score_url#)
+		<selectKey resultClass="int" keyProperty="school_id">
+			SELECT LAST_INSERT_ID() AS school_id
+		</selectKey>
+	</insert>
+	<insert id="saveScore" parameterClass="java.util.List">
+		INSERT INTO `score`(`province`,`subject`,`year`,`avg_score`,`min_score`,`admission_num`,`province_line`,`pici`,`school_name`,`school_id`)
+		VALUES 
+		<iterate conjunction=",">
+			(#[].province#,#[].subject#,#[].year#,#[].avg_score#,#[].min_score#,#[].admission_num#,#[].province_line#,#[].pici#,#[].school_name#,#[].school_id#)
+		</iterate>
+	</insert>
+	<insert id="saveMajorScore" parameterClass="java.util.List">
+		INSERT INTO `major_score`(`province`,`subject`,`year`,`major`,`avg_score`,`pici`,`school_name`,`school_id`)
+		VALUES 
+		<iterate conjunction=",">
+			(#[].province#,#[].subject#,#[].year#,#[].major#,#[].avg_score#,#[].pici#,#[].school_name#,#[].school_id#)
+		</iterate>
+	</insert>
+	
+	<select id="getScoreLine" parameterClass="java.util.HashMap" resultClass="MajorScoreVO">
+		SELECT SPSV.school_name,SPSV.province,SPMSV.major,SPSV.province_score_line,SPMSV.score_line
+		FROM `school_province_score` SPSV LEFT JOIN school_province_major_score SPMSV 
+		ON SPSV.school_name=SPMSV.school_name AND SPSV.province=SPMSV.province AND SPMSV.major=#major# 
+		WHERE SPSV.school_name=#school_name# AND SPSV.province=#province# 
+	</select>
+	
+	<select id="getLocationRank" parameterClass="java.lang.String" resultClass="java.util.HashMap">
+		SELECT `school_level`,`rank` FROM `degree_rank` WHERE `school_location`=#school_location#
+	</select>
+	
+	<select id="getMajorRank" parameterClass="java.util.HashMap" resultClass="java.lang.String">
+		SELECT `major_rank` FROM `major_rank` WHERE `major`=#major# 
+		<isNotEmpty property="school_name">
+			AND `school_name`=#school_name# 
+		</isNotEmpty>
+		LIMIT 1
+	</select>
+	
+	<select id="getScore" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT score FROM `school_score` WHERE `school_name`=#school_name#  limit 1
+	</select>
+	
+</sqlMap>
