@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="User" >
+	<typeAlias alias="Group" type="com.kkbc.entity.Group"/>
+	<typeAlias alias="ManageUser" type="com.kkbc.entity.ManageUser"/>
+	<typeAlias alias="InvitatorUser" type="com.kkbc.entity.InvitatorUser"/>
+	<typeAlias alias="InviteLog" type="com.kkbc.entity.InviteLog"/>
+	<typeAlias alias="Volunteer" type="com.kkbc.entity.Volunteer"/>
+	<typeAlias alias="Bus" type="com.kkbc.entity.Bus"/>
+	
+	<select id="login" parameterClass="ManageUser" resultClass="ManageUser">
+		SELECT `user_id`,`user_name`,`login_name`,`group_id` FROM `login_user`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="login_name">
+				`login_name`=#login_name#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="password">
+				`password`=#password#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="user_id">
+				`user_id`=#user_id#
+			</isNotEmpty>
+		</dynamic>
+		<!-- WHERE `login_name`=#login_name# AND `password`=#password# -->
+	</select>
+	
+	<select id="getGroup" parameterClass="java.lang.Integer" resultClass="Group">
+		SELECT `group_id`,`group_name`,`type` FROM `group`
+		WHERE `group_id`=#group_id#
+	</select>
+	
+	<select id="getVolunteer" parameterClass="Volunteer" resultClass="Volunteer">
+		SELECT `idcard` FROM `volunteer`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="idcard">
+				`idcard`=#idcard#
+			</isNotEmpty>
+		 	<isNotEmpty prepend="AND" property="phone">
+				`phone`=#phone#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="getCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM `invitator_user`
+		<dynamic prepend="WHERE">
+			<isEqual prepend="AND" property="type" compareValue="2">
+				`assign_train_user`=#groupId#
+			</isEqual>
+			<isEqual prepend="AND" property="type" compareValue="3">
+				`assign_hotel_user`=#groupId#
+			</isEqual>
+			<!-- <isNotEmpty prepend="AND" property="manager_user">
+				`manager_user`=#manager_user#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="assignUser">
+				`assign_user`=#assignUser#
+			</isNotEmpty> -->
+			<isNotEmpty prepend="AND" property="name">
+				`name` LIKE '%$name$%'
+			</isNotEmpty>
+			<isEqual prepend="AND" property="pickup" compareValue="1">
+				(`pick_up`='需要接站' OR `pick_up`='都需要')
+			</isEqual>
+			<isEqual prepend="AND" property="pickup" compareValue="2">
+				(`pick_up`='需要送站' OR `pick_up`='都需要')
+			</isEqual>
+			<isEqual prepend="AND" property="pickup" compareValue="3">
+				`pick_up`='都需要'
+			</isEqual>
+			<isEqual prepend="AND" property="pickup" compareValue="4">
+				`pick_up`='都不需要'
+			</isEqual>
+			<isEqual prepend="AND" property="lodging" compareValue="1">
+				`lodging_select`='需要安排'
+			</isEqual>
+			<isEqual prepend="AND" property="lodging" compareValue="2">
+				`lodging_select`='无需安排'
+			</isEqual>
+			<isEqual prepend="AND" property="started" compareValue="1">
+				`started`='1' AND `recived`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="started" compareValue="2">
+				`started`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="recived" compareValue="1">
+				`recived`='1'
+			</isEqual>
+			<isEqual prepend="AND" property="recived" compareValue="2">
+				`recived`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="returned" compareValue="1">
+				`returned`='1'
+			</isEqual>
+			<isEqual prepend="AND" property="returned" compareValue="2">
+				`returned`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="signed" compareValue="1">
+				`signed`='1'
+			</isEqual>
+			<isEqual prepend="AND" property="signed" compareValue="2">
+				`signed`='0'
+			</isEqual>
+			<isNotEmpty prepend="AND" property="position">
+				`arrival_position` LIKE '%$position$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="info">
+				`arrival_info` LIKE '%$info$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="assignUser">
+				`responsible_person` LIKE '%$assignUser$%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<select id="getInvitorById" parameterClass="java.lang.Integer" resultClass="InvitatorUser">
+		SELECT `inviter_id`,`name`,`sex`,`title`,`phone`,`email`,`company`,`attache_num`,`arrival_pattern`,`arrival_position`,
+		`arrival_info`,`arrival_time`,`return_pattern`,`return_position`,`return_info`,`return_time`,`pick_up`,`id_card`,`lodging_select`,`hotel_price`,
+		`hotel_select`,`in_time`,`out_time`,`room_level`,`room_num`,`room_level2`,`room_num2`,`comment`,`confirm`,`started`,`recived`,`returned`,`signed`,
+		`dined`,`assign_train_user`,`assign_hotel_user`,`level`,`redcarpet`,`dined_level`,`speech`,`speech_position`,`responsible_person`,`responsible_person_phone`,
+		`contact`,`contact_phone`,`sign`,`property`
+		FROM `invitator_user` WHERE `inviter_id`=#inviter_id#
+	</select>
+	<select id="getUser" parameterClass="java.util.HashMap" resultClass="InvitatorUser">
+		SELECT `inviter_id`,`name`,`sex`,`title`,`phone`,`email`,`company`,`attache_num`,`arrival_pattern`,`arrival_position`,
+		`arrival_info`,`arrival_time`,`return_pattern`,`return_position`,`return_info`,`return_time`,`pick_up`,`id_card`,`lodging_select`,`hotel_price`,
+		`hotel_select`,`in_time`,`out_time`,`room_level`,`room_num`,`room_level2`,`room_num2`,`comment`,`confirm`,`started`,`recived`,`returned`,`signed`,
+		`dined`,`assign_train_user`,`assign_hotel_user`,`level`,`redcarpet`,`dined_level`,`speech`,`speech_position`,`responsible_person`,`responsible_person_phone`,
+		`contact`,`contact_phone`,`sign`,`property`
+		FROM `invitator_user`
+		<dynamic prepend="WHERE">
+			<isEqual prepend="AND" property="type" compareValue="2">
+				`assign_train_user`=#groupId#
+			</isEqual>
+			<isEqual prepend="AND" property="type" compareValue="3">
+				`assign_hotel_user`=#groupId#
+			</isEqual>
+			<!-- <isNotEmpty prepend="AND" property="manager_user">
+				`manager_user`=#manager_user#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="assignUser">
+				`assign_user`=#assignUser#
+			</isNotEmpty> -->
+			<isNotEmpty prepend="AND" property="name">
+				`name` LIKE '%$name$%'
+			</isNotEmpty>
+			<isEqual prepend="AND" property="pickup" compareValue="1">
+				(`pick_up`='需要接站' OR `pick_up`='都需要')
+			</isEqual>
+			<isEqual prepend="AND" property="pickup" compareValue="2">
+				(`pick_up`='需要送站' OR `pick_up`='都需要')
+			</isEqual>
+			<isEqual prepend="AND" property="pickup" compareValue="3">
+				`pick_up`='都需要'
+			</isEqual>
+			<isEqual prepend="AND" property="pickup" compareValue="4">
+				`pick_up`='都不需要'
+			</isEqual>
+			<isEqual prepend="AND" property="lodging" compareValue="1">
+				`lodging_select`='需要安排'
+			</isEqual>
+			<isEqual prepend="AND" property="lodging" compareValue="2">
+				`lodging_select`='无需安排'
+			</isEqual>
+			<isEqual prepend="AND" property="started" compareValue="1">
+				`started`='1' AND `recived`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="started" compareValue="2">
+				`started`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="recived" compareValue="1">
+				`recived`='1'
+			</isEqual>
+			<isEqual prepend="AND" property="recived" compareValue="2">
+				`recived`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="returned" compareValue="1">
+				`returned`='1'
+			</isEqual>
+			<isEqual prepend="AND" property="returned" compareValue="2">
+				`returned`='0'
+			</isEqual>
+			<isEqual prepend="AND" property="signed" compareValue="1">
+				`signed`='1'
+			</isEqual>
+			<isEqual prepend="AND" property="signed" compareValue="2">
+				`signed`='0'
+			</isEqual>
+			<isNotEmpty prepend="AND" property="position">
+				`arrival_position` LIKE '%$position$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="info">
+				`arrival_info` LIKE '%$info$%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="assignUser">
+				`responsible_person` LIKE '%$assignUser$%'
+			</isNotEmpty>
+			
+		</dynamic>
+		ORDER BY `inviter_id` ASC
+		<!-- <isEmpty property="menu">
+			`recived` ASC,`arrival_time` ASC
+		</isEmpty>
+		<isNotEmpty property="menu">
+			<isEqual property="menu" compareValue="1">
+				<isEmpty property="pickup">
+				`recived` ASC,`arrival_time` ASC
+				</isEmpty>
+				<isNotEmpty property="pickup">
+					<isEqual prepend=" " property="pickup" compareValue="0">
+						`recived` ASC,`arrival_time` ASC
+					</isEqual>
+					<isEqual prepend=" " property="pickup" compareValue="1">
+						`recived` ASC,`arrival_time` ASC
+					</isEqual>
+					<isEqual prepend=" " property="pickup" compareValue="2">
+						`returned` ASC,`return_time` ASC
+					</isEqual>
+					<isEqual prepend=" " property="pickup" compareValue="3">
+						`recived` ASC,`arrival_time` ASC
+					</isEqual>
+					<isEqual prepend=" " property="pickup" compareValue="4">
+						`recived` ASC,`arrival_time` ASC
+					</isEqual>
+				</isNotEmpty>
+			</isEqual>
+			<isEqual property="menu" compareValue="2">
+				<isEmpty property="lodging">
+				`lodging_select` DESC,`signed` ASC
+				</isEmpty>
+				<isNotEmpty property="lodging">
+				<isEqual prepend=" " property="lodging" compareValue="0">
+					`lodging_select` DESC
+				</isEqual>
+				<isEqual prepend=" " property="lodging" compareValue="1">
+					`lodging_select` DESC,`signed` ASC
+				</isEqual>
+				<isEqual prepend=" " property="lodging" compareValue="2">
+					`lodging_select` ASC,`signed` ASC
+				</isEqual>
+				</isNotEmpty>
+			</isEqual>
+			<isEqual property="menu" compareValue="3">
+				`dined` ASC
+			</isEqual>
+		</isNotEmpty> -->
+		
+		
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<update id="updState" parameterClass="java.util.HashMap">
+		UPDATE `invitator_user` SET 
+		<isEqual property="type" compareValue="1">
+			`recived`=#state#
+		</isEqual>
+		<isEqual property="type" compareValue="2">
+			`returned`=#state#
+		</isEqual>
+		<isEqual property="type" compareValue="3">
+			`signed`=#state#
+		</isEqual>
+		<isEqual property="type" compareValue="4">
+			`dined`=#state#
+		</isEqual>
+		<isEqual property="type" compareValue="5">
+			`started`=#state#
+		</isEqual>
+		<isEqual property="type" compareValue="8">
+			`confirm`=#state#
+		</isEqual>
+		WHERE `inviter_id`=#inviter_id#
+	</update>
+	
+	<update id="updInfo" parameterClass="InvitatorUser">
+		UPDATE `invitator_user` SET 
+		`arrival_pattern`=#arrival_pattern#,
+		`arrival_position`=#arrival_position#,
+		`arrival_time`=#arrival_time#,
+		`arrival_info`=#arrival_info#,
+		`return_pattern`=#return_pattern#,
+		`return_position`=#return_position#,
+		`return_time`=#return_time#,
+		`return_info`=#return_info#,
+		`pick_up`=#pick_up#,
+		`responsible_person`=#responsible_person#,
+		`responsible_person_phone`=#responsible_person_phone#
+		WHERE `inviter_id`=#inviter_id#
+	</update>
+	
+	<update id="updHotelInfo" parameterClass="InvitatorUser">
+		UPDATE `invitator_user` SET 
+		`lodging_select`=#lodging_select#,
+		`hotel_select`=#hotel_select#,
+		`in_time`=#in_time#,
+		`out_time`=#out_time#,
+		`room_level`=#room_level#,
+		`room_num`=#room_num#,
+		`room_level2`=#room_level2#,
+		`room_num2`=#room_num2#
+		WHERE `inviter_id`=#inviter_id#
+	</update>
+	
+	<insert id="saveLog" parameterClass="InviteLog">
+		INSERT INTO `invite_log`(`login_id`,`invitor_id`,`type`,`org_content`,`new_content`)
+		VALUES(#login_id#,#invitor_id#,#type#,#org_content#,#new_content#)
+	
+	</insert>
+	<insert id="saveVolunteer" parameterClass="Volunteer">
+		INSERT INTO `volunteer`(`name`,`sex`,`school`,`phone`,`degree`,`idcard`,`creditcard`,`bank`,`coat`,`pants`,`img`)
+		VALUES(#name#,#sex#,#school#,#phone#,#degree#,#idcard#,#creditcard#,#bank#,#coat#,#pants#,#img#)
+	
+	</insert>
+	<insert id="saveBus" parameterClass="Bus">
+		INSERT INTO `bus`(`name`,`phone`,`start_pos`,`start_time`,`end_pos`)
+		VALUES(#name#,#phone#,#start_pos#,#start_time#,#end_pos#)
+	
+	</insert>
+</sqlMap>
