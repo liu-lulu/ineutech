@@ -1,0 +1,130 @@
+/* your styles go here */
+
+fieldset {
+	padding: .35em .625em .75em;
+	margin: 0 2px;
+	border: 1px solid silver;
+	border-radius: 15px;
+ }
+
+legend {
+	padding: .5em;
+	border: 0;
+	width: auto;
+	margin-bottom: 0px;
+	font-size: 1rem;
+ }
+ 
+ .VivaTimeline dl:before{
+	left:20%;
+ } 
+ 
+ .VivaTimeline dl dd .time{
+	left:0%;			
+	width:20%;
+ }		 
+ .VivaTimeline dl dd.pos-right .time{
+	margin-left:0;
+	padding:10px 10px 10px 0px;
+ }
+ .VivaTimeline dl dd .circ{
+	left:20%;
+ }
+.VivaTimeline dl dd .events{			
+	left: 25%;			
+	width:70%;
+}
+.VivaTimeline dl dd .events .events-header{
+	text-align:left;
+	font-size:10px;
+	font-weight:normal;
+	padding-left:5px;
+}
+
+.badge{
+	font-size:50%;
+	vertical-align:text-top;
+	border-radius:50%;
+}
+
+#voiceContent em{
+	font-style:normal;
+	color:#c00;
+}
+
+
+.panel {
+  margin-bottom: 20px;
+  background-color: #fff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+.panel-body {
+  padding: 15px;
+}
+.panel-heading {
+  padding: 10px 15px;
+  border-bottom: 1px solid transparent;
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+}
+.panel-heading > .dropdown .dropdown-toggle {
+  color: inherit;
+}
+.panel-title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 16px;
+  color: inherit;
+}
+.panel-title > a,
+.panel-title > small,
+.panel-title > .small,
+.panel-title > small > a,
+.panel-title > .small > a {
+  color: inherit;
+}
+.panel-group {
+  margin-bottom: 20px;
+}
+.panel-group .panel {
+  margin-bottom: 0;
+  border-radius: 4px;
+}
+.panel-group .panel + .panel {
+  margin-top: 5px;
+}
+.panel-group .panel-heading {
+  border-bottom: 0;
+}
+.panel-group .panel-heading + .panel-collapse > .panel-body,
+.panel-group .panel-heading + .panel-collapse > .list-group {
+  border-top: 1px solid #ddd;
+}
+.panel-group .panel-footer {
+  border-top: 0;
+}
+.panel-group .panel-footer + .panel-collapse .panel-body {
+  border-bottom: 1px solid #ddd;
+}
+
+.panel-success {
+  border-color: #d6e9c6;
+}
+.panel-success > .panel-heading {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border-color: #d6e9c6;
+}
+.panel-success > .panel-heading + .panel-collapse > .panel-body {
+  border-top-color: #d6e9c6;
+}
+.panel-success > .panel-heading .badge {
+  color: #dff0d8;
+  background-color: #3c763d;
+}
+.panel-success > .panel-footer + .panel-collapse > .panel-body {
+  border-bottom-color: #d6e9c6;
+}

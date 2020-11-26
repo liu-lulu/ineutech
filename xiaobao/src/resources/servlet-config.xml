@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    
+          
+     <!-- 控制器对应的包 -->  
+     <context:component-scan base-package="com.ineutech.control" > 
+     </context:component-scan>
+     
+     <!-- 启用spring mvc 注解 -->
+     <mvc:annotation-driven /> 
+     
+     
+     <!-- 启动Spring MVC的注解功能，完成请求和注解POJO的映射 -->  
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" lazy-init="false" />  
+  
+    <!-- 另外最好还要加入DefaultAnnotationHandlerMapping，不然会被 XML或其它的映射覆盖！ -->  
+   <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />  
+    
+     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    	<!-- 10M -->
+		<!--  <property name="maxUploadSize" value="104857600" />
+		<property name="maxInMemorySize" value="4096" />  -->
+		<property name="resolveLazily" value="true"/>
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">  
+    <!--规定返回的页面为webapp目录下的jsp页面  -->    
+        <property name="prefix" value="/views/" />    
+        <property name="suffix" value=".jsp" />
+        <property name="contentType" value="text/html;charset=UTF-8"/> 
+        
+    </bean>
+    
+
+	
+	<!--  swagger静态文件路径 -->
+	<mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/"/>
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/"/>
+    <mvc:default-servlet-handler />
+    
+
+   <mvc:interceptors>
+    	<!-- session失效拦截器 -->
+    	<mvc:interceptor>
+    		<mvc:mapping path="/visit/*"/>
+    		<!-- 不需要拦截的地址 -->
+	        <mvc:exclude-mapping path="/visit/toLogin" />
+	        <mvc:exclude-mapping path="/visit/login" />
+	       
+	        
+    		<bean class="com.ineutech.control.interceptor.SystemSessionInterceptor" ></bean>
+    	</mvc:interceptor>
+    
+    </mvc:interceptors> 
+    
+</beans>  

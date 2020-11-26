@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Visit" >
+	<typeAlias alias="Employee" type="com.ineutech.entity.Employee"/>
+	<typeAlias alias="Client" type="com.ineutech.entity.Client"/>
+	<typeAlias alias="ClientModel" type="com.ineutech.entity.ClientModel"/>
+	<typeAlias alias="VisitModel" type="com.ineutech.entity.VisitModel"/>
+	<typeAlias alias="VisitRecord" type="com.ineutech.entity.VisitRecord"/>
+	<typeAlias alias="VisitVoice" type="com.ineutech.entity.VisitVoice"/>
+	<typeAlias alias="Keywords" type="com.ineutech.entity.Keywords"/>
+	<typeAlias alias="GroupVisit" type="com.ineutech.entity.GroupVisit"/>
+	<resultMap class="com.ineutech.entity.VisitRecord" id="RM-VisitRecord">
+		<result property="visit_id" column="visit_id"/>
+		<result property="employee_id" column="employee_id"/>
+		<result property="client_id" column="client_id"/>
+		<result property="sign_address" column="sign_address"/>
+		<result property="purpose" column="purpose"/>
+		<result property="img_file" column="img_file"/>
+		
+		<result property="visit_time" column="visit_time"/>
+		<result property="voices" column="visit_id" select="Visit.getVoiceByVisitId"/>
+		<result property="employee" column="employee_id" select="Visit.getEmployeeById"/>
+		<result property="client" column="client_id" select="Visit.getClientById"/>
+		
+	</resultMap>
+	
+	<select id="getLoginEmployee" parameterClass="java.util.Map" resultClass="Employee">
+		SELECT `employee_id`,`employee_name`,`employee_phone`,`employee_login`,`leader_id`,`role`
+		FROM `employee`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="employee_login">
+				`employee_login`=#employee_login#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="employee_pwd">
+				`employee_pwd`=#employee_pwd#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="getEmployeeById" parameterClass="java.lang.Integer" resultClass="Employee">
+		SELECT `employee_id`,`employee_name`,`employee_phone`,`employee_login`,`leader_id`,`role`
+		FROM `employee` WHERE `employee_id`=#id#
+	</select>
+	
+	<select id="getEmployee" parameterClass="java.util.Map" resultClass="Employee">
+		SELECT `employee_id`,`employee_name`,`employee_phone`,`employee_login`,`leader_id`,`role`
+		FROM `employee` WHERE `role`=1
+		
+		<isNotEmpty prepend="AND" property="leader_id">
+			`leader_id`=#leader_id#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="employee_name">
+			`employee_name` LIKE '%$employee_name$%'
+		</isNotEmpty>
+		
+	</select>
+
+	<select id="getClientById" parameterClass="java.lang.Integer" resultClass="Client">
+		SELECT `client_id`,`client_cname`,`client_name`,`client_type`,`client_phone`,`client_sex`,`client_idcard`,
+		`client_birthday`,`client_income`,`client_house`,`client_car`,`client_email`,`client_marriage`,`client_origin`,
+		`client_area`,`client_address`,`client_job`,`client_label`,`client_keep`,`employee_id`,`client_date`,TIMESTAMPDIFF(YEAR, `client_birthday`, CURDATE()) AS age
+		FROM `Client` WHERE `client_id`=#id#
+	</select>
+	
+	<select id="getClient" parameterClass="java.util.Map" resultClass="Client">
+		SELECT `client_id`,`client_cname`,`client_name`,`client_type`,`client_phone`,`client_sex`,`client_idcard`,
+		`client_birthday`,`client_income`,`client_house`,`client_car`,`client_email`,`client_marriage`,`client_origin`,
+		`client_area`,`client_address`,`client_job`,`client_label`,`client_keep`,C.`employee_id`,`client_date`,TIMESTAMPDIFF(YEAR, `client_birthday`, CURDATE()) AS age,E.employee_name
+		FROM `Client` C LEFT JOIN `employee` E ON C.`employee_id`=E.`employee_id`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="leader_id">
+				E.`leader_id`=#leader_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="employee_id">
+				C.`employee_id`=#employee_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="client_id">
+				`client_id`=#client_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="client_name">
+				`client_name` LIKE '%$client_name$%'
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY `client_date` DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="clientCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT count(*) FROM `Client` C LEFT JOIN `employee` E ON C.`employee_id`=E.`employee_id`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="leader_id">
+				E.`leader_id`=#leader_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="employee_id">
+				C.`employee_id`=#employee_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="client_id">
+				`client_id`=#client_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="client_name">
+				`client_name` LIKE '%$client_name$%'
+			</isNotEmpty>
+		</dynamic>
+	</select>
+
+	<select id="getVisit" parameterClass="java.util.Map" resultMap="RM-VisitRecord">
+		SELECT V.`visit_id`,V.`employee_id`,V.`client_id`,V.`sign_address`,V.`purpose`,V.`img_file`,date_format(V.`visit_time`, '%Y-%m-%d %H:%i') AS visit_time
+		FROM `visit_record` V LEFT JOIN `employee` E ON V.`employee_id`=E.`employee_id`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="leader_id">
+				E.`leader_id`=#leader_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="employee_id">
+				V.`employee_id`=#employee_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="client_id">
+				V.`client_id`=#client_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="beginDate">
+				V.`visit_time`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=V.`visit_time`
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY V.`visit_time` DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="visitCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM `visit_record` V LEFT JOIN `employee` E ON V.`employee_id`=E.`employee_id`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="leader_id">
+				E.`leader_id`=#leader_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="employee_id">
+				V.`employee_id`=#employee_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="client_id">
+				V.`client_id`=#client_id#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="beginDate">
+				V.`visit_time`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=V.`visit_time`
+			</isNotEmpty>
+		</dynamic>
+		
+	</select>
+	
+	<select id="getVoiceByVisitId" parameterClass="java.lang.Integer" resultClass="VisitVoice">
+		SELECT `voice_id`,`visit_id`,`voice_file`,`voice_task`,`voice_time`,CASE WHEN `voice_content` IS NULL OR `voice_content`='' THEN 0 ELSE 1 END AS 'analyze',`voice_comment`
+		FROM `visit_voice` WHERE `visit_id`=#id# ORDER BY `voice_time` DESC
+	</select>
+	
+	<select id="getVoiceContentByVoiceId" parameterClass="java.lang.Integer" resultClass="VisitVoice">
+		SELECT `voice_id`,`visit_id`,`voice_file`,`voice_task`,`voice_content`,`voice_time`
+		FROM `visit_voice` WHERE `voice_id`=#voice_id#
+	</select>
+	<select id="getWechatContent" parameterClass="java.lang.Integer" resultClass="java.lang.String">
+		SELECT `wechat_content` FROM `visit_record` WHERE `visit_id`=#id#
+	</select>
+	
+	<insert id="saveClient" parameterClass="ClientModel">
+		INSERT INTO `client`(`client_cname`,`client_name`,`client_type`,`client_phone`,`client_sex`,`client_idcard`,
+		`client_birthday`,`client_income`,`client_house`,`client_car`,`client_email`,`client_marriage`,`client_origin`,
+		`client_area`,`client_address`,`client_job`,`client_label`,`client_keep`,`employee_id`)
+		VALUES(#client_cname#,#client_name#,#client_type#,#client_phone#,#client_sex#,#client_idcard#,
+		#client_birthday#,#client_income#,#client_house#,#client_car#,#client_email#,#client_marriage#,#client_origin#,
+		#client_area#,#client_address#,#client_job#,#client_label#,#client_keep#,#employee_id#)
+	</insert>
+	
+	<insert id="saveVisit" parameterClass="VisitModel">
+		INSERT INTO `visit_record`(`employee_id`,`client_id`,`sign_address`,`purpose`,`wechat_content`)
+		VALUES(#employee_id#,#client_id#,#sign_address#,#purpose#,#wechat_content#)
+		<selectKey resultClass="int">
+			SELECT LAST_INSERT_ID() AS visit_id
+		</selectKey>
+	</insert>
+	
+	<insert id="saveVoice" parameterClass="VisitVoice">
+		INSERT INTO `visit_voice`(`visit_id`,`voice_file`,`voice_task`,`voice_content`,`voice_comment`)
+		VALUES(#visit_id#,#voice_file#,#voice_task#,#voice_content#,#voice_comment#)
+	</insert>
+	
+	<update id="updImg" parameterClass="VisitRecord">
+		UPDATE `visit_record` SET `img_file`=#img_file# WHERE `visit_id`=#visit_id#
+	</update>
+	
+	<update id="updWechat" parameterClass="VisitRecord">
+		UPDATE `visit_record` SET `wechat_content`=CONCAT(CASE WHEN `wechat_content` IS NULL THEN '' ELSE `wechat_content` END,#wechat_content#) WHERE `visit_id`=#visit_id#
+	</update>
+	
+	<update id="updVoiceContent" parameterClass="VisitVoice">
+		UPDATE `visit_voice` SET `voice_content`=#voice_content# WHERE `voice_task`=#voice_task#
+	</update>
+	
+	<select id="taskIdNoVoiceContent" resultClass="java.lang.String">
+		SELECT `voice_task` FROM `visit_voice` WHERE `voice_task` IS NOT NULL AND `voice_content` IS NULL
+	</select>
+	
+	<update id="updClient" parameterClass="Client">
+		UPDATE `client` SET 
+		`client_cname`=#client_cname#,`client_name`=#client_name#,`client_type`=#client_type#,`client_phone`=#client_phone#,`client_sex`=#client_sex#,`client_idcard`=#client_idcard#,
+		`client_birthday`=#client_birthday#,`client_income`=#client_income#,`client_house`=#client_house#,`client_car`=#client_car#,`client_email`=#client_email#,`client_marriage`=#client_marriage#,
+		`client_origin`=#client_origin#,`client_area`=#client_area#,`client_address`=#client_address#,`client_job`=#client_job#,`client_label`=#client_label#,`client_keep`=#client_keep# 
+		WHERE `client_id`=#client_id#
+	</update>
+	
+	<insert id="saveKeywords" parameterClass="Keywords">
+		INSERT INTO `keywords`(`keyword`) VALUES(#keyword#)
+		<selectKey resultClass="int">
+			SELECT LAST_INSERT_ID() AS keyword_id
+		</selectKey>
+	</insert>
+	<delete id="delKeywords" parameterClass="java.lang.Integer">
+		DELETE FROM `keywords` WHERE `keyword_id`=#keyword_id#
+	</delete>
+	<select id="keywords" resultClass="Keywords">
+		SELECT `keyword_id`,`keyword` FROM `keywords`
+	</select>
+	
+	<delete id="delClient" parameterClass="java.lang.Integer">
+		DELETE C,VR,VC FROM `client` C LEFT JOIN `visit_record` VR ON C.`client_id`=VR.`client_id` LEFT JOIN `visit_voice` VC ON VR.`visit_id`=VC.`visit_id` WHERE C.`client_id`=#client_id#
+	</delete>
+	
+	<select id="getGroup" resultClass="Employee">
+		SELECT `employee_id`,`employee_name`,`employee_phone`,`employee_login`,`leader_id`,`role`
+		FROM `employee` WHERE `role`=2
+	</select>
+	<select id="groupVisit" resultClass="GroupVisit">
+		SELECT GP.employee_id AS group_id,GP.purpose,CASE WHEN GV.purpose_count IS NULL THEN 0 ELSE GV.purpose_count END AS purpose_count FROM
+		(SELECT employee_id,purpose FROM(SELECT employee_id FROM employee WHERE role=2)G,(SELECT DISTINCT purpose FROM `visit_record` ORDER BY LENGTH(purpose))P)GP LEFT JOIN
+		(SELECT E.leader_id ,VR.purpose,COUNT(*)  AS purpose_count FROM `visit_record` VR LEFT JOIN employee E ON VR.employee_id=E.employee_id GROUP BY E.leader_id,VR.purpose )GV
+		ON GP.employee_id=GV.leader_id AND GP.purpose=GV.purpose
+	</select>
+	
+	<update id="updVoiceComment" parameterClass="VisitVoice">
+		UPDATE `visit_voice` SET `voice_comment`=#voice_comment# WHERE `voice_id`=#voice_id#
+	</update>
+
+</sqlMap>
