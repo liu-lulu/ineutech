@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Shop" >
+	<typeAlias alias="LoginShop" type="com.ineutech.entity.LoginShop"/>
+	<typeAlias alias="TransactionHistory" type="com.ineutech.entity.TransactionHistory"/>
+	<typeAlias alias="KpiResult" type="com.ineutech.entity.KpiResult"/>
+	<typeAlias alias="KpiLevel" type="com.ineutech.entity.KpiLevel"/>
+	
+	<select id="login" parameterClass="LoginShop" resultClass="LoginShop">
+		SELECT `shop_id`,`shop_code`,`shop_name`,`shop_brand`,`shop_login`,`shop_pwd`,`role`,`updPwd` 
+		FROM `shop_login`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="shop_login">
+				`shop_login`=#shop_login#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_pwd">
+				`shop_pwd`=#shop_pwd#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	<update id="updPwd" parameterClass="LoginShop">
+		UPDATE `shop_login` SET shop_pwd=#shop_pwd#,updPwd=1 WHERE shop_id=#shop_id#
+	</update>
+	
+	<select id="history" parameterClass="java.util.Map" resultClass="TransactionHistory">
+		SELECT `history_id`,`shop_code`,`shop_name`,`history_date`,`history_time`,`cashier_code`,`member_code` ,
+			`member_name`,`transaction_amount`,`discount_amount`,`daily_num`,`daily_transactions`
+		FROM `transaction_history`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`history_date`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`history_date`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY `history_date` ASC,history_time ASC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="historyCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT count(*) FROM `transaction_history`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`history_date`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`history_date`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="kpiResult" parameterClass="java.util.Map" resultClass="KpiResult">
+
+SELECT ms_rk.`shop_code`,ms_rk.`shop_name`,ms_rk.`shop_brand`, ms_rk.member_sales,ms_rk.member_num, ms_rk.wechat_money,ms_rk.rank as ms_rk,mn_rk.rank as mn_rk,wm_rk.rank as wm_rk, fc.`fc`,fc.`rank` AS fc_rk,
+
+rd.score,rd.missing
+FROM
+
+(
+SELECT `shop_code`,`shop_name`,`shop_brand`, member_sales,member_num, wechat_money,
+@r:=@r+1 as rownum,
+@c:=IF(@a=member_sales,@c,@r) AS rank,
+@a:=member_sales
+FROM
+(
+SELECT 
+`shop_code`,`shop_name`,`shop_brand`,
+AVG(`member_sales`/`total_sales`) as member_sales, 
+AVG(`member_num`/`total_num`) as member_num, 
+AVG(`wechat_money`/`total_sales`) as wechat_money 
+
+
+FROM `kpi_statistics` 
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		`date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=`date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code
+)t,(SELECT @a:=NULL,@r:=0,@c:=1)r
+
+ORDER BY member_sales DESC
+
+)ms_rk
+
+LEFT JOIN
+
+(
+
+SELECT `shop_code`, member_sales,member_num, wechat_money,
+@r1:=@r1+1 as rownum,
+@c1:=IF(@a1=member_num,@c1,@r1) AS rank,
+@a1:=member_num
+FROM
+(
+SELECT 
+`shop_code`,
+AVG(`member_sales`/`total_sales`) as member_sales, 
+AVG(`member_num`/`total_num`) as member_num, 
+AVG(`wechat_money`/`total_sales`) as wechat_money 
+
+
+FROM `kpi_statistics` 
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		`date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=`date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code
+)t,(SELECT @a1:=NULL,@r1:=0,@c1:=1)r
+
+ORDER BY member_num DESC
+
+)mn_rk ON ms_rk.shop_code=mn_rk.shop_code
+
+LEFT JOIN
+
+(
+SELECT `shop_code`, member_sales,member_num, wechat_money,
+@r2:=@r2+1 as rownum,
+@c2:=IF(@a2=wechat_money,@c2,@r2) AS rank,
+@a2:=wechat_money
+FROM
+(
+SELECT 
+`shop_code`,
+AVG(`member_sales`/`total_sales`) as member_sales, 
+AVG(`member_num`/`total_num`) as member_num, 
+AVG(`wechat_money`/`total_sales`) as wechat_money 
+
+
+FROM `kpi_statistics` 
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		`date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=`date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code
+)t,(SELECT @a2:=NULL,@r2:=0,@c2:=1)r
+
+ORDER BY wechat_money DESC
+
+)wm_rk ON ms_rk.shop_code=wm_rk.shop_code
+
+LEFT JOIN
+
+(
+<!-- 方差start -->
+
+<!-- SELECT `shop_code`,fc,
+@r3:=@r3+1 as rownum,
+@c3:=IF(@a3=fc,@c3,@r3) AS rank,
+@a3:=fc
+
+FROM(
+SELECT t1.shop_code,t2.fc FROM kpi_statistics t1 LEFT JOIN(
+
+SELECT t1.shop_code,SUM(POWER(t1.transaction_amount-t2.u,2))/t2.n AS fc
+FROM transaction_history t1 LEFT JOIN 
+(
+
+SELECT shop_code,AVG(transaction_amount) AS u,COUNT(*) as n FROM transaction_history
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		`history_date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=`history_date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code
+
+) t2 ON t1.shop_code=t2.shop_code
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		t1.`history_date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=t1.`history_date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code
+)t2
+
+on t1.shop_code=t2.shop_code
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		t1.`date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=t1.`date`
+	</isNotEmpty>
+</dynamic> 
+GROUP BY t1.shop_code
+ORDER BY t2.fc DESC
+)t,(SELECT @a3:=NULL,@r3:=0,@c3:=1)r -->
+
+SELECT `shop_code`,fc,
+@r3:=@r3+1 as rownum,
+@c3:=IF(fc IS NULL,null,IF(@a3=fc,@c3,@r3)) AS rank,
+@a3:=fc
+
+FROM(
+
+SELECT t1.shop_code,t2.fc FROM kpi_statistics t1 LEFT JOIN(
+
+SELECT t1.shop_code,SUM(POWER(t1.daily_num-t2.u,2))/t2.n as fc
+FROM (
+SELECT shop_code,member_code,COUNT(daily_num) AS daily_num FROM
+transaction_history
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		`history_date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=`history_date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code,member_code
+) t1 LEFT JOIN 
+(
+
+SELECT shop_code,COUNT(*)/COUNT(DISTINCT member_code) AS u,COUNT(DISTINCT member_code) as n FROM transaction_history
+
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		`history_date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=`history_date`
+	</isNotEmpty>
+</dynamic> 
+
+GROUP BY shop_code
+
+) t2 ON t1.shop_code=t2.shop_code
+
+
+GROUP BY shop_code
+)t2
+
+on t1.shop_code=t2.shop_code
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="beginDate">
+		t1.`date`>=#beginDate#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="endDate">
+		#endDate#>=t1.`date`
+	</isNotEmpty>
+</dynamic> 
+ 
+GROUP BY t1.shop_code
+ORDER BY t2.fc ASC
+
+)t,(SELECT @a3:=NULL,@r3:=0,@c3:=1)r
+
+<!-- 方差end -->
+
+)fc ON ms_rk.`shop_code`=fc.`shop_code`
+
+LEFT JOIN
+
+(
+SELECT `shop_name`,`score`,`missing` FROM
+(
+SELECT `shop_name`,`score`,`missing`,`time` FROM `record`  ORDER BY shop_name,time DESC
+)record
+GROUP BY shop_name
+)rd ON ms_rk.shop_name=rd.shop_name
+<dynamic prepend="WHERE">
+	<isNotEmpty prepend="AND" property="shop_code">
+		(ms_rk.`shop_code` LIKE '%$shop_code$%' OR ms_rk.`shop_name` LIKE '%$shop_code$%')
+	</isNotEmpty>
+</dynamic>
+<isEmpty property="order">
+ORDER BY cast(ms_rk as UNSIGNED INTEGER) ASC
+</isEmpty>
+<isNotEmpty property="order">
+<isEqual property="order" compareValue="1">
+ORDER BY cast(ms_rk as UNSIGNED INTEGER) ASC
+</isEqual>
+<isEqual property="order" compareValue="2">
+ORDER BY cast(ms_rk as UNSIGNED INTEGER) DESC
+</isEqual>
+<isEqual property="order" compareValue="3">
+ORDER BY cast(mn_rk as UNSIGNED INTEGER) ASC
+</isEqual>
+<isEqual property="order" compareValue="4">
+ORDER BY cast(mn_rk as UNSIGNED INTEGER) DESC
+</isEqual>
+<isEqual property="order" compareValue="5">
+ORDER BY cast(wm_rk as UNSIGNED INTEGER) ASC
+</isEqual>
+<isEqual property="order" compareValue="6">
+ORDER BY cast(wm_rk as UNSIGNED INTEGER) DESC
+</isEqual>
+<isEqual property="order" compareValue="7">
+ORDER BY cast(fc_rk as UNSIGNED INTEGER) ASC
+</isEqual>
+<isEqual property="order" compareValue="8">
+ORDER BY cast(fc_rk as UNSIGNED INTEGER) DESC
+</isEqual>
+
+</isNotEmpty>
+
+
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="kpiResultCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(DISTINCT shop_code) FROM `kpi_statistics`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`date`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`date`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+			(`shop_code` LIKE '%$shop_code$%' OR `shop_name` LIKE '%$shop_code$%')
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="kpiLevel" resultClass="KpiLevel">
+		SELECT `kpi_time`,`member_money`,`member_num`,`wechat_money`,`fc`
+		FROM kpi_level ORDER BY kpi_time DESC LIMIT 1
+	</select>
+	
+	<select id="getUpdDate" parameterClass="java.util.Map" resultClass="java.lang.String">
+		SELECT MAX(`date`) FROM `kpi_statistics`
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="shop_code">
+				(`shop_code` LIKE '%$shop_code$%' OR `shop_name` LIKE '%$shop_code$%')
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<insert id="saveKpi" parameterClass="java.util.List">
+		INSERT INTO `kpi_statistics`(`shop_code`,`shop_name`,`shop_brand`,`date`,`total_sales`,`total_num`, `member_sales`,`member_num`, `wechat_money`)
+		VALUES
+		<iterate conjunction=",">
+		(#[].shop_code#,#[].shop_name#,#[].shop_brand#,#[].kpiDate#,#[].total_sales#,#[].total_num#,#[].member_sales#,#[].member_num#,#[].wechat_money#)
+		</iterate>
+	</insert>
+	
+	<insert id="saveDetail" parameterClass="java.util.List">
+		INSERT INTO `transaction_history`(`shop_code`,`shop_name`,`history_date`,`history_time`,`cashier_code`,`member_code` ,
+			`member_name`,`transaction_amount`,`discount_amount`,`daily_num`,`daily_transactions`)
+		VALUES
+		<iterate conjunction=",">
+		(#[].shop_code#,#[].shop_name#,#[].historyDate#,#[].time#,#[].cashier_code#,#[].member_code#,#[].member_name#,#[].transaction_amount#,#[].discount_amount#,#[].daily_num#,#[].daily_transactions#)
+		</iterate>
+	</insert>
+	
+
+</sqlMap>

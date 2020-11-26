@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Delivery" >
+	<typeAlias alias="DeliveryLogin" type="com.ineutech.entity.delivery.DeliveryLogin"/>
+	<typeAlias alias="DeliveryOrder" type="com.ineutech.entity.delivery.DeliveryOrder"/>
+	
+	<select id="shops" resultClass="DeliveryLogin">
+		SELECT `login_id`,`shop_code`,`shop_name`,`login_name`,`login_pwd`,`role`
+		FROM `delivery_login` WHERE role=0 GROUP BY `shop_code` ORDER BY `shop_code` ASC
+	</select>
+	<select id="deliverymans" parameterClass="java.lang.String" resultClass="DeliveryLogin">
+		SELECT `login_id`,`shop_code`,`shop_name`,`role`
+		FROM `delivery_login` WHERE `shop_code`=#shop_code# AND role=2 
+	</select>
+	<select id="login" parameterClass="DeliveryLogin" resultClass="DeliveryLogin">
+		SELECT `login_id`,`shop_code`,`shop_name`,`login_name`,`login_pwd`,`role`
+		FROM `delivery_login`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="login_name">
+				`login_name`=#login_name#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="login_pwd">
+				`login_pwd`=#login_pwd#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="order" parameterClass="java.util.Map" resultClass="DeliveryOrder">
+		SELECT `order_id`,`order_info`,`receiver`,`receiver_address`,`receiver_phone`,`product_name`,`product_num`, O.`shop_code`,`time`,`scheduled_time`,`delivery_time`,`delivery_address`,`deliveryman`,`flag`,L.`shop_name` AS deliverymanName,L2.shop_name
+		FROM `delivery_order` O LEFT JOIN `delivery_login` L ON O.`deliveryman`=L.`login_id` LEFT JOIN (SELECT `shop_code`,`shop_name` FROM `delivery_login` WHERE `role`=0 ) L2 ON O.`shop_code`=L2.`shop_code`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="shop_code">
+				O.`shop_code`=#shop_code#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="deliveryman">
+				O.`deliveryman`=#deliveryman#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="orderInfo">
+				(`order_info` LIKE '%$orderInfo$%' OR `receiver` LIKE '%$orderInfo$%' OR `receiver_phone` LIKE '%$orderInfo$%' )
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="flag">
+				`flag`=#flag#
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY `time` DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="orderCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT count(*) FROM `delivery_order`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="deliveryman">
+				`deliveryman`=#deliveryman#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="orderInfo">
+				(`order_info` LIKE '%$orderInfo$%' OR `receiver` LIKE '%$orderInfo$%' OR `receiver_phone` LIKE '%$orderInfo$%')
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="flag">
+				`flag`=#flag#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+
+	
+	<insert id="saveOrder" parameterClass="DeliveryOrder">
+		INSERT INTO `delivery_order`(`order_info`,`receiver`,`receiver_address`,`receiver_phone`,`product_name`,`product_num`, `shop_code`,`scheduled_time`)
+		VALUES		
+		(#order_info#,#receiver#,#receiver_address#,#receiver_phone#,#product_name#,#product_num#,#shop_code#,#scheduled_time#)
+		
+	</insert>
+	
+	<update id="deliveryOrder" parameterClass="DeliveryOrder">
+		UPDATE `delivery_order` SET 
+		`delivery_address`=#delivery_address#,`delivery_time`=#delivery_time#,`flag`=#flag#
+		WHERE `order_id`=#order_id#
+	</update>
+	<update id="updMan" parameterClass="DeliveryOrder">
+		UPDATE `delivery_order` SET `deliveryman`=#deliveryman#
+		WHERE `order_id`=#order_id#
+	</update>
+	
+	<update id="updOrder" parameterClass="DeliveryOrder">
+		UPDATE `delivery_order` SET `order_info`=#order_info#,`receiver`=#receiver#,`receiver_address`=#receiver_address#,`receiver_phone`=#receiver_phone#,`product_name`=#product_name#,`product_num`=#product_num#, `shop_code`=#shop_code#,`scheduled_time`=#scheduled_time#
+		WHERE `order_id`=#order_id#
+	</update>
+	
+
+
+</sqlMap>

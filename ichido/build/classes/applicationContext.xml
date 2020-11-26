@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"     
+       xmlns:aop="http://www.springframework.org/schema/aop"     
+       xmlns:context="http://www.springframework.org/schema/context"    
+       xmlns:mvc="http://www.springframework.org/schema/mvc"     
+       xmlns:tx="http://www.springframework.org/schema/tx"     
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"    
+       xsi:schemaLocation="http://www.springframework.org/schema/aop     
+        http://www.springframework.org/schema/aop/spring-aop-3.1.xsd     
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd     
+        http://www.springframework.org/schema/context     
+        http://www.springframework.org/schema/context/spring-context-3.1.xsd     
+        http://www.springframework.org/schema/mvc     
+        http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd     
+        http://www.springframework.org/schema/tx     
+        http://www.springframework.org/schema/tx/spring-tx-3.1.xsd"
+        default-autowire="byName" >    
+     
+     <!--使Spring支持自动检测组件，如注解的@Controller -->
+    <!-- <context:component-scan base-package="com.ineutech.dao.*,com.ineutech.service.*" /> -->
+    
+    <context:component-scan base-package="com.ineutech.swagger.*" />
+	<!-- 启动SpringMVC的注解功能，完成请求和注解POJO的映射 -->
+		<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />
+    
+    <!-- 获取配置文件 -->  
+   <bean id="config"  
+       class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  
+       <property name="locations">  
+           <list>  
+              <value>classpath:db.properties</value>  
+           </list>  
+       </property>  
+    </bean>
+
+    <!-- 配置数据源 -->  
+   <bean id="dataSource"  
+        class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName">
+           <value>${db.dirverClass}</value>
+       </property>  
+       <property name="url">
+           <value>${db.url}</value>
+       </property>  
+       <property name="username">
+           <value>${db.username}</value>
+       </property>  
+       <property name="password">
+           <value>${db.password}</value>
+       </property>  
+    </bean>
+    
+    <!-- Spring iBatis SqlMapClient -->
+     <bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation" value="classpath:sqlmap-config.xml" />
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    
+    <!--根据sqlMapClien创建一个SqlMapClient模版类-->
+	<bean id="sqlMapClientTemplate" class="org.springframework.orm.ibatis.SqlMapClientTemplate">
+		<property name="sqlMapClient" ref="sqlMapClient"/>
+	</bean>
+    
+    <bean id="appTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+      <property name="dataSource" ref="dataSource" />
+    </bean>
+ 
+	<bean id="jdbctemplate" class="org.springframework.jdbc.core.JdbcTemplate">  
+        <property name="dataSource" ref="dataSource"></property>  
+    </bean>
+    
+     <tx:annotation-driven proxy-target-class="false" transaction-manager="appTransactionManager" />
+     
+     
+
+    <!-- dao --> 
+    <bean id="baseDao" class="com.ineutech.dao.impl.BaseDaoImpl" >  
+    </bean>
+    <bean id="userDao" class="com.ineutech.dao.impl.UserDaoImpl" >  
+    </bean>
+    <bean id="deliveryDao" class="com.ineutech.dao.impl.DeliveryDaoImpl" >  
+    </bean>
+    <bean id="cakeDao" class="com.ineutech.dao.impl.CakeDaoImpl" >  
+    </bean>
+    
+    <!-- service -->
+    <bean id="baseService" class="com.ineutech.service.impl.BaseServiceImpl">
+    </bean>
+    <bean id="userService" class="com.ineutech.service.impl.UserServiceImpl">
+    </bean>
+    <bean id="deliveryService" class="com.ineutech.service.impl.DeliveryServiceImpl">
+    </bean>
+    <bean id="cakeService" class="com.ineutech.service.impl.CakeServiceImpl">
+    </bean>
+    
+    <bean class="com.ineutech.swagger.SwaggerConfig" /> 
+</beans>  

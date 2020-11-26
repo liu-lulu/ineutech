@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Cake" >
+	<typeAlias alias="CakeEmployee" type="com.ineutech.entity.cake.CakeEmployee"/>
+	<typeAlias alias="CakeTransaction" type="com.ineutech.entity.cake.CakeTransaction"/>
+	<typeAlias alias="CakeShop" type="com.ineutech.entity.cake.CakeShop"/>
+	<typeAlias alias="CakeLoginLog" type="com.ineutech.entity.cake.CakeLoginLog"/>
+	
+	<select id="login" parameterClass="CakeEmployee" resultClass="CakeEmployee">
+		SELECT `e_id`,`e_number`,`e_name`,`pwd`,`role`
+		FROM `cake_employee`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="e_number">
+				`e_number`=#e_number#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="pwd">
+				`pwd`=#pwd#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="getEmployee" parameterClass="java.lang.String" resultClass="CakeEmployee">
+		SELECT `e_id`,`e_number`,`e_name`,`pwd`,`role`
+		FROM `cake_employee`
+		WHERE `e_number` LIKE '%$info$%' OR `e_name` LIKE '%$info$%'
+	</select>
+	
+	<select id="getManager" resultClass="CakeEmployee">
+		SELECT `e_id`,`e_number`,`e_name`,`pwd`,`role`
+		FROM `cake_employee`
+		WHERE `role`=2
+	</select>
+	
+	<update id="updPwd" parameterClass="java.util.Map">
+		UPDATE `cake_employee` SET pwd=#pwd# WHERE e_id=#e_id#
+	</update>
+	
+	<select id="transactionsRecord" parameterClass="java.util.Map" resultClass="CakeTransaction">
+		SELECT `e_number`,`e_name`,COUNT(*) AS totalCount,SUM(`flag`) as confirmCount,SUM(cake_price) as totalPrice,SUM(CASE `flag` WHEN 1 THEN cake_price ELSE 0 END) AS confirmPrice
+		FROM `cake_transaction` 
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`transaction_time`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`transaction_time`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="flag">
+				`flag`=#flag#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="e_id">
+				`e_id`=#e_id#
+			</isNotEmpty>
+		</dynamic>
+		GROUP BY `e_number`
+		ORDER BY SUM(cake_price) DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="transactionsRecordCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT count(DISTINCT `e_number`) FROM `cake_transaction`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`transaction_time`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`transaction_time`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="flag">
+				`flag`=#flag#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="e_id">
+				`e_id`=#e_id#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="transactions" parameterClass="java.util.Map" resultClass="CakeTransaction">
+		SELECT `cake_id`,`e_number`,`e_name`,`e_card`,`shop_code`,`shop_name`,`member_code`,`cake_price`,`cake_num`,date_format(`transaction_time`, '%Y-%m-%d %H:%i') AS `transaction_time`,`e_id` ,
+			date_format(`confirm_time`, '%Y-%m-%d %H:%i') AS `confirm_time`,`flag`
+		FROM `cake_transaction`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`transaction_time`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`transaction_time`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="e_number">
+				`e_number`=#e_number#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="flag">
+				`flag`=#flag#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="e_id">
+				`e_id`=#e_id#
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY `transaction_time` DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="transactionsCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT count(*) FROM `cake_transaction`
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="beginDate">
+				`transaction_time`>=#beginDate#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="endDate">
+				#endDate#>=`transaction_time`
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="shop_code">
+				`shop_code`=#shop_code#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="e_number">
+				`e_number`=#e_number#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="flag">
+				`flag`=#flag#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="e_id">
+				`e_id`=#e_id#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<select id="shops" resultClass="CakeShop">
+		SELECT `shop_code`,`shop_name`,`shop_brand`
+		FROM `cake_shop` ORDER BY `shop_code` ASC
+	</select>
+	
+	<update id="confirm" parameterClass="java.util.Map" >
+		UPDATE `cake_transaction` SET `e_id`=#e_id#,`confirm_time`=#confirm_time#,`flag`=#flag#
+		WHERE 
+		<isNotEmpty property="cakeIdList">  
+            `cake_id` IN  
+            <iterate  property="cakeIdList" conjunction="," close=")" open="(" >  
+                #cakeIdList[]#  
+            </iterate>  
+        </isNotEmpty>  
+	</update>
+	
+	<select id="managerSale" parameterClass="java.util.Map" resultClass="CakeTransaction">
+		SELECT `shop_code`,`shop_name`,SUM(`cake_price`) AS `cake_price`,COUNT(*) AS `totalCount`,SUM(`cake_num`) AS `cake_num`
+		FROM `cake_transaction`
+		<dynamic prepend="WHERE">
+		<isNotEmpty prepend=" AND " property="beginDate">
+			`transaction_time`>=#beginDate#
+		</isNotEmpty>
+		<isNotEmpty prepend=" AND " property="endDate">
+			#endDate#>=`transaction_time`
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="flag">
+			`flag`=#flag#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="e_id">
+			`e_id`=#e_id#
+		</isNotEmpty>
+		</dynamic>
+		GROUP BY `shop_code`
+		ORDER BY SUM(`cake_price`) DESC
+	</select>
+	
+	<insert id="saveEmployee" parameterClass="CakeEmployee">
+		INSERT INTO `cake_employee`(`e_number`,`e_name`,`pwd`,`role`)VALUES(#e_number#,#e_name#,#pwd#,#role#)
+	</insert>
+	
+	<delete id="delEmployee" parameterClass="java.lang.Integer">
+		DELETE FROM `cake_employee` WHERE `e_id`=#e_id#
+	</delete>
+	
+	<select id="employeeSale" parameterClass="java.util.Map" resultClass="CakeTransaction">
+		SELECT `e_number`,`e_name`,SUM(`cake_price`) AS `cake_price`,SUM(`cake_num`) AS `cake_num`
+		FROM `cake_transaction` WHERE `flag`=1
+		
+		<isNotEmpty prepend="AND" property="beginDate">
+			`transaction_time`>=#beginDate#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="endDate">
+			#endDate#>=`transaction_time`
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="shop_code">
+			`shop_code`=#shop_code#
+		</isNotEmpty>
+		
+		GROUP BY `e_number`
+		ORDER BY SUM(`cake_price`) DESC
+	</select>
+	
+	<insert id="saveLoginlog" parameterClass="CakeLoginLog">
+		INSERT INTO `cake_loginlog`(`e_number`,`nickname`) VALUES(#e_number#,#nickname#)
+	</insert>
+	
+	<insert id="saveTrans" parameterClass="CakeTransaction">
+		INSERT INTO `cake_transaction`(`e_number`,`e_name`,`shop_code`,`shop_name`,`member_code`,`cake_num`,`cake_price`)
+		VALUES(#e_number#,#e_name#,#shop_code#,#shop_name#,#member_code#,#cake_num#,#cake_price#)
+	</insert>
+	<update id="updTrans" parameterClass="CakeTransaction">
+		UPDATE `cake_transaction` SET `cake_num`=#cake_num#,`cake_price`=#cake_price# WHERE `cake_id`=#cake_id#
+	</update>
+	<delete id="delTrans" parameterClass="java.lang.Integer">
+		DELETE FROM `cake_transaction` WHERE `cake_id`=#cake_id#
+	</delete>
+	
+
+</sqlMap>
