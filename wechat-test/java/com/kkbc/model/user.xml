@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="User" >
+	<typeAlias alias="User" type="com.kkbc.entity.User"/>
+	
+	<sql id="Base_Column_List">
+		user_id,open_id, name, password, nickname, phone, user_type,create_time,stu_no
+	</sql>
+	<select id="getByOpenid" parameterClass="java.lang.String" resultClass="User">
+		SELECT <include refid="Base_Column_List" />
+		FROM USER WHERE open_id=#open_id#
+	</select>
+	
+	<insert id="insert" parameterClass="User">
+		INSERT INTO USER(open_id, name, nickname, phone, user_type,create_time,stu_no) VALUES(#open_id#, #name#, #nickname#, #phone#, #user_type#,#create_time#,#stu_no#)
+		<selectKey resultClass="int" keyProperty="user_id">
+			SELECT LAST_INSERT_ID() AS user_id
+		</selectKey>
+	</insert>
+	
+	<update id="update" parameterClass="User">
+		UPDATE USER SET name=#name#, nickname=#nickname#, phone=#phone#,stu_no=#stu_no# where open_id=#open_id#
+	</update>
+	
+</sqlMap>

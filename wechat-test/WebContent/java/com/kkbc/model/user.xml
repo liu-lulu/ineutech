@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="User" >
+	<typeAlias alias="User" type="com.kkbc.entity.User"/>
+	<typeAlias alias="Company" type="com.kkbc.entity.Company"/>
+	<typeAlias alias="ConvertHistory" type="com.kkbc.entity.ConvertHistory"/>
+	<typeAlias alias="PrizeHistory" type="com.kkbc.entity.PrizeHistory"/>
+	<typeAlias alias="TransferHistory" type="com.kkbc.entity.TransferHistory"/>
+	<select id="login" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT 
+		U.user_id,U.user_name,C.company as user_company,C.company_id as user_company_id,U.user_phone,U.level,U.true_name,U.create_time,U.`status`,U.awardCoins,U.shoppingDrill,U.declarationCoins
+        FROM `user` U INNER JOIN company C ON C.company_id=U.user_company_id 
+        WHERE U.user_name=#loginName# and U.user_password=#pwd# LIMIT 1
+	</select>
+	
+	<select id="valiLoginName" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT U.user_id,U.user_name,C.company as user_company,C.company_id as user_company_id,U.user_phone,U.level,U.true_name,U.create_time,U.`status`,U.referral,U.contactPerson,U.area,U.IDCardNo,U.awardCoins,U.shoppingDrill,declarationCoins
+        FROM `user` U INNER JOIN company C ON C.company_id=U.user_company_id 
+        WHERE U.user_name=#loginName# LIMIT 1
+	</select>
+	
+	<!-- 修改密码: type:1修改登录密码 2修改二级密码-->
+	<update id="updPass" parameterClass="java.util.HashMap">
+		update `user` set 
+		<isEqual property="type" compareValue="1">
+			user_password=#password#
+		</isEqual>
+		<isEqual property="type" compareValue="2">
+			pwd2=#password#
+		</isEqual>
+		where user_id=#user_id#
+	</update>
+	
+	<!-- 修改用户信息 -->
+	<update id="updInfo" parameterClass="user">
+		update `user`  
+		<dynamic prepend="set">
+		<isNotEmpty prepend="," property="true_name">
+			true_name=#true_name#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="IDCardNo">
+			IDCardNo=#IDCardNo#
+		</isNotEmpty>
+		<isNotEmpty prepend="," property="user_phone">
+			user_phone=#user_phone#
+		</isNotEmpty>
+		</dynamic>
+		where user_id=#user_id#
+	</update>
+	
+	<!-- 获取子节点: area: A获取A区节点 B获取B区节点 -->
+	<select id="getSonUser" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT * FROM `user` WHERE contactPerson=#user_name# 
+		<isNotEmpty prepend=" and " property="area">
+			area=#area#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 我的推荐 -->
+	<select id="getUser" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT * FROM `user` WHERE referral=#user_name# 
+		<isNotEmpty prepend="and" property="status">
+			status=#status#
+		</isNotEmpty>
+	</select>
+	
+	<!-- 奖金记录 -->
+	<select id="prizeRecord" parameterClass="java.lang.String" resultClass="PrizeHistory">
+		SELECT * FROM `prize-history` WHERE user_name=#user_name# 
+	</select>
+	
+	<!-- 转账记录 -->
+	<select id="transferRecord" parameterClass="java.lang.String" resultClass="TransferHistory">
+		SELECT * FROM `transfer_history` WHERE `from`=#user_name# or `to`=#user_name#
+	</select>
+	
+	<!-- 转换记录 -->
+	<select id="convertRecord" parameterClass="java.lang.String" resultClass="ConvertHistory">
+		SELECT * FROM `convert_history` WHERE user=#user_name#
+	</select>
+	
+	<!-- 余额check：coin_type:1:奖金币 2:购物钻 -->
+	<select id="moneyCheck" parameterClass="java.util.HashMap" resultClass="User">
+		select * from user where user_id=#user_id# 
+		<isEqual property="coin_type" compareValue="1">
+			and awardCoins>=#money#
+		</isEqual>
+		<isEqual property="coin_type" compareValue="2">
+			and shoppingDrill>=#money#
+		</isEqual>
+	</select>
+	
+	<!-- 二级密码check -->
+	<select id="pwd2Check" parameterClass="java.util.HashMap" resultClass="User">
+		select * from user where user_id=#user_id# and pwd2=#pwd2#
+	</select>
+	
+	<!-- 会员转账from：coin_type:1:奖金币 2:购物钻 -->
+	<update id="transferFrom" parameterClass="java.util.HashMap">
+		update user set 
+		<isEqual property="coin_type" compareValue="1">
+			awardCoins=awardCoins-#money#
+		</isEqual>
+		<isEqual property="coin_type" compareValue="2">
+			shoppingDrill=shoppingDrill-#money#
+		</isEqual>
+		where user_name=#from_user_name#
+	</update>
+	
+	<!-- 会员转账to：coin_type:1:奖金币 2:购物钻 -->
+	<update id="transferTo" parameterClass="java.util.HashMap">
+		update user set 
+		<isEqual property="coin_type" compareValue="1">
+			awardCoins=awardCoins+#money#
+		</isEqual>
+		<isEqual property="coin_type" compareValue="2">
+			shoppingDrill=shoppingDrill+#money#
+		</isEqual>
+		where user_name=#to_user_name#
+	</update>
+	
+	<!-- 币种转换 -->
+	<update id="coinConvert" parameterClass="java.util.HashMap">
+		update user set awardCoins=awardCoins-#money#,declarationCoins=declarationCoins+#money# where user_name=#user_name#
+	</update>
+	
+	<!-- 保存币种转换记录 -->
+	<insert id="saveConvertHistory" parameterClass="ConvertHistory">
+		insert into convert_history(create_time,user,money,type) values(#create_time#,#user#,#money#,#type#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	<!-- 保存奖金币历史记录 -->
+	<insert id="savePrizeHistory" parameterClass="PrizeHistory">
+		insert into `prize-history`(user_name,createTime,type,trigger_user_name,pointPrize,amountPrize,layerPrize)values(#user_name#,#createTime#,#type#,#trigger_user_name#,#pointPrize#,#amountPrize#,#layerPrize#)
+		<!-- <isGreaterThan prepend="," property="pointPrize" compareValue="0">
+			pointPrize
+		</isGreaterThan>
+		<isGreaterThan prepend="," property="amountPrize" compareValue="0">
+			amountPrize
+		</isGreaterThan>
+		<isGreaterThan prepend="," property="layerPrize" compareValue="0">
+			layerPrize
+		</isGreaterThan>
+		)values(#user_name#,#createTime#,#type#,#trigger_user_name#
+		<isGreaterThan prepend="," property="pointPrize" compareValue="0">
+			#pointPrize#
+		</isGreaterThan>
+		<isGreaterThan prepend="," property="amountPrize" compareValue="0">
+			#amountPrize#
+		</isGreaterThan>
+		<isGreaterThan prepend="," property="layerPrize" compareValue="0">
+			#layerPrize#
+		</isGreaterThan>
+		) -->
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	<!-- 保存转账记录 -->
+	<insert id="saveTransferHistory" parameterClass="TransferHistory">
+		insert into transfer_history(create_time,coin_type,`from`,`to`,type,money,remark) values(#create_time#,#coin_type#,#from#,#to#,#type#,#money#,#remark#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	<!-- 注册用户 -->
+	<insert id="register" parameterClass="User">
+		insert into user(user_name,user_password,true_name,referral,contactPerson,area,create_time,pwd2,user_phone,IDCardNo,user_company_id) values(#user_name#,#user_password#,#true_name#,#referral#,#contactPerson#,#area#,#create_time#,#pwd2#,#user_phone#,#IDCardNo#,#user_company_id#)
+		<selectKey resultClass="int" keyProperty="user_id">
+			SELECT LAST_INSERT_ID() AS user_id
+		</selectKey>
+	</insert>
+	
+	<!-- 追加奖励金 -->
+	 <update id="uptAwardCoins" parameterClass="User">
+		update user set awardCoins=awardCoins+#awardCoins# where user_name=#user_name#
+	</update> 
+	
+</sqlMap>

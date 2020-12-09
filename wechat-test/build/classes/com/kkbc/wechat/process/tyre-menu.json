@@ -1,0 +1,42 @@
+{
+	"button" : [
+			{"name" : "功能通道1",
+				"sub_button" : [ {
+							"type" : "pic_photo_or_album",
+							"name" : "发图",
+							"key" : "click_key_bao_xiu"
+						}, {
+							"type" : "location_select",
+							"name" : "发送位置",
+							"key" : "click_key_comment"
+						}, {
+							"type" : "click",
+							"name" : "用户中心",
+							"key" : "click_key_user_info"
+						}]
+			},
+			{"name" : "扫码通道",
+				"sub_button" : [{
+				"type" : "scancode_waitmsg",
+				"name" : "扫码带提示",
+				"key" : "click_key_scancode_waitmsg"
+				},{
+				"type" : "scancode_push",
+				"name" : "扫码推事件",
+				"key" : "click_key_scancode_push"
+				}]
+				
+			},
+			{"name" : "个人通道",
+				"sub_button" : [{
+					"type" : "view",
+					"name" : "网页授权",
+					"url" : "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx0c4eebbe9b927b1c&redirect_uri=http%3A%2F%2Fhylexus.6655.la%2Fwechat-test%2Fuser%2FuserInfo&response_type=code&scope=snsapi_base&state=my-param1#wechat_redirect"
+				},{
+				"type" : "click",
+				"name" : "我要购胎",
+				"key" : "click_key_goutai"
+				}]
+			}
+	]
+}
