@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="User" >
+	<typeAlias alias="User" type="com.kkbc.entity.User"/>
+	
+	<select id="login" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT * FROM `user` WHERE login_name=#loginName# and password=#password# LIMIT 1
+	</select>
+	
+	<select id="valiLoginName" parameterClass="java.lang.String" resultClass="User">
+		SELECT * FROM `user` WHERE login_name=#loginName# LIMIT 1
+	</select>
+	
+	<update id="updLoginTime" parameterClass="User">
+		UPDATE `user` SET last_login_time=#last_login_time# WHERE user_id=#user_id#
+	</update>
+	
+</sqlMap>

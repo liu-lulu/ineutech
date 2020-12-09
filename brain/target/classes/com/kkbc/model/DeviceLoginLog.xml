@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceLoginLog" >
+	<typeAlias alias="DeviceLoginLog" type="com.kkbc.entity.DeviceLoginLog"/>
+	<typeAlias alias="DeviceLoginLogVo" type="com.kkbc.vo.DeviceLoginLogVo"/>
+	
+	<insert id="saveData" parameterClass="DeviceLoginLog">
+		insert into device_login_log(create_time,status,remote_ip,remote_port,type,device_id) values (#create_time#,#status#,#remote_ip#,#remote_port#,#type#,#device_id#)
+		<selectKey resultClass="long" keyProperty="device_login_log_id">
+			SELECT LAST_INSERT_ID() AS device_login_log_id
+		</selectKey>
+	</insert>
+	
+	<select id="getLog" parameterClass="java.util.HashMap" resultClass="DeviceLoginLogVo">
+		select DLL.*,D.label_name from device D left join device_login_log DLL on D.device_id=DLL.device_id
+		<dynamic prepend="WHERE">
+		<isNotEmpty prepend="and" property="startTime">
+			DLL.create_time>=#startTime#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			#endTime#>=DLL.create_time
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="type">
+			DLL.type=#type#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="shefenId">
+			D.shefen_id=#shefenId#
+		</isNotEmpty>
+		</dynamic>
+		order by DLL.create_time DESC
+	</select>
+	
+</sqlMap>

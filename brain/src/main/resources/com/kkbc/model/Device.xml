@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Device" >
+	<typeAlias alias="Device" type="com.kkbc.entity.Device"/>
+	
+	<insert id="saveData" parameterClass="Device">
+		insert into device(create_time,status,shefen_id,type,ele_time,electricity,label_name) values (#create_time#,#status#,#shefen_id#,#type#,#ele_time#,#electricity#,#label_name#)
+		<selectKey resultClass="long" keyProperty="device_id">
+			SELECT LAST_INSERT_ID() AS device_id
+		</selectKey>
+	</insert>
+	
+	<update id="updateEle" parameterClass="Device">
+		update device set ele_time=#ele_time#,electricity=#electricity# where shefen_id=#shefen_id#
+	</update>
+	
+	<select id="getByShefenId" parameterClass="java.lang.String" resultClass="Device">
+		select * from device where shefen_id=#shefen_id#
+	</select>
+	
+	<select id="getByDeviceId" parameterClass="java.lang.Long" resultClass="Device">
+		select * from device where device_id=#device_id#
+	</select>
+	
+	<select id="getAll" resultClass="Device">
+		select * from device where status=1
+	</select>
+	
+	<update id="updRemark" parameterClass="Device">
+		update device set remark=#remark# where device_id=#device_id#
+	</update>
+	
+</sqlMap>

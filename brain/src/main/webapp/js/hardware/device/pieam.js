@@ -1,0 +1,2 @@
+function loadingProgressAttention(a){setPie1(ctx,a,"loadedNum")}function loadingProgressMeditation(a){setPie2(ctx2,a,"loadedNum2")}function setPie1(a,b,c){document.getElementById(c).innerHTML=b;c=2*b/100*Math.PI;a.clearRect(0,0,140,140);a.beginPath();a.arc(70,70,66,0,c,!1);a.lineWidth=8;a.strokeStyle=100>=b?"#6facd7":"#56d2a5";a.stroke()}
+function setPie2(a,b,c){document.getElementById(c).innerHTML=b;c=2*b/100*Math.PI;a.clearRect(0,0,140,140);a.beginPath();a.arc(70,70,66,0,c,!1);a.lineWidth=8;ctx2.strokeStyle=50>=b?"#f8ca5b":"#f5944c";a.stroke()};

@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kkbc.tpms.tcp.dao.TpmsMapper">
+	<resultMap id="TerminalResultMap" type="cn.kkbc.tpms.tcp.entity.Terminal">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="dtu_id" jdbcType="VARCHAR" property="dtuId" />
+		<result column="terminal_phone" jdbcType="VARCHAR" property="terminalPhone" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+		<result column="caiji_time" jdbcType="TIMESTAMP" property="caijiTime" />
+		<result column="province" jdbcType="INTEGER" property="province" />
+		<result column="city" jdbcType="INTEGER" property="city" />
+		<result column="maker" jdbcType="VARCHAR" property="maker" />
+		<result column="dtu_style" jdbcType="VARCHAR" property="dtuStyle" />
+		<result column="trucks_color" jdbcType="INTEGER" property="trucksColor" />
+		<result column="trucks_id" jdbcType="VARCHAR" property="trucksId" />
+		<result column="authenticationKey" jdbcType="VARCHAR" property="authenticationkey" />
+		<result column="reversed_flag" jdbcType="INTEGER" property="reversedFlag" />
+	</resultMap>
+
+	<sql id="Termial_Column_List">
+		id, dtu_id, terminal_phone, create_time, caiji_time,
+		province, city,
+		maker, dtu_style,
+		trucks_color, trucks_id,
+		authenticationKey,reversed_flag
+	</sql>
+
+	<select id="findTerminalByPhone" parameterType="string"
+		resultMap="TerminalResultMap">
+		select
+		<include refid="Termial_Column_List" />
+		from device
+		where terminal_phone = #{terminalPhone}
+	</select>
+
+	<insert id="doCreateTerminal" parameterType="cn.kkbc.tpms.tcp.entity.Terminal" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+		insert into device (id, dtu_id, terminal_phone,
+		create_time, caiji_time, province,
+		city, maker, dtu_style,
+		trucks_color, trucks_id, authenticationKey,reversed_flag
+		)
+		values (#{id,jdbcType=INTEGER}, #{dtuId,jdbcType=VARCHAR},
+		#{terminalPhone,jdbcType=VARCHAR},
+		#{createTime,jdbcType=TIMESTAMP}, #{caijiTime,jdbcType=TIMESTAMP}, #{province,jdbcType=INTEGER},
+		#{city,jdbcType=INTEGER}, #{maker,jdbcType=VARCHAR},
+		#{dtuStyle,jdbcType=VARCHAR},
+		#{trucksColor,jdbcType=INTEGER}, #{trucksId,jdbcType=VARCHAR}, #{authenticationkey,jdbcType=VARCHAR},#{reversedFlag}
+		)
+	</insert>
+
+	<update id="updateLocationInfo" parameterType="cn.kkbc.tpms.tcp.entity.LocationInfo">
+		update
+		device_location
+		set
+		warn_mark = #{warnMark,jdbcType=INTEGER},
+		status_field =
+		#{statusField,jdbcType=INTEGER},
+		ACC_status =
+		#{accStatus,jdbcType=INTEGER},
+		location_status =
+		#{locationStatus,jdbcType=INTEGER},
+		latitude_type =
+		#{latitudeType,jdbcType=INTEGER},
+		longitude_type =
+		#{longitudeType,jdbcType=INTEGER},
+		operation_status =
+		#{operationStatus,jdbcType=INTEGER},
+		encrypt =
+		#{encrypt,jdbcType=INTEGER},
+		trucks_oilway =
+		#{trucksOilway,jdbcType=INTEGER},
+		trucks_circuit =
+		#{trucksCircuit,jdbcType=INTEGER},
+		trucks_doorlock =
+		#{trucksDoorlock,jdbcType=INTEGER},
+		latitude =
+		#{latitude,jdbcType=DOUBLE},
+		longitude = #{longitude,jdbcType=DOUBLE},
+		elevation = #{elevation,jdbcType=INTEGER},
+		speed =
+		#{speed,jdbcType=INTEGER},
+		direction = #{direction,jdbcType=INTEGER},
+		caiji_time = #{caijiTime,jdbcType=TIMESTAMP}
+		where terminal_phone =
+		#{terminalPhone}
+	</update>
+
+	<update id="updateLocationInfoTime" parameterType="string">
+		update
+		device_location
+		set caiji_time=now()
+		where terminal_phone =
+		#{terminalPhone}
+	</update>
+
+	<update id="updateTemperatureAndPressure" parameterType="cn.kkbc.tpms.tcp.entity.TyreTemperatureAndPressure">
+		update
+		device_fasheqi
+		set
+		yali = #{yali,jdbcType=INTEGER},
+		wendu =
+		#{wendu,jdbcType=INTEGER},
+		status_field =
+		#{statusField,jdbcType=INTEGER},
+		status_on =
+		#{statusOn,jdbcType=INTEGER},
+		pressure_valve =
+		#{pressureValve,jdbcType=INTEGER},
+		chaoya = #{chaoya,jdbcType=INTEGER},
+		diya = #{diya,jdbcType=INTEGER},
+		chaodiya =
+		#{chaodiya,jdbcType=INTEGER},
+		error_info =
+		#{errorInfo,jdbcType=INTEGER},
+		selfcheck =
+		#{selfcheck,jdbcType=INTEGER},
+		gaowen = #{gaowen,jdbcType=INTEGER},
+		dianchiqianya = #{dianchiqianya,jdbcType=INTEGER},
+		caiji_time =
+		#{caijiTime,jdbcType=TIMESTAMP},
+		dianya = #{dianya,jdbcType=INTEGER}
+		where terminal_phone = #{terminalPhone} and fasheqi_id=#{fasheqiId}
+	</update>
+	<update id="updateTemperatureAndPressureTime" parameterType="map">
+		update device_fasheqi
+		set
+		caiji_time =now()
+		where terminal_phone =
+		#{terminalPhone} and fasheqi_id=#{fasheqiId}
+	</update>
+
+	<insert id="doCreateTermperatureAndPressure" parameterType="cn.kkbc.tpms.tcp.entity.TyreTemperatureAndPressure"
+		useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+		insert into
+		device_fasheqi (id, dtu_id, terminal_phone,
+		axis_no, tyre_no, yali,
+		wendu, status_field, status_on,
+		pressure_valve, chaoya, diya,
+		chaodiya,
+		error_info, selfcheck,
+		gaowen, dianchiqianya, caiji_time,
+		tyre_id,
+		dianya, fasheqi_id,
+		create_time)
+		values (#{id,jdbcType=INTEGER},
+		#{dtuId,jdbcType=VARCHAR},
+		#{terminalPhone,jdbcType=VARCHAR},
+		#{axisNo,jdbcType=INTEGER}, #{tyreNo,jdbcType=INTEGER},
+		#{yali,jdbcType=INTEGER},
+		#{wendu,jdbcType=INTEGER},
+		#{statusField,jdbcType=INTEGER},
+		#{statusOn,jdbcType=INTEGER},
+		#{pressureValve,jdbcType=INTEGER}, #{chaoya,jdbcType=INTEGER},
+		#{diya,jdbcType=INTEGER},
+		#{chaodiya,jdbcType=INTEGER},
+		#{errorInfo,jdbcType=INTEGER},
+		#{selfcheck,jdbcType=INTEGER},
+		#{gaowen,jdbcType=INTEGER}, #{dianchiqianya,jdbcType=INTEGER},
+		#{caijiTime,jdbcType=TIMESTAMP},
+		#{tyreId},
+		#{dianya,jdbcType=INTEGER},
+		#{fasheqiId},
+		#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+
+	<insert id="doCreateLocationInfo" parameterType="cn.kkbc.tpms.tcp.entity.LocationInfo"
+		useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+		insert into
+		device_location (id, dtu_id, terminal_phone,
+		warn_mark, status_field,
+		ACC_status,
+		location_status, latitude_type, longitude_type,
+		operation_status, encrypt, trucks_oilway,
+		trucks_circuit,
+		trucks_doorlock, latitude,
+		longitude, elevation, speed,
+		direction,
+		caiji_time, create_time
+		)
+		values (#{id,jdbcType=INTEGER},
+		#{dtuId,jdbcType=VARCHAR},
+		#{terminalPhone,jdbcType=VARCHAR},
+		#{warnMark,jdbcType=INTEGER}, #{statusField,jdbcType=INTEGER},
+		#{accStatus,jdbcType=INTEGER},
+		#{locationStatus,jdbcType=INTEGER},
+		#{latitudeType,jdbcType=INTEGER},
+		#{longitudeType,jdbcType=INTEGER},
+		#{operationStatus,jdbcType=INTEGER}, #{encrypt,jdbcType=INTEGER},
+		#{trucksOilway,jdbcType=INTEGER},
+		#{trucksCircuit,jdbcType=INTEGER},
+		#{trucksDoorlock,jdbcType=INTEGER}, #{latitude,jdbcType=DOUBLE},
+		#{longitude,jdbcType=DOUBLE}, #{elevation,jdbcType=INTEGER},
+		#{speed,jdbcType=INTEGER},
+		#{direction,jdbcType=INTEGER},
+		#{caijiTime,jdbcType=TIMESTAMP}, #{createTime,jdbcType=TIMESTAMP}
+		)
+	</insert>
+
+	<resultMap id="TAPResultMap"
+		type="cn.kkbc.tpms.tcp.entity.TyreTemperatureAndPressure">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="dtu_id" jdbcType="VARCHAR" property="dtuId" />
+		<result column="terminal_phone" jdbcType="VARCHAR" property="terminalPhone" />
+		<result column="axis_no" jdbcType="INTEGER" property="axisNo" />
+		<result column="tyre_no" jdbcType="INTEGER" property="tyreNo" />
+		<result column="yali" jdbcType="INTEGER" property="yali" />
+		<result column="wendu" jdbcType="INTEGER" property="wendu" />
+		<result column="status_field" jdbcType="INTEGER" property="statusField" />
+		<result column="status_on" jdbcType="INTEGER" property="statusOn" />
+		<result column="pressure_valve" jdbcType="INTEGER" property="pressureValve" />
+		<result column="chaoya" jdbcType="INTEGER" property="chaoya" />
+		<result column="diya" jdbcType="INTEGER" property="diya" />
+		<result column="chaodiya" jdbcType="INTEGER" property="chaodiya" />
+		<result column="error_info" jdbcType="INTEGER" property="errorInfo" />
+		<result column="selfcheck" jdbcType="INTEGER" property="selfcheck" />
+		<result column="gaowen" jdbcType="INTEGER" property="gaowen" />
+		<result column="dianchiqianya" jdbcType="INTEGER" property="dianchiqianya" />
+		<result column="caiji_time" jdbcType="TIMESTAMP" property="caijiTime" />
+		<result column="tyre_id" jdbcType="VARCHAR" property="tyreId" />
+		<result column="dianya" jdbcType="INTEGER" property="dianya" />
+		<result column="fasheqi_id" jdbcType="VARCHAR" property="fasheqiId" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	</resultMap>
+
+	<select id="findLatestTemperatureAndPressure" parameterType="string"
+		resultMap="TAPResultMap">
+		select
+		id, dtu_id, terminal_phone, axis_no, tyre_no, yali,
+		wendu, status_field,
+		status_on,
+		pressure_valve, chaoya, diya, chaodiya,
+		error_info, selfcheck, gaowen, dianchiqianya,
+		caiji_time, tyre_id,
+		dianya, fasheqi_id, create_time
+		from device_fasheqi
+		where terminal_phone
+		= #{terminal_phone}
+	</select>
+
+	<resultMap id="LocationResultMap" type="cn.kkbc.tpms.tcp.entity.LocationInfo">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="dtu_id" jdbcType="VARCHAR" property="dtuId" />
+		<result column="terminal_phone" jdbcType="VARCHAR" property="terminalPhone" />
+		<result column="warn_mark" jdbcType="INTEGER" property="warnMark" />
+		<result column="status_field" jdbcType="INTEGER" property="statusField" />
+		<result column="ACC_status" jdbcType="INTEGER" property="accStatus" />
+		<result column="location_status" jdbcType="INTEGER" property="locationStatus" />
+		<result column="latitude_type" jdbcType="INTEGER" property="latitudeType" />
+		<result column="longitude_type" jdbcType="INTEGER" property="longitudeType" />
+		<result column="operation_status" jdbcType="INTEGER" property="operationStatus" />
+		<result column="encrypt" jdbcType="INTEGER" property="encrypt" />
+		<result column="trucks_oilway" jdbcType="INTEGER" property="trucksOilway" />
+		<result column="trucks_circuit" jdbcType="INTEGER" property="trucksCircuit" />
+		<result column="trucks_doorlock" jdbcType="INTEGER" property="trucksDoorlock" />
+		<result column="latitude" jdbcType="DOUBLE" property="latitude" />
+		<result column="longitude" jdbcType="DOUBLE" property="longitude" />
+		<result column="elevation" jdbcType="INTEGER" property="elevation" />
+		<result column="speed" jdbcType="INTEGER" property="speed" />
+		<result column="direction" jdbcType="INTEGER" property="direction" />
+		<result column="caiji_time" jdbcType="TIMESTAMP" property="caijiTime" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	</resultMap>
+
+	<select id="findLatestLocationInfo" parameterType="string"
+		resultMap="LocationResultMap">
+		select
+		id, dtu_id, terminal_phone, warn_mark, status_field,
+		ACC_status,
+		location_status,
+		latitude_type, longitude_type,
+		operation_status, encrypt, trucks_oilway,
+		trucks_circuit,
+		trucks_doorlock, latitude, longitude, elevation, speed, direction,
+		caiji_time,
+		create_time
+		from device_location
+		where terminal_phone =
+		#{terminal_phone}
+	</select>
+
+	<insert id="copyLocationInfo2History">
+		insert
+		into device_location_history select * from
+		device_location
+		where
+		terminal_phone=#{phone}
+	</insert>
+
+	<insert id="copyTemperatureAndPressureInfo2History">
+		insert
+		into device_fasheqi_history select * from
+		device_fasheqi
+		where
+		terminal_phone=#{terminalPhone} and fasheqi_id =
+		#{fasheqiId}
+	</insert>
+
+</mapper>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceData" >
+	<typeAlias alias="DeviceData" type="com.kkbc.entity.DeviceData"/>
+	
+	<insert id="saveData" parameterClass="DeviceData">
+		insert into device_data(`create_time`,`status`,`attention`,`delta`,`high_alpha`,`high_beta`,`low_alpha`,`low_beta`,`low_gamma`,`meditation`,`middle_gamma`,`min_count`,`rawdata`,`remark`,`signal`,`theta`,`type`,`device_id`) 
+		values 
+		(#create_time#,#status#,#attention#,#delta#,#high_alpha#,#high_beta#,#low_alpha#,#low_beta#,#low_gamma#,#meditation#,#middle_gamma#,#min_count#,#rawdata#,#remark#,#signal#,#theta#,#type#,#device_id#)
+		<selectKey resultClass="long" keyProperty="device_data_id">
+			SELECT LAST_INSERT_ID() AS device_data_id
+		</selectKey>
+	</insert>
+	
+	<select id="getData" parameterClass="java.util.HashMap"  resultClass="DeviceData">
+		select * from device D left join device_data DD on D.device_id=DD.device_id
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="and" property="startTime">
+				DD.create_time>=#startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime#>=DD.create_time
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="shefenId">
+				D.shefen_id=#shefenId#
+			</isNotEmpty>
+			</dynamic>
+			
+			order by DD.create_time 
+			<isEmpty prepend=" " property="sortData">
+				DESC
+			</isEmpty>
+			
+			<isNotEmpty prepend=" " property="sortData">
+				<isEqual property="sortData" compareProperty="0">
+					DESC
+				</isEqual>
+				<isEqual property="sortData" compareProperty="1">
+					ASC
+				</isEqual>
+			</isNotEmpty>
+			
+	</select>
+	
+</sqlMap>

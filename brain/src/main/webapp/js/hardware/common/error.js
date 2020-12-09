@@ -1,0 +1,1 @@
+var intDiff=10;$(function(){timer(intDiff)});function timer(a){window.setInterval(function(){0>a?window.location.href=window.localDomain+"":($("#totalSecond").html(a),a--)},1E3)};
