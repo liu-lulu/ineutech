@@ -1,0 +1,219 @@
+package com.ineutech.entity;
+
+import java.util.Date;
+
+/**
+ * 
+ * @name: DeviceData 
+ * @description: 脑电数据实体类
+ * @date 2018年2月1日 下午4:13:50
+ * @author liululu
+ */
+public class DeviceData {
+
+	public static final Integer NORMAL_STATUS = 1;
+
+	public static final Integer TYPE_BRAIN = 3;
+
+	private long deviceDataId;
+
+	private Date createTime;
+
+	private int attention;
+
+	private int delta;
+
+	private int highAlpha;
+
+	private int highBeta;
+
+	private int lowAlpha;
+
+	private int lowBeta;
+
+	private int lowGamma;
+
+	private int meditation;
+
+	private int middleGamma;
+
+	private int signal;
+
+	private int theta;
+
+	private double cognition;
+
+	private double nervous;
+
+	private int fatigue;
+
+	private long hardId;
+
+	private long humanId;
+	
+	private Integer testId;
+
+	public int getAttention() {
+		return attention;
+	}
+
+	public void setAttention(int attention) {
+		this.attention = attention;
+	}
+
+	public int getDelta() {
+		return delta;
+	}
+
+	public void setDelta(int delta) {
+		this.delta = delta;
+	}
+
+	public int getMeditation() {
+		return meditation;
+	}
+
+	public void setMeditation(int meditation) {
+		this.meditation = meditation;
+	}
+
+	public int getSignal() {
+		return signal;
+	}
+
+	public void setSignal(int signal) {
+		this.signal = signal;
+	}
+
+	public int getTheta() {
+		return theta;
+	}
+
+	public void setTheta(int theta) {
+		this.theta = theta;
+	}
+
+	public double getCognition() {
+		return cognition;
+	}
+
+	public void setCognition(double cognition) {
+		this.cognition = cognition;
+	}
+
+	public double getNervous() {
+		return nervous;
+	}
+
+	public void setNervous(double nervous) {
+		this.nervous = nervous;
+	}
+
+	public int getFatigue() {
+		return fatigue;
+	}
+
+	public void setFatigue(int fatigue) {
+		this.fatigue = fatigue;
+	}
+
+	public long getDeviceDataId() {
+		return deviceDataId;
+	}
+
+	public void setDeviceDataId(long deviceDataId) {
+		this.deviceDataId = deviceDataId;
+	}
+
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+
+	public int getHighAlpha() {
+		return highAlpha;
+	}
+
+	public void setHighAlpha(int highAlpha) {
+		this.highAlpha = highAlpha;
+	}
+
+	public int getHighBeta() {
+		return highBeta;
+	}
+
+	public void setHighBeta(int highBeta) {
+		this.highBeta = highBeta;
+	}
+
+	public int getLowAlpha() {
+		return lowAlpha;
+	}
+
+	public void setLowAlpha(int lowAlpha) {
+		this.lowAlpha = lowAlpha;
+	}
+
+	public int getLowBeta() {
+		return lowBeta;
+	}
+
+	public void setLowBeta(int lowBeta) {
+		this.lowBeta = lowBeta;
+	}
+
+	public int getLowGamma() {
+		return lowGamma;
+	}
+
+	public void setLowGamma(int lowGamma) {
+		this.lowGamma = lowGamma;
+	}
+
+	public int getMiddleGamma() {
+		return middleGamma;
+	}
+
+	public void setMiddleGamma(int middleGamma) {
+		this.middleGamma = middleGamma;
+	}
+
+	public long getHardId() {
+		return hardId;
+	}
+
+	public void setHardId(long hardId) {
+		this.hardId = hardId;
+	}
+
+	public long getHumanId() {
+		return humanId;
+	}
+
+	public void setHumanId(long humanId) {
+		this.humanId = humanId;
+	}
+
+	public Integer getTestId() {
+		return testId;
+	}
+
+	public void setTestId(Integer testId) {
+		this.testId = testId;
+	}
+
+	@Override
+	public String toString() {
+		return "hardId=" + hardId + ";attention=" + attention + ";delta="
+				+ delta + ";highAlpha=" + highAlpha + ";highBeta=" + highBeta
+				+ ";lowAlpha=" + lowAlpha + ";lowBeta=" + lowBeta
+				+ ";lowGamma=" + lowGamma + ";meditation=" + meditation
+				+ ";middleGamma=" + middleGamma + ";signal=" + signal
+				+ ";theta=" + theta + ";cognition=" + cognition + ";nervous="
+				+ nervous + ";fatigue=" + fatigue;
+	}
+
+}

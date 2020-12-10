@@ -1,0 +1,258 @@
+package cn.ineutech.tpms.tcp.processor.brain;
+
+import java.net.InetSocketAddress;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cn.ineutech.tpms.tcp.TPMSConsts;
+import cn.ineutech.tpms.tcp.processor.Processor;
+import cn.ineutech.tpms.tcp.server.SessionManager;
+import cn.ineutech.tpms.tcp.service.codec.MsgDecoder;
+import cn.ineutech.tpms.tcp.service.msg.BaseMsgProcessService;
+import cn.ineutech.tpms.tcp.service.queue.BrainMemoryMsgQueueServiceImpl;
+import cn.ineutech.tpms.tcp.service.queue.MsgQueueService;
+import cn.ineutech.tpms.tcp.util.BitOperator;
+import cn.ineutech.tpms.tcp.util.HexStringUtils;
+import cn.ineutech.tpms.tcp.vo.BrainPackageData;
+import cn.ineutech.tpms.tcp.vo.QueueElement;
+import cn.ineutech.tpms.tcp.vo.Session;
+
+import com.ineutech.entity.DeviceData;
+import com.ineutech.entity.DeviceLoginLog;
+import com.ineutech.entity.Hard;
+import com.ineutech.service.DeviceService;
+import com.ineutech.service.impl.DeviceServiceImpl;
+import com.ineutech.util.SpringContextUtils;
+
+/**
+ * 
+ * @name: MsgQueueProcessor 
+ * @description: 处理接收到的脑电的数据
+ * @date 2018年2月1日 上午11:41:01
+ * @author liululu
+ */
+public class MsgQueueProcessor extends Thread implements Processor {
+
+	private Logger log = LoggerFactory.getLogger(getClass());
+
+	private volatile boolean isRunning = false;
+	private MsgQueueService msgQueueService = null;
+	private MsgDecoder msgDecoder;
+	private SessionManager sessionManager;
+	private DeviceService service;
+//	private DeviceLoginLogService deviceLoginLogService;
+	private BitOperator bitOperator;
+	private BaseMsgProcessService sendToDevice;
+
+	public MsgQueueProcessor() {
+		this.msgQueueService = new BrainMemoryMsgQueueServiceImpl();
+		this.msgDecoder = new MsgDecoder();
+		this.sessionManager = SessionManager.getInstance();
+		this.setName("TCP-MsgQueueProcessor");
+		this.service = (DeviceServiceImpl) SpringContextUtils.context
+				.getBean("deviceService");
+//		this.deviceLoginLogService = (DeviceLoginLogServiceImpl) SpringContextUtils.context
+//				.getBean("deviceLoginLogService");
+		this.bitOperator = new BitOperator();
+		this.sendToDevice = new BaseMsgProcessService();
+		this.setDaemon(true);
+	}
+
+	@Override
+	public synchronized void startProcess() {
+		if (this.isRunning) {
+			throw new IllegalStateException(this.getName()
+					+ " is already started .");
+		}
+		this.isRunning = true;
+		super.start();
+		this.log.info("队列消息处理器启动完毕...");
+	}
+
+	@Override
+	public synchronized void stopProcess() {
+		if (!this.isRunning) {
+			throw new IllegalStateException(this.getName()
+					+ " is not yet started .");
+		}
+		this.isRunning = false;
+		this.interrupt();
+		this.log.info("队列消息处理器已经停止...");
+	}
+
+	@Override
+	public void run() {
+		
+		ThreadPoolExecutor executor=new ThreadPoolExecutor(20, 30, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		while (this.isRunning) {
+			QueueElement msg = null;
+			try {
+				msg = this.msgQueueService.take();
+			} catch (InterruptedException e1) {
+				continue;
+			}
+			try {
+				if (msg != null) {
+					executor.execute(doTask(msg));
+				}
+			} catch (Exception e) {
+				log.error("消息处理出现异常:{}", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+
+		executor.shutdown();
+
+	}
+
+	/**
+	 * 进行消息处理
+	 * @param queueElement
+	 * @return
+	 */
+	private Runnable doTask(QueueElement queueElement) {
+		return new Runnable() {
+			@Override
+			public void run() {
+				try {
+					processMsg(queueElement);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	}
+
+	/**
+	 * 解析接收到的消息
+	 * @param queueElement
+	 * @throws InterruptedException
+	 * @throws ParseException
+	 */
+	private void processMsg(QueueElement queueElement)
+			throws InterruptedException {
+		 log.info("开始处理数据:{}",HexStringUtils.toHexString(queueElement.getData()));
+
+		byte[] data = queueElement.getData();
+
+		int type = msgDecoder.analyzeData(data);
+		// log.info("----------type:"+type+";queueElementType:"+queueElement.getType());
+		Session session = sessionManager.findBrainBySessionId(queueElement
+				.getChannel().id().asLongText());
+
+		if (queueElement.getType() == 1) {
+			List<BrainPackageData> cmdData = msgDecoder.parse2CmdData(data);
+
+			for (BrainPackageData brainPackageData : cmdData) {
+				int cmd = brainPackageData.getCommand();
+				
+				// 脑电波头环在每次服务器链接完成后，自动发送；之后不再发送；
+				if (cmd == 1) {
+					String shefenId = HexStringUtils
+							.toHexString(brainPackageData.getData());
+					log.info("获取脑电ID:" + shefenId);
+					Hard device = service.getByMac(shefenId);
+					if (device == null) {
+						device = new Hard();
+						device.setLastTime(new Date());
+						device.setHardType(Hard.TYPE_BRAIN);
+						device.setMac(shefenId);
+						int deviceId = service.saveHardInfo(device);
+						device.setHardId(deviceId);
+					}
+					DeviceLoginLog log = new DeviceLoginLog();
+					log.setCreateTime(new Date());
+					log.setHardId(device.getHardId());
+					InetSocketAddress insocket = (InetSocketAddress) session
+							.getChannel().remoteAddress();
+					log.setRemoteIp(insocket.getAddress().getHostAddress());
+					log.setRemotePort(insocket.getPort());
+					log.setStatus(DeviceLoginLog.NORMAL_STATUS);
+					log.setType(DeviceLoginLog.TYPE_LOGIN);
+//					deviceLoginLogService.saveInfo(log);
+
+					session.setDeviceId(device.getHardId());
+					session.setUuid(device.getMac());
+					session.setLastCommunicateTimeStamp(new Date().getTime());
+
+					// 获取绑定的用户信息
+					if (sessionManager.getTestInfo() != null) {
+						session.setTestUser(service.getUser(sessionManager
+								.getTestInfo().getTestId(), shefenId));
+					}
+
+					// 实时将脑电在线状态发送给监控端
+					if (session.getTestUser() != null) {
+						sendToDevice
+								.sendToMonitor(sendToDevice
+										.brainLoginResult(
+												TPMSConsts.LOGIN_SUCC, session
+														.getTestUser()
+														.getSeatNo()
+														+ ""));
+					}
+
+					if (sessionManager.findBrainByMac(shefenId) == null) {
+						sessionManager.getBrainMacMap().put(session.getUuid(),
+								queueElement.getChannel().id().asLongText());
+					}
+
+				} else if (cmd == 7) {
+					// 上送电量
+					int ele = bitOperator.byteToInteger(brainPackageData
+							.getData());
+					log.info("设备{}当前电量:{}", session.getHardNo(), ele);
+					if (session.getEle() == null || session.getEle() != ele) {
+						Hard hard = new Hard();
+						hard.setMac(session.getUuid());
+						hard.setHardElec(ele);
+						hard.setLastTime(new Date());
+						service.updEle(hard);
+
+						session.setEle(ele);
+					}
+
+				} else {
+					log.error(">>>>>>[未知消息命令类型],cmd={},data={}",
+							brainPackageData.getCommand(),
+							brainPackageData.getData());
+				}
+			}
+
+		} else if (queueElement.getType() == 2) {
+			// 上传处理后的数据包
+			DeviceData brainData = msgDecoder
+					.parse2Data(queueElement.getData());
+			brainData.setCreateTime(new Date());
+			brainData.setHardId(queueElement.getDeviceId());
+			if (session.getTestUser() != null) {
+				brainData.setHumanId(session.getTestUser().getHumanId());
+				brainData.setTestId(session.getTestUser().getTestId());
+			}
+
+			long id = service.saveBrainData(session, brainData);
+
+			if (sessionManager.getTestInfo() != null
+					&& session.getTestUser() != null) {
+//				sendToDevice.sendToMonitor(sendToDevice.sendBrainDataToMonitor(
+//						brainData, session.getTestUser().getSeatNo()));// 实时将脑电数据发送给监控端
+			}
+
+			session.setBrainData(brainData);
+			log.info(brainData.toString());
+
+		} else if (type == 3) {
+			log.info(">>>>>>[原始数据,不进行处理],data={}", queueElement.getData());
+		} else {
+			log.error(">>>>>>[未知消息类型],data={}", queueElement.getData());
+		}
+
+	}
+}

@@ -1,0 +1,47 @@
+package cn.ineutech.tpms.tcp;
+
+/**
+ * 脑电数据常量
+ * @author liululu
+ *
+ */
+public class PackageDataConstant {
+
+	/**
+	 * 命令型数据包头:A5,5A
+	 */
+	public static final int CMD_HEAD = 0xA55A;
+
+	/**
+	 * 命令型数据包头，二进制数组
+	 */
+	public static final byte[] CMD_HEAD_ARRAY = { (byte) 0xA5, (byte) 0x5A };
+
+	/**
+	 * 数据包头:AA,AA
+	 */
+	public static final int DATA_HEAD = 0xAAAA;
+
+	/**
+	 * 数据包头，二进制数组
+	 */
+	public static final byte[] DATA_HEAD_ARRAY = { (byte) 0xAA, (byte) 0xAA };
+
+	/**
+	 * 原始数据包头，二进制数组
+	 */
+	public static final byte[] ORI_DATA_HEAD_ARRAY = { (byte) 0xAA,
+			(byte) 0xAA, 0x04, (byte) 0x80, 0x02 };
+
+	/**
+	 * 处理后的数据包头，二进制数组
+	 */
+	public static final byte[] PRO_DATA_HEAD_ARRAY = { (byte) 0xAA,
+			(byte) 0xAA, 0x20, 0x02 };
+
+	/**
+	 * 服务器发送心跳给脑电
+	 */
+	public static final int CMD_HEART = 0x02;
+
+}

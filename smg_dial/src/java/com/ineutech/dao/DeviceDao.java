@@ -1,0 +1,183 @@
+package com.ineutech.dao;
+
+import java.util.List;
+
+import com.ineutech.entity.DeviceData;
+import com.ineutech.entity.Hard;
+import com.ineutech.entity.TestInfo;
+import com.ineutech.entity.TestScorePackage;
+import com.ineutech.entity.TestScoreVO;
+import com.ineutech.entity.TestUser;
+
+/**
+ * 
+ * @name: DeviceDao 
+ * @description: 数据库操作
+ * @date 2018年2月1日 下午5:28:12
+ * @author liululu
+ */
+public interface DeviceDao {
+	
+	/**
+	 * 获取测试基本信息
+	 * @param testId 测试id
+	 * @return
+	 */
+	TestInfo getTestInfoById(int testId);
+	
+	/**
+	 * 保存打分数据
+	 * @param data 打分数据
+	 * @return
+	 */
+	int saveData(TestScoreVO data);
+	
+	/**
+	 * 实时更新当前拨盘分数
+	 * @param data 当前分数
+	 * @return
+	 */
+	int updScoreToNow(TestScoreVO data);
+	
+	/**
+	 * 保存脑电上送数据
+	 * @param session 脑电信息
+	 * @param data 脑电数据
+	 * @return
+	 */
+	long saveBrainData(DeviceData data);
+	
+	/**
+	 * 获取测试用户
+	 * @param user
+	 * @return
+	 */
+	TestUser getUser(TestUser user);
+	
+	/**
+	 * 测试过程中获取设备绑定的用户
+	 * @param mac 设备mac
+	 * @return
+	 */
+	TestUser getUserFromNow(String mac);
+	
+	/**
+	 * 保存硬件设备信息
+	 * @param hard 设备信息
+	 * @return
+	 */
+	int saveHardInfo(Hard hard);
+	
+	/**
+	 * 更新脑电电量
+	 * @param hard 脑电信息
+	 * @return
+	 */
+	int updEle(Hard hard);
+	
+	/**
+	 * 批量更新设备的使用信息
+	 * @param hards 设备
+	 * @return
+	 */
+	int updLastInfo(List<Hard> hards);
+	
+	/**
+	 * 根据设备mac获取设备信息
+	 * @param mac
+	 * @return
+	 */
+	Hard getByMac(String mac);
+	
+	
+	/**
+	 * 更新测试人员的设备状态
+	 * @param testUser 用户信息:用户id 设备状态
+	 * @return
+	 */
+	int updateDeviceStatus(TestUser testUser);
+	
+	/**
+	 * 存储拨盘结束测试时上传的本地的大包数据
+	 * @param data 数据
+	 * @return
+	 */
+	int savePackageData(List<TestScorePackage> data);
+	
+	/**
+	 * 获取测试人员
+	 * @param testId 测试id
+	 * @return
+	 */
+	List<TestUser> getTestUserFromBind(int testId);
+	
+	/**
+	 * 获取测试设备
+	 * @param testId 测试id
+	 * @return
+	 */
+	List<Hard> getTestDevice(int testId);
+	
+	/**
+	 * 当前测试信息添加到test_now中
+	 * @param testId 测试id
+	 * @return
+	 */
+	Object saveNowInfo(int testId);
+	
+	/**
+	 * 从test_now中删除已结束测试的信息
+	 * @return
+	 */
+	int deleteFromNow();
+	
+	/**
+	 * now表中更新设备状态和score
+	 * @param data 数据
+	 * @return
+	 */
+	int updScoreAndStatus(TestScoreVO data);
+	
+	/**
+	 * 更新用户的脑电阈值
+	 * @param testUser
+	 * @return
+	 */
+	int updThreshold(TestUser testUser);
+	
+	/**
+	 * 测试过程中实时更新脑电数据
+	 * @param data
+	 * @return
+	 */
+	int updBrainInNow(DeviceData data);
+	
+	/**
+	 * 拨盘测试完成后统计男+男-女+女-的平均分
+	 * @param testId 测试id
+	 * @return
+	 */
+	int saveDialTotalScore(int testId);
+	
+	/**
+	 * 获取用户绑定的脑电
+	 * @param testUser 用户信息(测试id 人员id)
+	 * @return
+	 */
+	Hard getUserBrain(TestUser testUser);
+	
+	/**
+	 * 获取编号对应的脑电设备
+	 * @param no 脑电编号
+	 * @return
+	 */
+	Hard getBrainByNo(int no);
+	
+	/**
+	 * 修改用户绑定的脑电信息
+	 * @param testUser 用户信息(测试id 人员id 脑电id)
+	 * @return
+	 */
+	int updUserBrain(TestUser testUser);
+	
+}

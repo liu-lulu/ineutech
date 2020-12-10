@@ -1,0 +1,82 @@
+package com.ineutech.vo;
+
+import com.ineutech.entity.TestUser;
+
+
+public class TestUserSessionVO {
+	
+	private TestUser user;
+	
+	//设备登陆时的座位号
+	private Integer seat_no;
+	//登陆的设备号
+	private Integer deviceId;
+	
+	private Integer score;
+	
+	//测前试卷进度
+	private String beforePaperProcess="0";
+	
+	//测后试卷进度
+	private String afterPaperProcess="0";
+	
+	public TestUserSessionVO(){}
+
+	public TestUserSessionVO(TestUser user,Integer seat_no,Integer deviceId){
+		this.user=user;
+		this.seat_no=seat_no;
+		this.deviceId=deviceId;
+	}
+	public TestUser getUser() {
+		return user;
+	}
+
+	public void setUser(TestUser user) {
+		this.user = user;
+	}
+
+	public Integer getSeat_no() {
+		return seat_no;
+	}
+
+	public void setSeat_no(Integer seat_no) {
+		this.seat_no = seat_no;
+	}
+
+	public String getBeforePaperProcess() {
+		return beforePaperProcess;
+	}
+
+	public void setBeforePaperProcess(String beforePaperProcess) {
+		this.beforePaperProcess = beforePaperProcess;
+	}
+
+	public String getAfterPaperProcess() {
+		return afterPaperProcess;
+	}
+
+	public void setAfterPaperProcess(String afterPaperProcess) {
+		this.afterPaperProcess = afterPaperProcess;
+	}
+
+	public Integer getScore() {
+		return score;
+	}
+
+	public void setScore(Integer score) {
+		this.score = score;
+	}
+
+	public Integer getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(Integer deviceId) {
+		this.deviceId = deviceId;
+	}
+	
+	@Override
+	public String toString() {
+		return "deviceId="+deviceId+";humanId="+user.getHumanId()+";seatNo="+seat_no+";user_name="+user.getUserName()+";user_sex="+user.getUserSex()+";user_age="+user.getUserAge()+";user_edu="+user.getUserEdu()+";user_job="+user.getUserJob()+";income="+user.getIncome()+";address="+user.getAddress()+";";
+	}
+}

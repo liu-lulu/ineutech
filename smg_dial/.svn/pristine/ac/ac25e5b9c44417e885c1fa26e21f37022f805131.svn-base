@@ -1,0 +1,297 @@
+package cn.ineutech.tpms.tcp.server;
+
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+
+import cn.ineutech.tpms.tcp.vo.Session;
+
+import com.ineutech.entity.TestInfo;
+import com.ineutech.entity.TestUser;
+import com.ineutech.vo.TestUserSessionVO;
+
+public class SessionManager {
+
+	private static volatile SessionManager instance = null;
+
+	// 拨盘:MAC地址和netty生成的sessionID的对应关系
+	private Map<String, String> padIdMap;
+	// netty生成的sessionID和Session的对应关系
+	private Map<String, Session> padSessionIdMap;
+
+	// 脑电:MAC地址和netty生成的sessionID的对应关系
+	private Map<String, String> brainMacMap;
+	// 脑电:MAC地址和netty生成的sessionID的对应关系
+	private Map<String, Session> brainSessionIdMap;
+
+	// 控制台播放器
+	private Map<String, Session> playSessionIdMap;
+
+	private TestInfo testInfo;
+
+	// 测试人员信息
+	private List<TestUserSessionVO> users;
+
+	private ChannelGroup channelGroup;
+
+	public static SessionManager getInstance() {
+		if (instance == null) {
+			synchronized (SessionManager.class) {
+				if (instance == null) {
+					instance = new SessionManager();
+				}
+			}
+		}
+		return instance;
+	}
+
+	public SessionManager() {
+		this.padIdMap = new ConcurrentHashMap<>();
+		this.padSessionIdMap = new ConcurrentHashMap<>();
+		this.brainMacMap = new ConcurrentHashMap<>();
+		this.brainSessionIdMap = new ConcurrentHashMap<>();
+		this.playSessionIdMap = new ConcurrentHashMap<>();
+		this.users = new ArrayList<TestUserSessionVO>();
+		this.channelGroup = new DefaultChannelGroup(
+				GlobalEventExecutor.INSTANCE);
+	}
+
+	public Session findPadBySessionId(String id) {
+		return padSessionIdMap.get(id);
+	}
+
+	public Session findBrainBySessionId(String id) {
+		return brainSessionIdMap.get(id);
+	}
+
+	public Session findByUUID(String uuid) {
+		String sessionId = this.padIdMap.get(uuid);
+		if (sessionId == null)
+			return null;
+		return this.findPadBySessionId(sessionId);
+	}
+
+	public Session findBrainByMac(String mac) {
+		String sessionId = this.brainMacMap.get(mac);
+		if (sessionId == null)
+			return null;
+		return this.findBrainBySessionId(sessionId);
+	}
+
+	public synchronized Session putPad(String key, Session value) {
+		if (StringUtils.isNotEmpty(value.getUuid())) {
+			this.padIdMap.put(value.getUuid(), value.getId());
+		}
+		return padSessionIdMap.put(key, value);
+	}
+
+	public synchronized Session putBrain(String key, Session value) {
+		if (StringUtils.isNotEmpty(value.getUuid())) {
+			this.brainMacMap.put(value.getUuid(), value.getId());
+		}
+		return brainSessionIdMap.put(key, value);
+	}
+
+	public synchronized Session putPlay(String key, Session value) {
+		return playSessionIdMap.put(key, value);
+	}
+
+	public synchronized Session removePadBySessionId(String sessionId) {
+		if (sessionId == null)
+			return null;
+		Session session = padSessionIdMap.remove(sessionId);
+		if (session == null)
+			return null;
+		if (session.getUuid() != null)
+			this.padIdMap.remove(session.getUuid());
+		return session;
+	}
+
+	public synchronized Session removeBrainBySessionId(String sessionId) {
+		if (sessionId == null)
+			return null;
+		Session session = brainSessionIdMap.remove(sessionId);
+		if (session == null)
+			return null;
+		if (session.getUuid() != null)
+			this.brainMacMap.remove(session.getUuid());
+		return session;
+	}
+
+	public synchronized Session removePlayBySessionId(String sessionId) {
+		if (sessionId == null)
+			return null;
+		Session session = playSessionIdMap.remove(sessionId);
+		if (session == null)
+			return null;
+
+		return session;
+	}
+
+	public Set<Entry<String, Session>> brainEntrySet() {
+		return brainSessionIdMap.entrySet();
+	}
+
+	public List<Session> padToList() {
+		return this.padSessionIdMap.entrySet().stream().map(e -> e.getValue())
+				.collect(Collectors.toList());
+	}
+
+	public List<Session> brainToList() {
+		return this.brainSessionIdMap.entrySet().stream()
+				.map(e -> e.getValue()).collect(Collectors.toList());
+	}
+
+	public List<Session> playToList() {
+		return this.playSessionIdMap.entrySet().stream().map(e -> e.getValue())
+				.collect(Collectors.toList());
+	}
+
+	public ChannelGroup getChannelGroup() {
+		return channelGroup;
+	}
+
+	public void setChannelGroup(ChannelGroup channelGroup) {
+		this.channelGroup = channelGroup;
+	}
+
+	public Map<String, String> getPadIdMap() {
+		return padIdMap;
+	}
+
+	public void setPadIdMap(Map<String, String> padIdMap) {
+		this.padIdMap = padIdMap;
+	}
+
+	// type:1评分端 2监控端
+	public List<Session> getMonitorOrScore(String type) {
+		List<Session> testDevice = new ArrayList<Session>();
+
+		for (Iterator<Entry<String, Session>> ite = padSessionIdMap.entrySet()
+				.iterator(); ite.hasNext();) {
+			Entry<String, Session> entry = ite.next();
+			if (type.equals(entry.getValue().getClientType())) {
+				testDevice.add(entry.getValue());
+			}
+		}
+		return testDevice;
+
+	}
+
+	public TestInfo getTestInfo() {
+		return testInfo;
+	}
+
+	public void setTestInfo(TestInfo testInfo) {
+		this.testInfo = testInfo;
+	}
+
+	public List<TestUserSessionVO> getUsers() {
+		return users;
+	}
+
+	public void setUsers(List<TestUserSessionVO> users) {
+		this.users = users;
+	}
+
+	public TestUserSessionVO getBySeatNo(Integer seatNo) {
+		for (TestUserSessionVO testUser : users) {
+			if (testUser.getSeat_no() != null
+					&& testUser.getSeat_no().intValue() == seatNo) {
+				return testUser;
+			}
+		}
+		return null;
+	}
+
+	public TestUserSessionVO getUserById(int humanId) {
+		for (TestUserSessionVO testUser : users) {
+			if (testUser.getUser().getHumanId() == humanId) {
+				return testUser;
+			}
+		}
+		return null;
+	}
+
+	public Map<String, String> getBrainMacMap() {
+		return brainMacMap;
+	}
+
+	public void setBrainMacMap(Map<String, String> brainMacMap) {
+		this.brainMacMap = brainMacMap;
+	}
+
+	/**
+	 * 记录该座位的人员的打分值
+	 * 
+	 * @param seatNo 座位号
+	 * @param score 分数
+	 */
+	public void setScore(Integer seatNo, int score) {
+		for (TestUserSessionVO testUser : users) {
+			if (testUser.getSeat_no() != null
+					&& testUser.getSeat_no().intValue() == seatNo) {
+				testUser.setScore(score);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * 更新登陆信息, 若该人员第一次登陆,则追加该人员登陆信息 若该人员登陆过,则更新该人员的登陆座位信息
+	 * 
+	 * @param info 用户信息
+	 * @param seatNo 登陆的座位号
+	 * @param deviceId 所用的设备id
+	 * @return
+	 */
+	public TestUserSessionVO updLoginUserInfo(TestUser info, int seatNo,
+			Integer deviceId) {
+		for (TestUserSessionVO user : users) {
+			if (user.getUser().getHumanId() == info.getHumanId()) {
+				user.setSeat_no(seatNo);
+				user.setDeviceId(deviceId);
+				return user;
+			}
+		}
+		TestUserSessionVO newUserVO = new TestUserSessionVO(info, seatNo,
+				deviceId);
+		users.add(newUserVO);
+		return newUserVO;
+	}
+
+	/**
+	 * 清除用户的登陆信息:座位号 设备
+	 * 
+	 * @param userId 用户id
+	 */
+	public void clearLoginUserInfo(int userId) {
+		for (TestUserSessionVO user : users) {
+			if (user.getUser().getHumanId() == userId) {
+				user.setSeat_no(null);
+				user.setDeviceId(null);
+				return;
+			}
+		}
+	}
+	
+	/**
+	 * 测试结束后清除测试信息和人员的登陆信息
+	 */
+	public void clearInfo(){
+		this.testInfo=null;
+		this.users = new ArrayList<TestUserSessionVO>();
+	}
+
+}

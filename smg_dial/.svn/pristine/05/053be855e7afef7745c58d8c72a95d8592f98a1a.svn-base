@@ -1,0 +1,9 @@
+package cn.ineutech.tpms.tcp.processor;
+
+public interface Processor {
+
+	void startProcess();
+
+	void stopProcess();
+
+}

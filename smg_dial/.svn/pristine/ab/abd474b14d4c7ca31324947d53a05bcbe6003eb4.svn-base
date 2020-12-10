@@ -1,0 +1,30 @@
+package cn.ineutech.tpms.tcp.server;
+
+import cn.ineutech.tpms.tcp.MsgQueue;
+
+public class BrainTCPServerManager {
+
+	private static volatile BrainTCPServerManager instance = null;
+
+	private MsgQueue msgQueue = null;
+
+	public static BrainTCPServerManager getInstance() {
+		if (instance == null) {
+			synchronized (BrainTCPServerManager.class) {
+				if (instance == null) {
+					instance = new BrainTCPServerManager();
+				}
+			}
+		}
+		return instance;
+	}
+
+	private BrainTCPServerManager() {
+		this.msgQueue = new MsgQueue();
+	}
+
+	public MsgQueue getMsgQueue() {
+		return msgQueue;
+	}
+
+}

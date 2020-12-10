@@ -1,0 +1,125 @@
+package com.ineutech.service.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import cn.ineutech.tpms.tcp.TPMSConsts;
+import cn.ineutech.tpms.tcp.server.SessionManager;
+import cn.ineutech.tpms.tcp.vo.Session;
+
+import com.ineutech.dao.DeviceDao;
+import com.ineutech.entity.DeviceData;
+import com.ineutech.entity.Hard;
+import com.ineutech.entity.TestInfo;
+import com.ineutech.entity.TestScorePackage;
+import com.ineutech.entity.TestScoreVO;
+import com.ineutech.entity.TestUser;
+import com.ineutech.service.DeviceService;
+
+public class DeviceServiceImpl implements DeviceService {
+	private SessionManager sessionManager = SessionManager.getInstance();
+	@Resource
+	private DeviceDao deviceDao;
+
+	@Override
+	public int saveData(TestScoreVO data) {
+		return deviceDao.saveData(data);
+	}
+
+	@Override
+	public TestUser getUser(TestUser user) {
+		return deviceDao.getUser(user);
+	}
+
+	@Override
+	public int saveHardInfo(Hard hard) {
+		return deviceDao.saveHardInfo(hard);
+	}
+
+	@Override
+	public int updEle(Hard hard) {
+		return deviceDao.updEle(hard);
+	}
+
+	@Override
+	public Hard getByMac(String mac) {
+		return deviceDao.getByMac(mac);
+	}
+
+	@Override
+	public int updateDeviceStatus(TestUser testUser) {
+		return deviceDao.updateDeviceStatus(testUser);
+	}
+
+	@Override
+	public List<TestUser> getTestUserFromBind(int testId) {
+		return deviceDao.getTestUserFromBind(testId);
+	}
+
+	@Override
+	public TestUser getUserFromNow(String mac) {
+		return deviceDao.getUserFromNow(mac);
+	}
+
+	@Override
+	public List<Hard> getTestDevice(int testId) {
+		return deviceDao.getTestDevice(testId);
+	}
+
+	@Override
+	public Object saveNowInfo(int testId) {
+		return deviceDao.saveNowInfo(testId);
+	}
+
+	@Override
+	public TestInfo getTestInfoById(int testId) {
+		return deviceDao.getTestInfoById(testId);
+	}
+
+	@Override
+	public Hard getById(int id) {
+		return deviceDao.getById(id);
+	}
+
+	@Override
+	public int savePackageData(List<TestScorePackage> data) {
+		return deviceDao.savePackageData(data);
+	}
+
+	@Override
+	public int updScoreAndStatus(TestScoreVO data) {
+		return deviceDao.updScoreAndStatus(data);
+	}
+
+	@Override
+	public long saveBrainData(Session session, DeviceData data) {
+		if (sessionManager.getTestInfo() != null
+				&& session.getTestUser() != null
+				&& sessionManager.getTestInfo().getStatus() == TPMSConsts.STATUS_BACK) {// 正常状态下(非暂停)
+			if (sessionManager.getTestInfo().getPeriod() == TPMSConsts.PERIOD_BEFORE
+					&& (session.getThreshold() == null || data.getAttention() > session
+							.getThreshold())) {// 更新脑电阈值
+				TestUser user = new TestUser();
+				user.setHumanId(session.getTestUser().getHumanId());
+				user.setThreshold(data.getAttention());
+				deviceDao.updThreshold(user);
+			}
+
+			deviceDao.updBrainInNow(data);
+			if (sessionManager.getTestInfo().getPeriod() == TPMSConsts.PERIOD_SCORE_START) {// 只有开始视频测试时记录脑电历史值
+				return deviceDao.saveBrainData(data);
+			}
+		}
+		return 0;
+	}
+
+	@Override
+	public TestUser getUser(int testId, String mac) {
+		TestUser param = new TestUser();
+		param.setTestId(testId);
+		param.setMac(mac);
+		return deviceDao.getUser(param);
+	}
+
+}

@@ -1,0 +1,30 @@
+package cn.ineutech.tpms.tcp.service.queue;
+
+import cn.ineutech.tpms.tcp.MsgQueue;
+import cn.ineutech.tpms.tcp.server.BrainTCPServerManager;
+import cn.ineutech.tpms.tcp.vo.QueueElement;
+
+public class BrainMemoryMsgQueueServiceImpl implements MsgQueueService {
+
+	private MsgQueue msgQueue = null;
+
+	public BrainMemoryMsgQueueServiceImpl() {
+		msgQueue = BrainTCPServerManager.getInstance().getMsgQueue();
+	}
+
+	@Override
+	public void push(QueueElement queueElement) throws InterruptedException {
+		this.msgQueue.push(queueElement);
+	}
+
+	@Override
+	public QueueElement take() throws InterruptedException {
+		return this.msgQueue.take();
+	}
+	
+	@Override
+	public QueueElement poll() throws InterruptedException {
+		return this.msgQueue.poll();
+	}
+
+}

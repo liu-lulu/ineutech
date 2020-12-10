@@ -1,0 +1,141 @@
+package com.ineutech.dao.impl;
+
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ineutech.dao.DeviceDao;
+import com.ineutech.entity.DeviceData;
+import com.ineutech.entity.Hard;
+import com.ineutech.entity.TestInfo;
+import com.ineutech.entity.TestScorePackage;
+import com.ineutech.entity.TestScoreVO;
+import com.ineutech.entity.TestUser;
+
+public class DeviceDaoImpl extends BaseDaoImpl implements DeviceDao{
+
+	@Override
+	public int saveData(TestScoreVO data) {
+		getSqlMapClientTemplate().insert("TestScoreVO.saveToHistory", data);
+		return 1;
+	}
+	
+	@Override
+	public int updScoreToNow(TestScoreVO data) {
+		getSqlMapClientTemplate().update("TestScoreVO.updateScoreInNow", data);
+		return 1;
+	}
+	
+
+	@Override
+	public TestUser getUser(TestUser user) {
+		return (TestUser) getSqlMapClientTemplate().queryForObject("TestScoreVO.getUserFromBind", user);
+	}
+
+	@Override
+	public int saveHardInfo(Hard hard) {
+		
+		return (int) getSqlMapClientTemplate().insert("Hard.saveData", hard);
+	}
+
+	@Override
+	public int updEle(Hard hard) {
+		return (int) getSqlMapClientTemplate().update("Hard.updEle", hard);
+	}
+
+	@Override
+	public Hard getByMac(String mac) {
+		return (Hard) getSqlMapClientTemplate().queryForObject("Hard.getInfoByMac", mac);
+	}
+
+	@Override
+	public int updateDeviceStatus(TestUser testUser) {
+		return getSqlMapClientTemplate().update("TestScoreVO.updDeviceStatus", testUser);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<TestUser> getTestUserFromBind(int testId) {
+		return getSqlMapClientTemplate().queryForList("TestScoreVO.getTestUserFromBind",testId);
+	}
+
+	@Override
+	public TestUser getUserFromNow(String mac) {
+		return (TestUser) getSqlMapClientTemplate().queryForObject("TestScoreVO.getUser", mac);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Hard> getTestDevice(int testId) {
+		return getSqlMapClientTemplate().queryForList("Hard.getTestDevice",testId);
+	}
+
+	@Override
+	public Object saveNowInfo(int testId) {
+		return getSqlMapClientTemplate().insert("Hard.saveNowInfo", testId);
+	}
+
+	@Override
+	public int deleteFromNow() {
+		return (int) getSqlMapClientTemplate().delete("Hard.deleteFromNow");
+	}
+
+	@Override
+	public TestInfo getTestInfoById(int testId) {
+		return (TestInfo) getSqlMapClientTemplate().queryForObject("TestScoreVO.getTestInfoById",testId);
+	}
+
+	@Override
+	public int updLastInfo(List<Hard> hards) {
+		try {
+			getSqlMapClient().startBatch();
+			for (Hard hard : hards) {
+				if (StringUtils.isNotEmpty(hard.getMac())) {
+					getSqlMapClient().update("Hard.updLastInfo", hard);
+				}
+			}
+			getSqlMapClient().executeBatch();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+		
+		return 1;
+	}
+
+	@Override
+	public int savePackageData(List<TestScorePackage> data) {
+		getSqlMapClientTemplate().insert("TestScoreVO.saveListToPackHistory", data);
+		return 1;
+	}
+	
+	@Override
+	@Transactional
+	public int updScoreAndStatus(TestScoreVO data){
+		getSqlMapClientTemplate().update("TestScoreVO.updateScoreInNow", data);
+		return 1;
+	}
+
+	@Override
+	public long saveBrainData(DeviceData data) {
+		getSqlMapClientTemplate().insert("DeviceData.saveData", data);
+		return 1;
+	}
+
+	@Override
+	public int updThreshold(TestUser testUser) {
+		getSqlMapClientTemplate().update("TestScoreVO.updThreshold", testUser);
+		return 1;
+	}
+
+	@Override
+	public int updBrainInNow(DeviceData data) {
+		getSqlMapClientTemplate().update("DeviceData.updData", data);
+		return 1;
+	}
+
+
+
+}

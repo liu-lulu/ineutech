@@ -1,0 +1,326 @@
+package cn.ineutech.tpms.tcp.processor;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cn.ineutech.tpms.tcp.TPMSConsts;
+import cn.ineutech.tpms.tcp.server.SessionManager;
+import cn.ineutech.tpms.tcp.service.msg.BaseMsgProcessService;
+import cn.ineutech.tpms.tcp.service.queue.MemoryMsgQueueServiceImpl;
+import cn.ineutech.tpms.tcp.service.queue.MsgQueueService;
+import cn.ineutech.tpms.tcp.vo.QueueElement;
+import cn.ineutech.tpms.tcp.vo.Session;
+
+import com.ineutech.entity.Hard;
+import com.ineutech.entity.TestInfo;
+import com.ineutech.entity.TestScoreVO;
+import com.ineutech.entity.TestUser;
+import com.ineutech.service.DeviceService;
+import com.ineutech.service.impl.DeviceServiceImpl;
+import com.ineutech.util.SpringContextUtils;
+import com.ineutech.vo.TestUserSessionVO;
+
+/**
+ * 处理接收到的拨盘的数据
+ * @author liululu
+ *
+ */
+public class MsgQueueProcessor extends Thread implements Processor {
+
+	private Logger log = LoggerFactory.getLogger(getClass());
+
+	private volatile boolean isRunning = false;
+	private MsgQueueService msgQueueService = null;
+	private SessionManager sessionManager;
+	private DeviceService service;
+	private BaseMsgProcessService sendToDevice;
+
+	public MsgQueueProcessor() {
+		this.msgQueueService = new MemoryMsgQueueServiceImpl();
+		this.sessionManager = SessionManager.getInstance();
+		this.service = (DeviceServiceImpl) SpringContextUtils.getContext()
+				.getBean("deviceService");
+		this.sendToDevice = new BaseMsgProcessService();
+		this.setName("TCP-MsgQueueProcessor");
+		this.setDaemon(true);
+	}
+
+	@Override
+	public synchronized void startProcess() {
+		if (this.isRunning) {
+			throw new IllegalStateException(this.getName()
+					+ " is already started .");
+		}
+		this.isRunning = true;
+		super.start();
+		this.log.info("队列消息处理器启动完毕...");
+	}
+
+	@Override
+	public synchronized void stopProcess() {
+		if (!this.isRunning) {
+			throw new IllegalStateException(this.getName()
+					+ " is not yet started .");
+		}
+		this.isRunning = false;
+		this.interrupt();
+		this.log.info("队列消息处理器已经停止...");
+	}
+
+	@Override
+	public void run() {
+		ExecutorService cachedThreadPool = Executors.newFixedThreadPool(30);
+
+		while (this.isRunning) {
+			QueueElement msg = null;
+			try {
+				msg = this.msgQueueService.poll();// take()换成poll()
+			} catch (InterruptedException e1) {
+				continue;
+			}
+			try {
+				if (msg != null) {
+					cachedThreadPool.execute(DoTask(msg));
+				}
+			} catch (Exception e) {
+				log.error("消息处理出现异常:{}", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+
+		cachedThreadPool.shutdown();
+	}
+
+	/**
+	 * 
+	 * @param queueElement
+	 * @return
+	 */
+	private Runnable DoTask(QueueElement queueElement) {
+		return new Runnable() {
+			@Override
+			public void run() {
+				try {
+					processMsg(queueElement);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	}
+
+	/**
+	 * 解析接收到的消息
+	 * @param queueElement
+	 * @throws InterruptedException
+	 * @throws ParseException
+	 */
+	public void processMsg(QueueElement queueElement)
+			throws InterruptedException, ParseException {
+		Session session = sessionManager.findPadBySessionId(queueElement
+				.getChannel().id().asLongText());
+		log.info("process data:{}", queueElement.getContent());
+
+		String[] content = queueElement.getContent().split(TPMSConsts.SPLIT);
+
+		if (content != null && content.length == 6
+				&& TPMSConsts.HEAD.equals(content[0])) {
+
+			String clientType = content[1];
+			String uuid = content[2];
+			String dataType = content[3];
+			String data = content[4];
+			String time = content[5];
+
+			session.setClientType(clientType);
+			session.setUuid(uuid);
+
+			// 首次获取设备信息
+			if (session.getDevice_id() == null) {// 首次获取mac信息时
+				Hard hard = service.getByMac(uuid);
+				if (hard == null) {
+					hard = new Hard();
+					hard.setHardType(Hard.TYPE_DIAL);
+					hard.setLastTime(new Date());
+					hard.setMac(uuid);
+					int hardId = service.saveHardInfo(hard);
+					session.setDevice_id(hardId);
+				} else {
+					session.setDevice_id(hard.getHardId());
+				}
+
+				if (sessionManager.findByUUID(uuid) == null) {
+					sessionManager.getPadIdMap().put(session.getUuid(),
+							queueElement.getChannel().id().asLongText());
+				}
+			}
+
+			if (TPMSConsts.CLIENT_SCORE.equals(clientType)) {// 测试端
+
+				if (TPMSConsts.UP_COMMAND_BIND.equals(dataType)) {//
+
+					// 座位号登陆
+					int seatNo = Integer.valueOf(data);
+					log.info("人员登陆信息-座位号：" + seatNo);
+					TestInfo testInfo = sessionManager.getTestInfo();
+					if (testInfo != null) {// 已选择测试节目
+						if (sessionManager.getBySeatNo(seatNo) != null) {// 该座位号已登陆
+							sendToDevice.send2Client(session.getChannel(),
+									sendToDevice.loginResult(
+											TPMSConsts.LOGIN_FAIL,
+											TPMSConsts.LOGIN_FAIL_2));
+							return;
+						}
+
+						TestUser testUser = service.getUser(new TestUser(
+								testInfo.getTestId(), seatNo));
+						if (testUser == null) {// 没有分配该座位号，登陆失败
+							sendToDevice.send2Client(session.getChannel(),
+									sendToDevice.loginResult(
+											TPMSConsts.LOGIN_FAIL,
+											TPMSConsts.LOGIN_FAIL_3));
+							return;
+						}
+
+						if (session.getTestUser() != null) {// 设备切换账号(之前登陆过)
+							sessionManager.clearLoginUserInfo(session
+									.getTestUser().getHumanId());// 将之前登陆的绑定信息清除
+						}
+
+						TestUserSessionVO newUserVO = new TestUserSessionVO(
+								testUser, seatNo, session.getDevice_id());
+						sendToDevice.send2Client(session.getChannel(),
+								sendToDevice.getOnlineInfo(newUserVO));// 返回用户信息
+
+						session.setSeatNo(seatNo);
+						session.setTestUser(testUser);
+						
+						if (!TPMSConsts.PERIOD_INFO.equals(testInfo.getPeriod())) {//如果不是人员信息阶段,说明是掉线重新登陆,不用手动确认个人信息
+							sessionManager.updLoginUserInfo(testUser,
+									session.getSeatNo(), session.getDevice_id());
+							sendToDevice.sendToMonitor(sendToDevice.loginResult(
+									TPMSConsts.LOGIN_SUCC, session.getSeatNo() + ""));// 重新登陆成功发送给监控端
+
+							testUser.setDeviceStatus(TestUser.DEVICE_STATUS_ONLINE);
+							service.updateDeviceStatus(testUser);
+						}
+
+					} else {// 还未选择测试项目，登陆失败
+						sendToDevice.send2Client(session.getChannel(),
+								sendToDevice.loginResult(TPMSConsts.LOGIN_FAIL,
+										TPMSConsts.LOGIN_FAIL_1));
+						return;
+					}
+
+				} else if (TPMSConsts.UP_COMMAND_SCORE.equals(dataType)) {// 上送数据
+					log.info("分数:{}", data);
+
+					sendToDevice.sendToMonitor(sendToDevice.sendScoreToMonitor(
+							data, session.getSeatNo()));// 实时将分数发送给监控端
+
+					TestScoreVO vo = new TestScoreVO();
+					vo.setCreateTime(new Date());
+					vo.setTestId(session.getTestUser() == null ? 0 : session
+							.getTestUser().getTestId());
+					vo.setMac(session.getUuid());
+					vo.setScore(Integer.valueOf(data));
+					vo.setHumanId(session.getTestUser() == null ? 0 : session
+							.getTestUser().getHumanId());
+					vo.setHardId(session.getDevice_id());
+					vo.setSeatNo(session.getTestUser() == null
+							|| session.getTestUser().getSeatNo() == null ? 0
+							: session.getTestUser().getSeatNo());
+					vo.setUserGroup(session.getTestUser() == null ? ""
+							: session.getTestUser().getUserGroup());
+					vo.setCaijiTime(time);
+
+					service.saveData(vo);
+					session.setLastChuliDate(vo.getCreateTime());
+					session.setScore(Integer.valueOf(data));
+
+					sessionManager.setScore(session.getSeatNo(),
+							Integer.valueOf(data));
+
+				} else if (TPMSConsts.UP_COMMAND_BEFORE.equals(dataType)
+						|| TPMSConsts.UP_COMMAND_AFTER.equals(dataType)) {// 问卷进度
+
+					System.out.println("进度:" + data);
+					TestUserSessionVO user = sessionManager.getBySeatNo(session
+							.getSeatNo());
+					sendToDevice.sendToMonitor(sendToDevice
+							.sendProcessToMonitor(data, session.getSeatNo()));// 进度发给监控端
+					if (TPMSConsts.UP_COMMAND_BEFORE.equals(dataType)) {// 测前进度
+						user.setBeforePaperProcess(data);
+					} else {// 测后进度
+						user.setAfterPaperProcess(data);
+					}
+				} else if (TPMSConsts.UP_COMMAND_INFO_CONFIRM.equals(dataType)) {// 登陆信息确认
+//					sendToDevice.sendDataToMonitor(
+//							TPMSConsts.DOWN_COMMAND_INFO_CONFIRM,
+//							session.getSeatNo());
+					log.info("登陆信息确认,座位号:" + session.getSeatNo());
+
+					TestUser testUser = session.getTestUser();
+					sessionManager.updLoginUserInfo(testUser,
+							session.getSeatNo(), session.getDevice_id());
+					sendToDevice.sendToMonitor(sendToDevice.loginResult(
+							TPMSConsts.LOGIN_SUCC, session.getSeatNo() + ""));// 登陆成功发送给监控端
+
+					testUser.setDeviceStatus(TestUser.DEVICE_STATUS_ONLINE);
+					service.updateDeviceStatus(testUser);
+
+				} else if (TPMSConsts.UP_COMMAND_BEFORE_END.equals(dataType)) {// 测前问卷完成
+					sendToDevice.sendDataToMonitor(
+							TPMSConsts.DOWN_COMMAND_BEFORE_END,
+							session.getSeatNo());
+					log.info("测前问卷完成,座位号:" + session.getSeatNo());
+
+				} else if (TPMSConsts.UP_COMMAND_DIAL_END.equals(dataType)) {// 拨盘调试完成
+					sendToDevice.sendDataToMonitor(
+							TPMSConsts.DOWN_COMMAND_DIAL_END,
+							session.getSeatNo());
+					log.info("拨盘调试完成,座位号:" + session.getSeatNo());
+
+				} else if (TPMSConsts.UP_COMMAND_AFTER_END.equals(dataType)) {// 测后问卷完成
+					sendToDevice.sendDataToMonitor(
+							TPMSConsts.DOWN_COMMAND_AFTER_END,
+							session.getSeatNo());
+					log.info("测后问卷完成,座位号:" + session.getSeatNo());
+				} else if (TPMSConsts.UP_COMMAND_PACKAGE_END.equals(dataType)) {// 数据打包上传完成
+					log.info("数据打包上传完成,座位号:" + session.getSeatNo());
+				} else {
+					log.info("数据类型未知");
+				}
+			} else {// 监控端
+
+			}
+
+		} else {
+			log.info("{}:数据不完整", queueElement.getContent());
+		}
+
+	}
+
+	public static void main(String[] args) throws UnknownHostException,
+			IOException, InterruptedException {
+
+		// Socket socket = new Socket("localhost", 8082);
+		// OutputStream outputStream = socket.getOutputStream();
+		// while (true) {
+		// outputStream.write("smg,1,uuid,1,85,2017-08-11 13:29:30\r\n".getBytes());
+		// outputStream.flush();
+		// Thread.sleep(1000);
+		// }
+
+	}
+
+}

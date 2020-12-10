@@ -1,0 +1,109 @@
+package com.ineutech.service.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.StringUtils;
+
+import cn.ineutech.tpms.tcp.TPMSConsts;
+import cn.ineutech.tpms.tcp.server.SessionManager;
+import cn.ineutech.tpms.tcp.vo.Session;
+
+import com.ineutech.dao.DeviceDao;
+import com.ineutech.entity.Hard;
+import com.ineutech.entity.TestInfo;
+import com.ineutech.entity.TestUser;
+import com.ineutech.vo.AllTestUserInfoVO;
+import com.ineutech.vo.TestUserSessionVO;
+
+public class TestServiceImpl {
+	private SessionManager sessionManager=SessionManager.getInstance();
+	@Resource
+	private DeviceDao deviceDao;
+	
+	public void selectTest(int testId) throws InterruptedException{
+		TestInfo testInfo=deviceDao.getTestInfoById(testId);
+		
+		deviceDao.deleteFromNow();//test_now中之前的测试信息清除
+		
+		List<Hard> testHards=deviceDao.getTestDevice(testId);
+		
+		deviceDao.saveNowInfo(testId);
+		
+		List<Session> brain=sessionManager.brainToList();
+		
+		TestUser testUser=new TestUser();
+		testUser.setTestId(testId);
+		testUser.setDeviceStatus(TestUser.DEVICE_STATUS_ONLINE);
+		
+		for (Hard hard : testHards) {
+			hard.setTestName(testInfo.getTestName());
+			hard.setLastTime(new Date());
+			hard.setStatus(Hard.STATUS_USING);
+			
+			testUser.setMac(hard.getMac());
+			for (Session session : brain) {
+				if (hard.getMac().equals(session.getUuid())) {
+//					deviceDao.updateDeviceStatus(testUser);//更新test_now里的脑电设备状态:在线
+					session.setTestUser(deviceDao.getUser(testUser));//给在线的脑电绑定用户信息
+					break;
+				}
+			}
+		}
+		deviceDao.updLastInfo(testHards);
+		
+		testInfo.setPeriod(TPMSConsts.PERIOD_INFO);
+		sessionManager.setTestInfo(testInfo);//保存当前的测试信息
+		
+	}
+	
+	public List<AllTestUserInfoVO> getUserLoginInfo(){
+		List<TestUser> users=deviceDao.getTestUserFromBind(sessionManager.getTestInfo().getTestId());
+		
+		List<AllTestUserInfoVO> info=new ArrayList<AllTestUserInfoVO>();
+		
+		for (TestUser user : users) {
+			AllTestUserInfoVO userInfoVO=new AllTestUserInfoVO(user);
+			
+			if (StringUtils.isNotEmpty(user.getMac())) {//用户使用脑电
+				Session brainSession=sessionManager.findBrainByMac(user.getMac());
+				if (brainSession!=null) {//脑电在线
+					userInfoVO.setBrainOnline(true);
+					userInfoVO.setBrainData(brainSession.getBrainData());
+				}
+			}
+			
+			
+			TestUserSessionVO sessionInfo=sessionManager.getUserById(userInfoVO.getHumanId());
+			if (sessionInfo!=null) {//曾经登陆过
+				userInfoVO.setScore(sessionInfo.getScore());
+				userInfoVO.setBeforePaperProcess(sessionInfo.getBeforePaperProcess());
+				userInfoVO.setAfterPaperProcess(sessionInfo.getAfterPaperProcess());
+				if (sessionInfo.getSeat_no()!=null) {
+					userInfoVO.setOnline(true);//已登陆，在线
+				}
+			}
+			info.add(userInfoVO);
+		}
+		return info;
+		
+	}
+
+	//人员拨盘绑定
+	public void loadDeviceBind(int testId){
+		TestUser testUser=null;
+		for (Session session : sessionManager.padToList()) {
+			testUser=new TestUser();
+			testUser.setTestId(testId);
+//			testUser.setMac(session.getUuid());
+			testUser.setSeatNo(session.getSeatNo());
+			session.setTestUser(deviceDao.getUser(testUser));
+		}
+	}
+	
+	
+
+}

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TestScoreVO" >
+	<typeAlias alias="TestScoreVO" type="com.ineutech.entity.TestScoreVO"/>
+	
+	<typeAlias alias="TestUser" type="com.ineutech.entity.TestUser"/>
+	
+	<typeAlias alias="TestInfo" type="com.ineutech.entity.TestInfo"/>
+	
+	<resultMap class="com.ineutech.entity.TestUser" id="testUserMap" >
+         <result property="testId" column="test_id"/>
+         <result property="testName" column="test_name"/>
+         <result property="humanId" column="HUMAN_id"/>
+         <result property="userId" column="user_id"/>
+         <result property="userName" column="user_name"/>
+         <result property="userSex" column="user_sex"/>
+         <result property="userAge" column="user_age"/>
+         <result property="userEdu" column="user_edu"/>
+         <result property="userJob" column="user_job"/>
+         <result property="income" column="income"/>
+         <result property="address" column="address"/>
+         <result property="seatNo" column="seat_no"/>
+         <result property="hardId" column="hard_id"/>
+         <result property="mac" column="mac"/>
+    </resultMap>
+    
+    <resultMap class="com.ineutech.entity.TestInfo" id="testInfoMap">
+         <result property="testId" column="test_id"/>
+         <result property="testName" column="test_name"/>
+         <result property="pty" column="pty"/>
+         <result property="proType1" column="pro_type1"/>
+         <result property="proType2" column="pro_type2"/>
+         <result property="proLength" column="pro_length"/>
+         <result property="actualTime" column="actual_time"/>
+         <result property="examBefore" column="exam_before"/>
+         <result property="examAfter" column="exam_after"/>
+    </resultMap>
+	
+	<update id="updateScoreInNow" parameterClass="TestScoreVO">
+		UPDATE test_now SET `device_status`=#deviceStatus#,`score`=#score# WHERE `HUMAN_id`=#humanId#
+	</update>
+	<select id="getTestInfoById" parameterClass="java.lang.Integer" resultMap="testInfoMap">
+		SELECT test_id,test_name,pty,pro_type1,pro_type2,pro_length,actual_time,`exam_before`,`exam_after` FROM test_info where test_id=#test_id#
+	</select>
+	
+	<insert id="saveToHistory" parameterClass="TestScoreVO">
+		insert into test_score_history(create_time,caiji_time,test_id,mac,score,hard_id,human_id,seat_no,user_group) values (#createTime#,#caijiTime#,#testId#,#mac#,#score#,#hardId#,#humanId#,#seatNo#,#userGroup#)
+	</insert>
+	
+	<insert id="saveListToPackHistory" parameterClass="java.util.List">
+		insert into test_score_package(caiji_time,test_id,mac,score,hard_id,human_id,seat_no) values 
+		<iterate conjunction=",">
+			(#[].caijiTime#,#[].testId#,#[].mac#,#[].score#,#[].hardId#,#[].humanId#,#[].seatNo#)
+		</iterate>
+	</insert>
+	
+	<select id="getUserFromBind" parameterClass="TestUser" resultMap="testUserMap" remapResults="true">
+		select TUB.test_id,TUB.HUMAN_id,TU.`user_id`,TU.user_name,TU.user_sex,TU.user_age,TU.user_edu,TU.user_job,TU.income,TU.address,TUB.seat_no,TUB.hard_id,TH.mac,TI.test_name
+		from test_user_bind TUB LEFT JOIN test_info TI ON TUB.test_id=TI.test_id LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#testId# 
+        <isNotEmpty prepend=" AND " property="mac">  
+          TH.mac=#mac# 
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="seatNo">  
+          TUB.seat_no=#seatNo# 
+        </isNotEmpty>
+	</select>
+	
+	<select id="getTestUserFromBind" parameterClass="java.lang.Integer" resultMap="testUserMap">
+		select TUB.test_id,TUB.HUMAN_id,TU.`user_id`,TU.user_name,TU.user_sex,TU.user_age,TU.user_edu,TU.user_job,TU.income,TU.address,TUB.seat_no,TUB.hard_id,TH.mac,TI.test_name 
+		from test_user_bind TUB LEFT JOIN test_info TI ON TUB.test_id=TI.test_id LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#test_id#
+	</select>
+	
+	<update id="updDeviceStatus" parameterClass="TestUser">
+		update test_now set device_status=#deviceStatus# where `HUMAN_id`=#humanId#
+	</update>
+	
+	<update id="updThreshold" parameterClass="TestUser">
+		update test_user set threshold=#threshold# where `HUMAN_id`=#humanId#
+	</update>
+
+	<insert id="saveDialTotalScore" parameterClass="java.lang.Integer">
+		INSERT INTO `dialtotalscore`(`test_id`,`manasc`,`manasccount`,`mandsc`,`mandsccount`,`womanasc`,`womanasccount`,`womandsc`,`womandsccount`)
+		SELECT 
+		TSH.test_id,
+		IFNULL(AVG(
+		CASE WHEN TU.user_sex=1 THEN (CASE WHEN TU.user_age>=45 THEN TSH.score END)
+		END),0) AS manasc,
+
+		IFNULL(COUNT(DISTINCT
+		CASE WHEN TU.user_sex=1 THEN (CASE WHEN TU.user_age>=45 THEN TSH.HUMAN_id END)
+		END),0) AS manasccount,
+		
+		IFNULL(AVG(
+		CASE WHEN TU.user_sex=1 THEN (CASE WHEN 45>TU.user_age THEN TSH.score END)
+		END),0) AS mandsc,
+
+		IFNULL(COUNT( DISTINCT
+		CASE WHEN TU.user_sex=1 THEN (CASE WHEN 45>TU.user_age THEN TSH.HUMAN_id END)
+		END),0)AS mandsccount,
+		
+
+		IFNULL(AVG(
+		CASE WHEN TU.user_sex=2 THEN (CASE WHEN TU.user_age>=45 THEN TSH.score END)
+		END),0) AS womanasc,
+
+		IFNULL(COUNT(DISTINCT
+		CASE WHEN TU.user_sex=2 THEN (CASE WHEN TU.user_age>=45 THEN TSH.HUMAN_id END)
+		END),0) AS womanasccount,
+		
+		IFNULL(AVG(
+		CASE WHEN TU.user_sex=2 THEN (CASE WHEN 45>TU.user_age THEN TSH.score END)
+		END),0) AS womandsc,
+
+		IFNULL(COUNT(DISTINCT
+		CASE WHEN TU.user_sex=2 THEN (CASE WHEN 45>TU.user_age THEN TSH.HUMAN_id END)
+		END),0) AS womandsccount
+		
+		FROM `test_score_history` TSH LEFT JOIN test_user TU ON TSH.HUMAN_id=TU.HUMAN_id
+		
+		WHERE TSH.test_id=#test_id# AND TSH.create_time>(SELECT `actual_time` FROM test_info WHERE test_id=#test_id#)
+	</insert>
+	
+</sqlMap>

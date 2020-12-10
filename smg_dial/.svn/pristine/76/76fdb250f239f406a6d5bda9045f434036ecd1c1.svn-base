@@ -1,0 +1,172 @@
+package cn.ineutech.tpms.tcp.service;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.ReferenceCountUtil;
+
+import java.net.InetSocketAddress;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cn.ineutech.tpms.tcp.PackageDataConstant;
+import cn.ineutech.tpms.tcp.TPMSConsts;
+import cn.ineutech.tpms.tcp.server.SessionManager;
+import cn.ineutech.tpms.tcp.service.msg.BaseMsgProcessService;
+import cn.ineutech.tpms.tcp.service.queue.BrainMemoryMsgQueueServiceImpl;
+import cn.ineutech.tpms.tcp.service.queue.MsgQueueService;
+import cn.ineutech.tpms.tcp.util.PackageUtil;
+import cn.ineutech.tpms.tcp.vo.QueueElement;
+import cn.ineutech.tpms.tcp.vo.Session;
+
+import com.ineutech.entity.DeviceLoginLog;
+import com.ineutech.service.DeviceLoginLogService;
+import com.ineutech.service.impl.DeviceLoginLogServiceImpl;
+import com.ineutech.util.SpringContextUtils;
+import com.ineutech.util.StringHelper;
+
+/**
+ * 
+ * @name: BrainTCPServerHandler 
+ * @description: 处理脑电tcp服务接收到的数据
+ * @date 2018年2月1日 下午2:12:42
+ * @author liululu
+ */
+public class BrainTCPServerHandler extends ChannelInboundHandlerAdapter {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	private final SessionManager sessionManager;
+	private MsgQueueService msgQueueService;
+	private DeviceLoginLogService deviceLoginLogService;
+	private PackageUtil packageUtil;
+	private BaseMsgProcessService sendToDevice;
+	
+	public BrainTCPServerHandler() {
+		this.sessionManager = SessionManager.getInstance();
+		this.msgQueueService = new BrainMemoryMsgQueueServiceImpl();
+		this.deviceLoginLogService=(DeviceLoginLogServiceImpl) SpringContextUtils.context.getBean("deviceLoginLogService");
+		this.packageUtil=new PackageUtil();
+		this.sendToDevice=new BaseMsgProcessService();
+	}
+
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws InterruptedException {
+		try {
+			ByteBuf buf = (ByteBuf) msg;
+			if (buf.readableBytes() <= 0) {
+				return;
+			}
+
+			byte[] bs = new byte[buf.readableBytes()];
+			buf.readBytes(bs);
+			
+			//------------------------
+			
+			byte[] temp=bs;
+			
+			Session session=sessionManager.findBrainBySessionId(Session.buildId(ctx.channel()));
+			if (session.getRowData()==null||session.getRowData().length==0) {
+				session.setRowData(temp);
+			}else {
+				session.setRowData(packageUtil.arrayAddToAnother(session.getRowData(), new byte[][]{temp}));
+			}
+			
+			byte[] rowData=session.getRowData();
+			
+//			logger.info(session.getDevice_id()+"本次接收数据长度:"+bs.length+";数据:"+HexStringUtils.toHexString(bs));
+//			logger.info(session.getDevice_id()+"总数据长度:"+rowData.length+";总数据"+HexStringUtils.toHexString(rowData));
+			 
+			//命令型数据，不需重新组包;
+			if (!session.isStartTest()&&packageUtil.getIndex(rowData, PackageDataConstant.CMD_HEAD_ARRAY, 0)!=-1) {
+				//脑电波头环在每次服务器链接完成后,自动发送,之后不再发送;isStartTest=true表明之后收到的数据为脑波的测试数据
+				session.setStartTest(true);
+				QueueElement element = new QueueElement(ctx.channel(), rowData);
+				element.setTime(new Date());
+				element.setType(QueueElement.TYPE_CMD);
+				this.msgQueueService.push(element);
+				session.setRowData(null);
+				
+			}else if (session.isStartTest()&&rowData.length>=4132) {
+				//每组数据有 512 个小包和一个大包，小包 8 字节/包，大包 36 字节/包；
+				Map<String,List<byte[]>> allDataList=packageUtil.getPackageData(rowData);
+//				logger.info(session.getDevice_id()+"====包总数=="+allDataList.size()+"======小包总数======="+allDataList.get("1").size());
+				 if (allDataList.size()==2&&allDataList.get("1").size()>=512&&allDataList.get("2").size()>=1) {
+					Map<String, byte[]> rowDataAndShengyu=packageUtil.getRowDataAndShengyu(rowData);
+					QueueElement element = new QueueElement(ctx.channel(), rowDataAndShengyu.get("1"));
+					//避免终端断掉后,未处理完的数据不知是哪个终端发来的
+					element.setDeviceId(session.getDeviceId());
+					element.setType(QueueElement.TYPE_DATA);
+					this.msgQueueService.push(element);
+					session.setRowData(rowDataAndShengyu.get("2"));
+//					logger.info(session.getDevice_id()+"rowdata长度:"+rowDataAndShengyu.get("1").length+"rowdata:"+HexStringUtils.toHexString(rowDataAndShengyu.get("1"))+"\n"+"shengyu长度:"+rowDataAndShengyu.get("2").length+"shengyu:"+HexStringUtils.toHexString(rowDataAndShengyu.get("2")));
+					
+				}
+			}
+			
+			
+//			session.setLastCommunicateTimeStamp(new Date().getTime());
+
+			
+		} finally {
+			release(msg);
+		}
+	}
+
+	@Override
+	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+		logger.error("脑电发生异常:{}", StringHelper.getTrace(cause));
+		ctx.close();
+	}
+
+	@Override
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		Session session = Session.buildSession(ctx.channel());
+		sessionManager.putBrain(session.getId(), session);
+		logger.info("脑电终端连接:{}", session);
+		sessionManager.getChannelGroup().add(ctx.channel());
+		
+	}
+
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		String sessionId = Session.buildId(ctx.channel());
+		Session session = sessionManager.findBrainBySessionId(sessionId);
+		this.sessionManager.removeBrainBySessionId(sessionId);
+		logger.info("脑电终端断开连接:{}", session.getDeviceId());
+		sessionManager.getChannelGroup().remove(ctx.channel());
+		
+		if (session.isStartTest()) {//终端连接后发送过数据
+			DeviceLoginLog info=new DeviceLoginLog();
+			info.setCreateTime(new Date());
+			info.setHardId(session.getDeviceId());
+			InetSocketAddress insocket = (InetSocketAddress) ctx.channel()
+					.remoteAddress();
+			info.setRemoteIp(insocket.getAddress().getHostAddress());
+			info.setRemotePort(insocket.getPort());
+			info.setType(DeviceLoginLog.TYPE_LOGOUT);
+			info.setStatus(DeviceLoginLog.NORMAL_STATUS);
+			
+			deviceLoginLogService.saveInfo(info);
+		}
+		
+		//将掉线状态发送给监控端
+		if (session.getTestUser()!=null) {
+			sendToDevice.sendToMonitor(sendToDevice.brainLoginResult(TPMSConsts.LOGIN_FAIL, session.getTestUser().getSeatNo()+""));
+		}
+		
+		ctx.channel().close();
+	}
+
+	private void release(Object msg) {
+		try {
+			ReferenceCountUtil.release(msg);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}

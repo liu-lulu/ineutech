@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceData" >
+	<typeAlias alias="DeviceData" type="com.ineutech.entity.DeviceData"/>
+	
+	<resultMap class="com.ineutech.entity.DeviceData" id="deviceDataMap">
+         <result property="deviceDataId" column="device_data_id"/>
+         <result property="createTime" column="create_time"/>
+         <result property="attention" column="attention"/>
+         <result property="delta" column="delta"/>
+         <result property="highAlpha" column="high_alpha"/>
+         <result property="highBeta" column="high_beta"/>
+         <result property="lowAlpha" column="low_alpha"/>
+         <result property="lowBeta" column="low_beta"/>
+         <result property="lowGamma" column="low_gamma"/>
+         <result property="meditation" column="meditation"/>
+         <result property="middleGamma" column="middle_gamma"/>
+         <result property="signal" column="signal"/>
+         <result property="theta" column="theta"/>
+         <result property="cognition" column="cognition"/>
+         <result property="nervous" column="nervous"/>
+         <result property="fatigue" column="fatigue"/>
+         <result property="hardId" column="hard_id"/>
+         <result property="humanId" column="HUMAN_id"/>
+    </resultMap>
+	
+	<insert id="saveData" parameterClass="DeviceData">
+		insert into device_data(`create_time`,`attention`,`delta`,`high_alpha`,`high_beta`,`low_alpha`,`low_beta`,`low_gamma`,`meditation`,`middle_gamma`,`signal`,`theta`,`hard_id`,`cognition`,`nervous`,`fatigue`,`HUMAN_id`,`test_id`) 
+		values 
+		(#createTime#,#attention#,#delta#,#highAlpha#,#highBeta#,#lowAlpha#,#lowBeta#,#lowGamma#,#meditation#,#middleGamma#,#signal#,#theta#,#hardId#,#cognition#,#nervous#,#fatigue#,#humanId#,#testId#)
+	</insert>
+	
+	<update id="updData" parameterClass="DeviceData">
+		UPDATE test_now SET `attention`=#attention# WHERE `HUMAN_id`=#humanId#
+	</update>
+	
+	<select id="getData" parameterClass="java.util.HashMap"  resultMap="deviceDataMap">
+		select * from device D left join device_data DD on D.device_id=DD.device_id
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="and" property="startTime">
+				DD.create_time>=#startTime#
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="endTime">
+				#endTime#>=DD.create_time
+			</isNotEmpty>
+			<isNotEmpty prepend="and" property="shefenId">
+				D.shefen_id=#shefenId#
+			</isNotEmpty>
+			</dynamic>
+			
+			order by DD.create_time 
+			<isEmpty prepend=" " property="sortData">
+				DESC
+			</isEmpty>
+			
+			<isNotEmpty prepend=" " property="sortData">
+				<isEqual property="sortData" compareProperty="0">
+					DESC
+				</isEqual>
+				<isEqual property="sortData" compareProperty="1">
+					ASC
+				</isEqual>
+			</isNotEmpty>
+			
+	</select>
+	
+</sqlMap>

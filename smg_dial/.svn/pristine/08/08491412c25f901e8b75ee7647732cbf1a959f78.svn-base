@@ -1,0 +1,89 @@
+package com.ineutech.entity;
+
+import java.util.Date;
+
+import com.ineutech.util.DateUtil;
+
+/**
+ * 
+ * @name: TestInfo 
+ * @description: 测试信息实体类
+ * @date 2018年2月1日 下午4:15:05
+ * @author liululu
+ */
+public class TestInfo {
+	
+	private int testId;
+	private String testName;
+	private String pty;
+	private String proType1;
+	private String proType2;
+	private Double proLength;
+	private Date actualTime;
+	
+	//测试流程阶段：人员信息 测前问答 开始打分 打分结束 测后问答 结束测试
+	private String period;
+	//阶段状态:正常测试(2) 暂停(1)
+	private String status="2";
+	
+	public String getPty() {
+		return pty;
+	}
+	public void setPty(String pty) {
+		this.pty = pty;
+	}
+	public String getPeriod() {
+		return period;
+	}
+	public void setPeriod(String period) {
+		this.period = period;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	
+	public int getTestId() {
+		return testId;
+	}
+	public void setTestId(int testId) {
+		this.testId = testId;
+	}
+	public String getTestName() {
+		return testName;
+	}
+	public void setTestName(String testName) {
+		this.testName = testName;
+	}
+	public String getProType1() {
+		return proType1;
+	}
+	public void setProType1(String proType1) {
+		this.proType1 = proType1;
+	}
+	public String getProType2() {
+		return proType2;
+	}
+	public void setProType2(String proType2) {
+		this.proType2 = proType2;
+	}
+	public Double getProLength() {
+		return proLength;
+	}
+	public void setProLength(Double proLength) {
+		this.proLength = proLength;
+	}
+	public Date getActualTime() {
+		return actualTime;
+	}
+	public void setActualTime(Date actualTime) {
+		this.actualTime = actualTime;
+	}
+	@Override
+	public String toString() {
+		return "testId="+testId+";test_name="+testName+";pty="+pty+";pro_type1="+proType1+";pro_type2="+proType2+";pro_length="+proLength+";actual_time="+DateUtil.format(actualTime)+";";
+	}
+
+}

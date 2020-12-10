@@ -1,0 +1,60 @@
+#README
+
+###1、项目说明
+* 本项目为脑电以及拨盘提供tcp服务，以及控制台和app端的接口
+
+###2、开发的工具版本和参数
+* Eclipse 4.4.2
+* MySQL 5.5
+
+
+###3、第三方插件版本及来源说明
+* spring-webmvc ,  4.3.2
+ <http://mvnrepository.com/artifact/org.springframework/spring-webmvc/4.3.2.RELEASE>   		
+* ibatis,  2.3.0 
+ <http://mvnrepository.com/artifact/org.apache.ibatis/ibatis-sqlmap/2.3.0>
+* netty-all , 4.1.6
+ <http://mvnrepository.com/artifact/io.netty/netty-all/4.1.6.Final>
+
+
+###4、工程结构说明
+![MacDown logo](2018-01-03 11.25.38.png)
+
+* resource:数据库以及springmvc配置文件
+* cn.ineutech.tpms：为脑电以及拨盘提供tcp服务
+* com.ineutech.control.device: 提供的接口
+* com.ineutech.model: 操作数据库的sql文件
+* com.ineutech.dao.impl：负责对数据库操作的实施
+* com.ineutech.service.impl：管理具体的操作功能
+* com.ineutech.util：工具类
+* com.ineutech.model：实体类
+* com.ineutech.vo：实体封装类
+* lib:引用的jar包
+
+###5、更新内容_20180202
+
+* 修复bug:用户端多次退出用同一座位号重复登陆问题
+* 脑电(数据处理与在线状态)与监控端的实时通信
+
+###6、更新内容_20180207
+
+* 处理表情在线状态并与监控端实时通信
+
+###7、更新内容_20180309
+
+* 优化拨盘数据的实时存储
+* 保存测试人员的测试完成结果（测前问卷完成，测后问卷完成，打分数据打包上传完成）
+* 获取测试绑定的测前问卷和测后问卷
+
+###8、更新内容_20180330
+
+* 测试结束后统计男+,男-,女+,女-的平均分
+* 测试人员拨盘调试完成后记录此状态
+* 独立播放器连上服务器后通知控制台
+
+###9、更新内容_20180420
+
+* 监控端控制暂停/继续功能
+* 用户端掉线重连功能
+* 监控端/用户端添加心跳包
+* 监控端座位调换功能

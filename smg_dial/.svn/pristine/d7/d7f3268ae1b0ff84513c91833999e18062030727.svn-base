@@ -1,0 +1,13 @@
+package cn.ineutech.tpms.tcp.service.queue;
+
+import cn.ineutech.tpms.tcp.vo.QueueElement;
+
+public interface MsgQueueService {
+
+	void push(QueueElement queueElement) throws InterruptedException;
+
+	QueueElement take() throws InterruptedException;
+	
+	QueueElement poll() throws InterruptedException;
+
+}

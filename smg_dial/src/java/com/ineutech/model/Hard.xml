@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Hard" >
+	<typeAlias alias="Hard" type="com.ineutech.entity.Hard" />
+	<typeAlias alias="TestUser" type="com.ineutech.entity.TestUser"/>
+	
+	<resultMap class="com.ineutech.entity.Hard" id="hardMap">
+         <result property="testName" column="test_name"/>
+         <result property="hardId" column="hard_id"/>
+         <result property="mac" column="mac"/>
+         <result property="hardNo" column="hard_no"/>
+         <result property="hardType" column="hard_type"/>
+         <result property="lastTime" column="last_time"/>
+         <result property="hardElec" column="hard_elec"/>
+         <result property="status" column="status"/>
+    </resultMap>
+    
+	<insert id="saveData" parameterClass="Hard">
+		insert into test_hard(`mac`,`hard_type`,`last_time`) values (#mac#,#hardType#,#lastTime#)
+		<selectKey resultClass="int" keyProperty="hardId">
+			SELECT LAST_INSERT_ID() AS hardId
+		</selectKey>
+	</insert>
+	
+	<update id="updEle" parameterClass="Hard">
+		update test_hard set `last_time`=#lastTime#,`hard_elec`=#hardElec# where `mac`=#mac#
+	</update>
+	
+	<update id="updLastInfo" parameterClass="Hard">
+		update test_hard set `last_time`=#lastTime#,`test_name`=#testName#,`status`=#status# where `mac`=#mac#
+	</update>
+	
+	<update id="updLastInfoByBatch" parameterClass="java.util.List">
+		BEGIN
+		<iterate conjunction="">
+		update test_hard set `last_time`=#[].lastTime#,`test_name`=#[].testName#,`status`=#[].status# where `mac`=#[].mac#;
+		</iterate>
+		END;
+		
+	</update>
+	
+	<select id="getInfoByMac" parameterClass="java.lang.String" resultMap="hardMap">
+		select `hard_id`,`mac`,`hard_no`,`hard_type`,`last_time`,`test_name`,`hard_elec`,`status` from test_hard where `mac` like '%$mac$%' limit 1
+		<!-- like '%$mac$%' -->
+	</select>
+	
+	<select id="getInfoByNo" parameterClass="java.lang.Integer" resultMap="hardMap">
+		SELECT `hard_id`,`mac`,`hard_no`,`hard_type`,`last_time`,`test_name`,`hard_elec`,`status` FROM `test_hard` WHERE `hard_no`=#hard_no# AND `hard_type`='脑电' LIMIT 1
+	</select>
+	
+	<select id="getUserHard" parameterClass="TestUser" resultMap="hardMap">
+		SELECT TH.hard_id,TH.mac,TH.hard_no,TH.hard_type,TH.last_time,TH.test_name,TH.hard_elec,TH.`status`
+		FROM `test_user_bind` TUB LEFT JOIN `test_hard` TH ON TUB.`hard_id`=TH.`hard_id`
+		WHERE TUB.`test_id`=#testId# AND TUB.`HUMAN_id`=#humanId#
+	</select>
+	
+	<!-- <select id="getInfoById" parameterClass="java.lang.Integer" resultMap="hardMap">
+		select `hard_id`,`mac`,`hard_no`,`hard_type`,`last_time`,`test_name`,`hard_elec`,`status` from test_hard where `hard_id`=#hardId#
+	</select> -->
+	
+	<select id="getTestDevice" parameterClass="java.lang.Integer" resultMap="hardMap">
+		select TH.hard_id,TH.mac,TH.hard_no,TH.hard_type,TH.last_time,TH.test_name,TH.hard_elec,TH.`status` 
+		from test_user_bind TUB LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#test_id# AND TH.hard_id IS NOT NULL
+	</select>
+	
+	<insert id="saveNowInfo" parameterClass="java.lang.Integer">
+		INSERT into test_now(test_id,HUMAN_id,user_name,user_sex,user_age,user_edu,user_job,income,address,age_group,seat_no,hard_id,mac,yuliu1,yuliu2,yuliu3,yuliu4,yuliu5)
+		select TUB.test_id,TUB.HUMAN_id,TU.user_name,TU.user_sex,TU.user_age,TU.user_edu,TU.user_job,TU.income,TU.address,TU.age_group,TUB.seat_no,TUB.hard_id,TH.mac,TU.yuliu1,TU.yuliu2,TU.yuliu3,TU.yuliu4,TU.yuliu5
+		from test_user_bind TUB LEFT JOIN test_info TI ON TUB.test_id=TI.test_id LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#test_id#
+	</insert>
+	
+	<delete id="deleteFromNow" >
+		delete from test_now 
+	</delete>
+	
+</sqlMap>
