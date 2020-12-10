@@ -1,0 +1,319 @@
+table {
+    background: #fff none repeat scroll 0 0;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    margin: 0 0 18px;
+}
+table thead, table tfoot {
+    background: #f5f5f5 none repeat scroll 0 0;
+}
+table thead tr th, table tfoot tr th, table tbody tr td, table tr td, table tfoot tr td {
+    display: table-cell;
+    font-size: 14px;
+    line-height: 18px;
+    text-align: left;
+}
+table thead tr th, table tfoot tr td {
+    color: #222;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 8px 10px 9px;
+}
+table thead tr th:first-child, table tfoot tr td:first-child {
+    border-left: 0 none;
+}
+table thead tr th:last-child, table tfoot tr td:last-child {
+    border-right: 0 none;
+}
+table tbody tr.even, table tbody tr.alt {
+    background: #f9f9f9 none repeat scroll 0 0;
+}
+table tbody tr:nth-child(2n) {
+    background: #f9f9f9 none repeat scroll 0 0;
+}
+table tbody tr td {
+    border: 0 none;
+    color: #333;
+    padding: 9px 10px;
+    vertical-align: top;
+}
+.able-empty {
+    color: #666;
+    font-size: 14px;
+    line-height: 66px;
+    text-align: center;
+}
+.table-list {
+    background: #fff none repeat scroll 0 0;
+    border: 1px solid #e7e7e7;
+    border-radius: 3px;
+    margin: 10px 0;
+    padding: 15px;
+}
+.table-list .ui-pager {
+    text-align: center;
+}
+.table-list .button-group .selected {
+    box-shadow: none;
+    padding: 12px 20px 11px;
+}
+.table-list table tbody tr:nth-child(2n) {
+    background: #f6f6f7 none repeat scroll 0 0;
+}
+.table-list table th {
+    font-size: 14px;
+    padding: 15px 0;
+    text-align: center;
+}
+.table-list table th div {
+    font-size: 14px;
+}
+.table-list table td {
+    border: 1px solid #e7e7e7;
+    padding: 15px 0;
+    text-align: center;
+    vertical-align: middle;
+    word-break: break-all;
+    word-wrap: break-word;
+}
+.table-list table td.status-alert {
+    color: #e00;
+    position: relative;
+}
+.table-list table td.status-alert [class^="icon-"], .table-list table td.status-alert [class*=" icon-"] {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+}
+.table-list table td em {
+    color: red;
+    font-style: normal;
+}
+.table-list table select {
+    display: inline;
+    width: auto;
+}
+.table-list table .alert-error, .table-list table .alert-warning {
+    color: #e00;
+    position: relative;
+}
+.table-list table .alert-error span, .table-list table .alert-warning span {
+    position: absolute;
+    right: 3px;
+    top: 3px;
+}
+.table-list table .alert-warning {
+    color: #f70;
+}
+.table-list table .unselected {
+    color: #aaa;
+}
+.table-list table a {
+    color: #06c;
+}
+.table-list table a:hover {
+    color: #61aefc;
+}
+.table-list table .td-normal {
+    background: #78cc0f none repeat scroll 0 0;
+    color: #fff;
+}
+.table-list table .td-alert {
+    background: red none repeat scroll 0 0;
+    color: #fff;
+}
+.table-list table [class^="icon-"], .table-list table [class*=" icon-"] {
+    display: inline-block;
+}
+table {
+    border-collapse: collapse;
+    margin: 0;
+    width: 100%;
+}
+table th {
+    background: #eeeeef none repeat scroll 0 0;
+    border: 1px solid #e7e7e7;
+}
+.index .data-list{
+	margin:-15px 20px 20px;
+	overflow:hidden
+}
+
+.index .data-list li{
+	border:1px solid #e7e7e7;
+	border-radius:3px;
+	width:300px;
+	height:90px;
+	padding:15px 0 15px 115px;
+	float:left;
+	margin:15px 15px 0 0;
+	position:relative;
+	background:#fff;
+	cursor:pointer
+}
+
+.index .data-list li:hover{
+	border:1px solid #bfbfbf
+}
+
+.index .data-list li span{
+	position:absolute;
+	left:15px;
+	top:15px;
+	width:87px;
+	height:60px;
+	border-radius:3px
+}
+
+.index .data-list li p{
+	color:#666;
+	margin:0
+}
+
+.index .data-list li em{
+	font-size:26px;
+	color:#333;
+	font-style:normal;
+	display:block
+}
+
+.index .data-list .list-all span{
+	background:#5ad1e3 url(../img/bg_list_line_ccab30e.png) center center no-repeat
+}
+
+.index .data-list .list-online span{
+	background:#8bcf71 url(../img/bg_list_car_620d7c9.png) center center no-repeat
+}
+
+.index .data-list .list-offline span{
+	background:#d7d7d8 url(../img/bg_list_car_620d7c9.png) center center no-repeat
+}
+
+.index .data-list .list-warning span{
+	background:#f87c7c url(../img/bg_list_warning_e51c874.png) center center no-repeat
+}
+
+.index .data-list .list-day span{
+	font-size:22px;
+	color:#fff;
+	padding:18px 0;
+	text-align:center;
+	background:#f87c7c url(../img/bg_list_day_18a5284.png) center center no-repeat
+}
+
+
+/**传感器布局**/
+
+.start-time {
+	float: right
+}
+
+.tire-ctn {
+	width: 660px;
+	overflow: hidden;
+	margin: 0 auto;
+	padding: 10px
+}
+
+.tire {
+	padding: 15px 0 0 10px;
+	width: 120px;
+	height: 170px;
+	float: left;
+	margin: 30px 10px
+}
+
+.tire-active {
+	border-radius: 60px;
+	background: #c1eab1
+}
+
+.tire-active p {
+	color: #333
+}
+
+.tire-lost {
+	background: #E4E4E4
+}
+
+.tire-lost .tire-msg {
+	text-align: center;
+	padding-top: 25px
+}
+
+.tire-lost .tire-msg p {
+	color: #666
+}
+
+.tire-warning {
+	background: #fec0c0
+}
+
+.tire-null {
+	background: transparent;
+	border: 1px solid #e6e6e7
+}
+
+.tire-null .tire-number {
+	border: 1px solid #ebebeb
+}
+
+.tire-null .tire-msg {
+	text-align: center;
+	padding-top: 25px
+}
+
+.tire-null .tire-msg p {
+	color: #999
+}
+
+.tire-middle {
+	width: 25px;
+	height: 230px;
+	float: left;
+	background: #d7d7d8;
+	margin: 0 25px
+}
+
+.tire-middle-top {
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px
+}
+
+.tire-middle-bottom {
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px
+}
+
+.tire-number {
+	margin: 0 auto;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background: #fff;
+	line-height: 30px;
+	text-align: center;
+	font-size: 16px;
+	color: #666
+}
+
+.tire-horizontal {
+	height: 25px;
+	background: #eaeaeb;
+	border-radius: 3px;
+	float: left;
+	width: 100%;
+	margin-top: 10px
+}
+
+.tire-middle-track {
+	background: #eaeaeb
+}
+/***
+.tire-msg {
+	padding: 10px 0 0
+}**/
+
+.tire p {
+    font-size: 12px;
+}

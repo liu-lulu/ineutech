@@ -1,0 +1,388 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="GoodsDesc" >
+	<typeAlias alias="GoodsDesc" type="com.kkbc.entity.GoodsDesc"/>
+	<typeAlias alias="UserHeartVO" type="com.kkbc.vo.UserHeartVO"/>
+	<typeAlias alias="GoodsDescVO" type="com.kkbc.vo.GoodsDescVO"/>
+	
+	<insert id="save" parameterClass="GoodsDescVO">
+		INSERT INTO `goodsdesc`(`brand`,`category`,`other`,`content`,`create_time`,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`type`,`base`,`state`,`url`) 
+		values (#brand#,#category#,#other#,#content#,#create_time#,#img1#,#img2#,#img3#,#img4#,#img1_describe#,#img2_describe#,#img3_describe#,#img4_describe#,#small_img1#,#small_img2#,#small_img3#,#small_img4#,#heart#,#type#,#base#,#state#,#url#)
+		
+		<selectKey resultClass="int" keyProperty="desc_id">
+			SELECT LAST_INSERT_ID() AS desc_id
+		</selectKey>
+	</insert>
+	<insert id="saveById" parameterClass="GoodsDescVO">
+		INSERT INTO `goodsdesc`(`desc_id`,`brand`,`category`,`other`,`content`,`create_time`,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`type`,`base`,`state`,`goods_state`,`goods_property`,`url`) 
+		values (#desc_id#,#brand#,#category#,#other#,#content#,#create_time#,#img1#,#img2#,#img3#,#img4#,#img1_describe#,#img2_describe#,#img3_describe#,#img4_describe#,#small_img1#,#small_img2#,#small_img3#,#small_img4#,#heart#,#type#,#base#,#state#,#goods_state#,#goods_property#,#url#)
+	</insert>
+	<insert id="saveDatas" parameterClass="java.util.List">
+		INSERT INTO `goodsdesc`(`brand`,`category`,`other`,`content`,`create_time`,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`type`,`base`,`state`,`goods_state`,`goods_property`,`url`) 
+		VALUES 
+		<iterate conjunction=",">
+		(#[].brand#,#[].category#,#[].other#,#[].content#,#[].create_time#,#[].img1#,#[].img2#,#[].img3#,#[].img4#,#[].img1_describe#,#[].img2_describe#,#[].img3_describe#,#[].img4_describe#,#[].small_img1#,#[].small_img2#,#[].small_img3#,#[].small_img4#,#[].heart#,#[].type#,#[].base#,#[].state#,#[].goods_state#,#[].goods_property#,#[].url#)
+		</iterate>
+	</insert>
+	
+	<select id="getOrderNum" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT IFNULL(MAX(`order_num`),0)+1 FROM `$tableName$` WHERE DATE_FORMAT(`create_time`,'%Y-%m-%d')=DATE_FORMAT(NOW(),'%Y-%m-%d')
+	</select>
+	<insert id="savePublishInfo" parameterClass="GoodsDescVO">
+		INSERT INTO `$tableName$`(`desc_id`,`brand`,`category`,`other`,`content`,`create_time`,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`base`,`order_num`,`goods_state`,`goods_property`,`url`) 
+		values (#desc_id#,#brand#,#category#,#other#,#content#,#create_time#,#img1#,#img2#,#img3#,#img4#,#img1_describe#,#img2_describe#,#img3_describe#,#img4_describe#,#small_img1#,#small_img2#,#small_img3#,#small_img4#,#heart#,#base#,#order_num#,#goods_state#,#goods_property#,#url#)
+	</insert>
+	
+	<delete id="delInfo" parameterClass="java.lang.Integer">
+		DELETE FROM `goodsdesc` WHERE `desc_id`=#desc_id#
+	</delete>
+	
+	<delete id="delPublishInfo" parameterClass="java.util.Map">
+		DELETE T1,T2 FROM `$tableName$` T1 LEFT JOIN `$heartTableName$` T2 ON T1.`desc_id`=T2.`desc_id` WHERE T1.`desc_id`=#desc_id#
+	</delete>
+	
+	<select id="getInfoById" parameterClass="java.lang.Integer" resultClass="GoodsDescVO">
+		SELECT `desc_id`,`brand`,`category`,`other`,`content`,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`type`,`base`,`state`,`goods_state`,`goods_property`,`url`
+		FROM `goodsdesc` WHERE `desc_id`=#desc_id#
+	</select>
+	
+	<select id="getPublishInfoById" parameterClass="java.util.Map" resultClass="GoodsDescVO">
+		SELECT `desc_id`,`brand`,`category`,`other`,`content`,`create_time`,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`base`,`order_num`,`goods_state`,`goods_property`,`url`
+		FROM `$tableName$` WHERE `desc_id`=#desc_id#
+	</select>
+	
+	<select id="getInfo" parameterClass="java.util.Map" resultClass="GoodsDescVO" >
+		SELECT t1.`desc_id`,t1.`brand`,t1.`category`,t1.`other`,t1.`content`,t1.`create_time`,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d') AS publish_time,DATE_FORMAT(`create_time`,'%H:%i') AS time,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`,t1.goods_state,t1.`url`
+		<isNotEmpty prepend="," property="heartTableName"> 
+			t2.`openId`,t2.`attention`
+		</isNotEmpty>
+		<isEmpty prepend="," property="heartTableName"> 
+			"" AS `openId`,"" AS `attention`
+		</isEmpty>
+		FROM `$tableName$` t1
+		<isNotEmpty prepend=" " property="heartTableName"> 
+			LEFT JOIN (
+			SELECT desc_id,openId,attention from `$heartTableName$` where openId=#openId# 
+			)t2 ON t1.desc_id=t2.desc_id
+		</isNotEmpty>
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend=" AND " property="descIdList"> 
+				t1.desc_id IN 
+				<iterate property="descIdList"  open="(" close=")" conjunction=","> 
+					#descIdList[].desc_id# 
+				</iterate> 
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="goods_state"> 
+				t1.`goods_state`=#goods_state#
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="goods_property"> 
+				t1.`goods_property`=#goods_property#
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="brand"> 
+				t1.`brand`=#brand#
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="category"> 
+				t1.`category`=#category#
+			</isNotEmpty>
+			<isNotEmpty prepend=" AND " property="other"> 
+				t1.`other`=#other#
+			</isNotEmpty>
+		</dynamic>
+		ORDER BY DATE_FORMAT(t1.`create_time`,'%Y-%m-%d') DESC,t1.`order_num` DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<update id="updHeart" parameterClass="UserHeartVO">
+		UPDATE `$tableName$` SET `heart`=ifnull(`heart`,0)+1 WHERE `desc_id`=#desc_id#
+	</update>
+	
+	<update id="updOrderNum" parameterClass="GoodsDescVO">
+		UPDATE `$tableName$` SET `order_num`=#order_num# WHERE `desc_id`=#desc_id#
+	</update>
+	
+	<select id="nopublish" parameterClass="java.util.Map" resultClass="GoodsDesc">
+		SELECT `desc_id`,`brand`,`category`,`other`,`content`,`create_time`,DATE_FORMAT(`create_time`,'%Y-%m-%d %H:%i:%s') AS create_date,`img1`,`img2`,`img3`,`img4`,`img1_describe`,`img2_describe`,`img3_describe`,`img4_describe`,`small_img1`,`small_img2`,`small_img3`,`small_img4`,`heart`,`base`,`type`,`state`,`goods_state`,`goods_property`
+		FROM `goodsdesc`
+		<dynamic prepend="where">
+	        <isNotEmpty prepend="AND" property="startTime">
+	          create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">
+	          #endTime#>=create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="type">
+	          `type`=#type# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          `content` LIKE '%$content$%'
+	        </isNotEmpty>
+     	</dynamic>
+		ORDER BY `create_time` DESC
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="count" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM `$tableName$`
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="startTime">
+	          create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">
+	          #endTime#>=create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="type">
+	          `type`=#type# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          `content` LIKE '%$content$%'
+	        </isNotEmpty>
+     	</dynamic>
+	</select>
+	
+	<select id="weblist" parameterClass="java.util.Map" resultClass="GoodsDescVO" >
+		SELECT t1.`desc_id`,t1.`content`,t1.`create_time`,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d') AS publish_time,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`
+		FROM `$tableName$` t1
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="startTime">
+	          create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">
+	          #endTime#>=create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          `content` LIKE '%$content$%'
+	        </isNotEmpty>
+		</dynamic>
+		ORDER BY DATE_FORMAT(t1.`create_time`,'%Y-%m-%d') DESC,t1.`order_num` DESC
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="weblist1" parameterClass="java.util.Map" resultClass="GoodsDescVO" >
+		SELECT t1.`desc_id`,t1.`brand`,t1.`category`,t1.`other`,t1.`content`,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`,t1.`goods_state`,t1.`goods_property`
+		,t1.attentionNum,t1.noconfirmNum,t1.confirmNum
+		FROM (
+			SELECT t1.`desc_id`,t1.`brand`,t1.`category`,t1.`other`,t1.`content`,t1.`create_time`,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`,t1.`goods_state`,t1.`goods_property`
+			,t2.attentionNum
+			,t2.noconfirmNum
+			,t2.confirmNum
+		
+			FROM `$tableName$` t1 
+			<!-- 
+			LEFT JOIN `$heartTableNamePre$_twoday` t2 ON t1.`desc_id`=t2.`desc_id` LEFT JOIN `$heartTableNamePre$_fiveday` t3 ON t1.`desc_id`=t3.`desc_id`
+			 -->
+			LEFT JOIN
+			(
+			SELECT t1.`desc_id`
+			,CASE WHEN 2>=DATEDIFF(DATE_FORMAT(NOW(),'%Y-%m-%d'),DATE_FORMAT(t1.create_time,'%Y-%m-%d')) 
+			THEN COUNT(IF(t2.`attention`=1,TRUE,NULL)) ELSE COUNT(IF(t3.`attention`=1,TRUE,NULL)) END attentionNum 
+			,CASE WHEN 2>=DATEDIFF(DATE_FORMAT(NOW(),'%Y-%m-%d'),DATE_FORMAT(t1.create_time,'%Y-%m-%d')) 
+			THEN COUNT(IF(t2.`confirm`=1,TRUE,NULL)) ELSE COUNT(IF(t3.`confirm`=1,TRUE,NULL)) END noconfirmNum 
+			,CASE WHEN 2>=DATEDIFF(DATE_FORMAT(NOW(),'%Y-%m-%d'),DATE_FORMAT(t1.create_time,'%Y-%m-%d')) 
+			THEN COUNT(IF(t2.`confirm`=2,TRUE,NULL)) ELSE COUNT(IF(t3.`confirm`=2,TRUE,NULL)) END confirmNum 
+			
+			FROM `$tableName$` t1 
+			LEFT JOIN `$heartTableNamePre$_twoday` t2 ON t1.`desc_id`=t2.`desc_id` 
+			LEFT JOIN `$heartTableNamePre$_fiveday` t3 ON t1.`desc_id`=t3.`desc_id` GROUP BY t1.`desc_id`  
+			)t2
+			ON t1.`desc_id`=t2.`desc_id`
+			<dynamic prepend=" WHERE ">
+			<isNotEmpty prepend=" AND " property="startTime">
+	          t1.create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="endTime">
+	          #endTime#>=t1.create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          t1.`content` LIKE '%$content$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="confirm">  
+	        	<isEqual property="confirm" compareValue="1">
+	        		 t2.noconfirmNum>0
+	        	</isEqual>
+	        </isNotEmpty>
+			</dynamic>
+			<!-- GROUP BY t1.`desc_id` -->
+			
+			UNION
+			
+			SELECT t1.`desc_id`,t1.`brand`,t1.`category`,t1.`other`,t1.`content`,t1.`create_time`,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`,t1.`goods_state`,t1.`goods_property`
+			,t2.attentionNum
+			,t2.noconfirmNum
+			,t2.confirmNum
+			FROM `$tableName$_other` t1 
+			LEFT JOIN 
+			(
+			SELECT t1.`desc_id`
+			,COUNT(IF(t2.`attention`=1,TRUE,NULL)) attentionNum 
+			,COUNT(IF(t2.`confirm`=1,TRUE,NULL)) noconfirmNum 
+			,COUNT(IF(t2.`confirm`=2,TRUE,NULL)) confirmNum 
+			
+			FROM `$tableName$` t1 
+			LEFT JOIN `$heartTableNamePre$_other` t2 ON t1.`desc_id`=t2.`desc_id` 
+			)t2
+			ON t1.`desc_id`=t2.`desc_id`
+			<dynamic prepend=" WHERE ">
+			<isNotEmpty prepend=" AND " property="startTime">
+	          t1.create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="endTime">
+	          #endTime#>=t1.create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          t1.`content` LIKE '%$content$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="confirm">  
+	        	<isEqual property="confirm" compareValue="1">
+	        		 t2.noconfirmNum>0
+	        	</isEqual>
+	        </isNotEmpty>
+		</dynamic>
+			ORDER BY DATE_FORMAT(`create_time`,'%Y-%m-%d') DESC,`order_num` DESC
+		)t1
+		
+		<isNotEmpty prepend=" LIMIT " property="startIndex"> 
+   		 #startIndex#,#pageSize#
+   		</isNotEmpty>
+	</select>
+	
+	<select id="weblistCount" parameterClass="java.util.Map" resultClass="java.lang.Integer" >
+		SELECT COUNT(*)
+		FROM (
+			SELECT t1.`desc_id`,t1.`brand`,t1.`category`,t1.`other`,t1.`content`,t1.`create_time`,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`,t1.`goods_state`,t1.`goods_property`
+			,t2.attentionNum
+			,t2.noconfirmNum
+			,t2.confirmNum
+		
+			FROM `$tableName$` t1 
+			LEFT JOIN
+			(
+			SELECT t1.`desc_id`
+			,CASE WHEN 2>=DATEDIFF(DATE_FORMAT(NOW(),'%Y-%m-%d'),DATE_FORMAT(t1.create_time,'%Y-%m-%d')) 
+			THEN COUNT(IF(t2.`attention`=1,TRUE,NULL)) ELSE COUNT(IF(t3.`attention`=1,TRUE,NULL)) END attentionNum 
+			,CASE WHEN 2>=DATEDIFF(DATE_FORMAT(NOW(),'%Y-%m-%d'),DATE_FORMAT(t1.create_time,'%Y-%m-%d')) 
+			THEN COUNT(IF(t2.`confirm`=1,TRUE,NULL)) ELSE COUNT(IF(t3.`confirm`=1,TRUE,NULL)) END noconfirmNum 
+			,CASE WHEN 2>=DATEDIFF(DATE_FORMAT(NOW(),'%Y-%m-%d'),DATE_FORMAT(t1.create_time,'%Y-%m-%d')) 
+			THEN COUNT(IF(t2.`confirm`=2,TRUE,NULL)) ELSE COUNT(IF(t3.`confirm`=2,TRUE,NULL)) END confirmNum 
+			
+			FROM `$tableName$` t1 
+			LEFT JOIN `$heartTableNamePre$_twoday` t2 ON t1.`desc_id`=t2.`desc_id` 
+			LEFT JOIN `$heartTableNamePre$_fiveday` t3 ON t1.`desc_id`=t3.`desc_id` GROUP BY t1.`desc_id`  
+			)t2
+			ON t1.`desc_id`=t2.`desc_id`
+			<dynamic prepend=" WHERE ">
+			<isNotEmpty prepend=" AND " property="startTime">
+	          t1.create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="endTime">
+	          #endTime#>=t1.create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          t1.`content` LIKE '%$content$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="confirm">  
+	        	<isEqual property="confirm" compareValue="1">
+	        		 t2.noconfirmNum>0
+	        	</isEqual>
+	        </isNotEmpty>
+			</dynamic>
+			
+			UNION
+			
+			SELECT t1.`desc_id`,t1.`brand`,t1.`category`,t1.`other`,t1.`content`,t1.`create_time`,t1.`img1`,t1.`img2`,t1.`img3`,t1.`img4`,t1.`img1_describe`,t1.`img2_describe`,t1.`img3_describe`,t1.`img4_describe`,t1.`small_img1`,t1.`small_img2`,t1.`small_img3`,t1.`small_img4`,t1.`heart`,t1.`base`,t1.`order_num`,t1.`goods_state`,t1.`goods_property`
+			,t2.attentionNum
+			,t2.noconfirmNum
+			,t2.confirmNum
+			FROM `$tableName$_other` t1 
+			LEFT JOIN 
+			(
+			SELECT t1.`desc_id`
+			,COUNT(IF(t2.`attention`=1,TRUE,NULL)) attentionNum 
+			,COUNT(IF(t2.`confirm`=1,TRUE,NULL)) noconfirmNum 
+			,COUNT(IF(t2.`confirm`=2,TRUE,NULL)) confirmNum 
+			
+			FROM `$tableName$` t1 
+			LEFT JOIN `$heartTableNamePre$_other` t2 ON t1.`desc_id`=t2.`desc_id` 
+			)t2
+			ON t1.`desc_id`=t2.`desc_id`
+			<dynamic prepend=" WHERE ">
+			<isNotEmpty prepend=" AND " property="startTime">
+	          t1.create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="endTime">
+	          #endTime#>=t1.create_time
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="content">  
+	          t1.`content` LIKE '%$content$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="confirm">  
+	        	<isEqual property="confirm" compareValue="1">
+	        		 t2.noconfirmNum>0
+	        	</isEqual>
+	        </isNotEmpty>
+		</dynamic>
+			
+		)t1
+	</select>
+	
+	<select id="getLastOrder" parameterClass="java.util.Map" resultClass="GoodsDescVO">
+		SELECT `desc_id`,`order_num`
+		FROM `$tableName$`
+		WHERE `order_num`>#order_num# AND DATE_FORMAT(`create_time`,'%Y-%m-%d')=DATE_FORMAT(#create_time#,'%Y-%m-%d')
+		ORDER BY `order_num` ASC LIMIT 1;
+	</select>
+	
+	<select id="getproperty" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT DISTINCT `goods_property` FROM `$tableName$` WHERE `goods_property` IS NOT NULL AND `goods_property`!=''
+		UNION
+		SELECT DISTINCT `goods_property` FROM `$tableName$_other` WHERE `goods_property` IS NOT NULL AND `goods_property`!=''
+	</select>
+	
+	<select id="getbrand" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT DISTINCT `brand` FROM `$tableName$` WHERE `brand` IS NOT NULL AND `brand`!=''
+		UNION
+		SELECT DISTINCT `brand` FROM `$tableName$_other` WHERE `brand` IS NOT NULL AND `brand`!=''
+	</select>
+	
+	<select id="getcategory" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT DISTINCT `category` FROM `$tableName$` WHERE `category` IS NOT NULL AND `category`!=''
+		UNION
+		SELECT DISTINCT `category` FROM `$tableName$_other` WHERE `category` IS NOT NULL AND `category`!=''
+	</select>
+	
+	<select id="getother" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT DISTINCT `other` FROM `$tableName$` WHERE `other` IS NOT NULL AND `other`!=''
+		UNION
+		SELECT DISTINCT `other` FROM `$tableName$_other` WHERE `other` IS NOT NULL AND `other`!=''
+	</select>
+	
+	<update id="updGoodsState" parameterClass="java.util.Map">
+		UPDATE `$tableName$` SET `goods_state`=#goods_state# WHERE `desc_id`=#desc_id#
+	</update>
+	
+	<update id="updBase" parameterClass="java.util.Map">
+		UPDATE `$tableName$` SET `base`=#base# WHERE `desc_id`=#desc_id#
+	</update>
+	
+	<delete id="delGoodsInfo" parameterClass="java.util.Map">
+		DELETE T1.*
+		<isNotEmpty prepend="," property="heartTableName">  
+        	T2.*
+        </isNotEmpty>
+		FROM `$tableName$` T1
+		<isNotEmpty prepend=" " property="heartTableName">  
+        	LEFT JOIN `$heartTableName$` T2 ON T1.`desc_id`=T2.`desc_id` 
+        </isNotEmpty>
+		WHERE T1.`desc_id`=#desc_id#
+	</delete>
+	
+	<update id="updDescInfo" parameterClass="GoodsDescVO">
+		UPDATE `goodsdesc` SET
+		`brand`=#brand#,`category`=#category#,`other`=#other#,`content`=#content#,`img1`=#img1#,`img2`=#img2#,`img3`=#img3#,`img4`=#img4#,`img1_describe`=#img1_describe#,`img2_describe`=#img2_describe#,`img3_describe`=#img3_describe#,`img4_describe`=#img4_describe#,
+		`base`=#base#,`goods_state`=#goods_state#,`goods_property`=#goods_property#,`url`=#url#,`type`=#type#
+		WHERE `desc_id`=#desc_id#
+	</update>
+</sqlMap>

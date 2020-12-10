@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Goods" >
+	<typeAlias alias="Goods" type="com.kkbc.entity.Goods"/>
+	<typeAlias alias="GoodsVO" type="com.kkbc.vo.GoodsVO"/>
+	
+	<select id="getInfo" parameterClass="Goods" resultClass="Goods">
+		SELECT `goods_id`,`barcode`,`brand`,`model`,`comment`,`img`,`in_price`,`out_price`,`remain_count` FROM `goods`
+		<dynamic prepend="WHERE">  
+	        <isNotEmpty prepend=" AND " property="barcode">  
+	          `barcode`=#barcode# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="goods_id">  
+	           `goods_id`=#goods_id#
+	        </isNotEmpty>
+     	</dynamic>
+     	LIMIT 1
+	</select>
+	
+	<select id="getPage" parameterClass="java.util.Map" resultClass="Goods">
+		SELECT `goods_id`,`barcode`,`brand`,`model`,`comment`,`img`,`in_price`,`out_price`,`remain_count` FROM `goods`
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend=" AND " property="brand">  
+	          `brand` LIKE '%$brand$%'
+	        </isNotEmpty>
+     	</dynamic>
+     	ORDER BY goods_id DESC LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<insert id="saveInfo" parameterClass="Goods">
+		INSERT INTO `goods`(`barcode`,`in_price`,`out_price`,`remain_count`,`brand`,`model`,`comment`,`img`,`name`,`origin`) VALUES (#barcode#,#in_price#,#out_price#,#remain_count#,#brand#,#model#,#comment#,#img#,#name#,#origin#)
+		<selectKey resultClass="int" keyProperty="goods_id">
+			SELECT LAST_INSERT_ID() AS goods_id
+		</selectKey>
+	</insert>
+	
+	<update id="updInfo" parameterClass="Goods">
+		UPDATE `goods` SET `brand`=#brand#,`model`=#model#,`comment`=#comment#,`img`=#img# WHERE `barcode`=#barcode#
+	</update>
+	
+	<update id="inCount" parameterClass="Goods">
+		UPDATE `goods` SET `remain_count`=`remain_count`+#remain_count# WHERE `barcode`=#barcode#
+	</update>
+	
+	<update id="outCount" parameterClass="Goods">
+		UPDATE `goods` SET `remain_count`=`remain_count`-#remain_count# WHERE `barcode`=#barcode#
+	</update>
+	
+	<select id="getDetailPage" parameterClass="java.util.Map" resultClass="GoodsVO">
+		SELECT BASE_INFO.*,COUNT_INFO.incount,COUNT_INFO.outcount FROM
+		(
+			SELECT DATE_FORMAT(H.create_time,'%Y-%m-%d %H:%i') AS last_time,G.* FROM 
+			(SELECT * FROM history ORDER BY create_time DESC ) H LEFT JOIN `goods` G ON H.goods_id=G.goods_id
+			<dynamic prepend="where">  
+		        <isNotEmpty prepend=" AND " property="startTime">
+		          H.create_time>=#startTime# 
+		        </isNotEmpty>
+		        <isNotEmpty prepend=" AND " property="endTime">
+		          #endTime#>=H.create_time
+		        </isNotEmpty>
+	     	</dynamic>
+			GROUP BY H.goods_id ORDER BY H.create_time DESC 
+		)BASE_INFO
+		
+		LEFT JOIN 
+		(
+			SELECT H.goods_id,MAX(CASE H.type WHEN 1 THEN H.count END) AS incount,MAX(CASE H.type WHEN 2 THEN H.count END) AS outcount FROM 
+			(
+			SELECT goods_id,type,SUM(count) AS count FROM history 
+			<dynamic prepend="where">  
+		        <isNotEmpty prepend=" AND " property="startTime">
+		          create_time>=#startTime# 
+		        </isNotEmpty>
+		        <isNotEmpty prepend=" AND " property="endTime">
+		          #endTime#>=create_time
+		        </isNotEmpty>
+	     	</dynamic>
+			GROUP BY goods_id,type
+			) H 
+			GROUP BY H.goods_id
+		)COUNT_INFO
+		
+		ON BASE_INFO.goods_id=COUNT_INFO.goods_id
+		
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend=" AND " property="brand">
+	          (BASE_INFO.`brand` LIKE '%$brand$%' OR BASE_INFO.`model` LIKE '%$brand$%' OR BASE_INFO.`name` LIKE '%$brand$%')
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="remainLow">
+          		BASE_INFO.`remain_count`>=#remainLow#
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="remainHigh">
+	        	#remainHigh#>=BASE_INFO.`remain_count`
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="priceLow">
+          		(BASE_INFO.`in_price`>=#priceLow# OR BASE_INFO.`out_price`>=#priceLow#)
+	        </isNotEmpty>
+	        <isNotEmpty prepend=" AND " property="priceHigh">
+	        	(#priceHigh#>=BASE_INFO.`in_price` OR #priceHigh#>=BASE_INFO.`OUT_price`)
+	        </isNotEmpty>
+	    </dynamic>
+	    
+	    <isEmpty prepend=" " property="column">
+	    	ORDER BY COUNT_INFO.outcount DESC
+	    </isEmpty>
+	    <isNotEmpty prepend=" " property="column">
+	    	<isEqual property="column" compareValue="1">
+	    		ORDER BY BASE_INFO.`in_price`
+	    	</isEqual>
+	    	<isEqual property="column" compareValue="2">
+	    		ORDER BY BASE_INFO.`out_price`
+	    	</isEqual>
+	    	<isEqual property="column" compareValue="3">
+	    		ORDER BY BASE_INFO.`remain_count`
+	    	</isEqual>
+	    	<isEqual property="column" compareValue="4">
+	    		ORDER BY COUNT_INFO.incount
+	    	</isEqual>
+	    	<isEqual property="column" compareValue="5">
+	    		ORDER BY COUNT_INFO.outcount
+	    	</isEqual>
+	    	<isEmpty prepend=" " property="order">
+	    		DESC
+	    	</isEmpty>
+	    	<isNotEmpty prepend=" " property="order">
+		    	<isEqual property="order" compareValue="1">
+	    			ASC
+		    	</isEqual>
+		    	<isEqual property="order" compareValue="2">
+		    		DESC
+		    	</isEqual>
+	    	</isNotEmpty>
+	    </isNotEmpty>
+	    
+	   	<isNotEmpty prepend=" " property="startIndex">
+	   		limit #startIndex#,#pageSize#
+	   	</isNotEmpty>
+	</select>
+	
+	<select id="getDayDetail" parameterClass="java.util.Map" resultClass="GoodsVO">
+		SELECT H.goods_id,H.last_time,MAX(CASE H.type WHEN 1 THEN H.count END) AS incount,MAX(CASE H.type WHEN 2 THEN H.count END) AS outcount FROM 
+			(
+			SELECT goods_id,DATE_FORMAT(create_time,'%Y-%m-%d') AS last_time,type,SUM(count) AS count FROM history 
+			<dynamic prepend="where">  
+		        <isNotEmpty prepend=" AND " property="startTime">
+		          create_time>=#startTime# 
+		        </isNotEmpty>
+		        <isNotEmpty prepend=" AND " property="endTime">
+		          #endTime#>=create_time
+		        </isNotEmpty>
+	     	</dynamic>
+			GROUP BY goods_id,type,DATE_FORMAT(create_time,'%Y-%m-%d')
+			) H 
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="goodsId">
+	          H.`goods_id`=#goodsId#
+	        </isNotEmpty>
+     	</dynamic>
+		GROUP BY H.goods_id,H.last_time
+		ORDER BY H.last_time DESC
+		<isNotEmpty prepend=" " property="startIndex">
+	   		limit #startIndex#,#pageSize#
+	   	</isNotEmpty>
+	</select>
+	
+</sqlMap>

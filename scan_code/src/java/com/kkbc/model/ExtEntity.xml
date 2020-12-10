@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="ExtEntity" >
+	<typeAlias alias="ExtEntity" type="com.kkbc.vo.ExtEntity"/>
+	
+	<insert id="saveData" parameterClass="com.kkbc.vo.ExtEntity">
+		insert into $tableName$($colName$) values 
+		<iterate conjunction="," open="(" close=")" property="colValueList">
+			#colValueList[]#
+		</iterate>
+		<selectKey resultClass="long" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+</sqlMap>

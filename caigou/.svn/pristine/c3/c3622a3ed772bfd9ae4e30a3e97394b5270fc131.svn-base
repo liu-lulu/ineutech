@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Package" >
+	
+	<typeAlias alias="PackageInfo" type="com.kkbc.entity.PackageInfo"/>
+	<typeAlias alias="PackageDetail" type="com.kkbc.entity.PackageDetail"/>
+	<typeAlias alias="PackageVO" type="com.kkbc.vo.PackageVO"/>
+	<typeAlias alias="PackageDetailVO" type="com.kkbc.vo.PackageDetailVO"/>
+	
+	<insert id="savePackage" parameterClass="PackageInfo">
+		INSERT INTO `package`(`supplier_id`,`package_name`,`expressNo`,`comment`) VALUES(#supplier_id#,#package_name#,#expressNo#,#comment#)
+		<selectKey resultClass="int" keyProperty="package_id">
+			SELECT LAST_INSERT_ID() AS package_id
+		</selectKey>
+	</insert>
+	
+	<insert id="savePackageDetail" parameterClass="java.util.List">
+		INSERT INTO `package_detail`(`package_id`,`order_id`,`order_detail_id`,`brand`,`model`,`count`,`purchase_price`) values
+		<iterate conjunction=",">
+			(#[].package_id#,#[].order_id#,#[].order_detail_id#,#[].brand#,#[].model#,#[].count#,#[].purchase_price#)
+		</iterate>
+	</insert>
+	
+	<update id="updCount" parameterClass="PackageDetail">
+		<!-- BEGIN
+		<iterate conjunction="">
+		UPDATE `package_detail` SET `count`=#[].count# WHERE `packageDetail_id`=#[].packageDetail_id#;
+		</iterate>
+		END; -->
+		UPDATE `package_detail` SET `count`=#count# WHERE `packageDetail_id`=#packageDetail_id#		
+		
+		<!-- <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+		UPDATE `package_detail` <set> `count`=${item.count}$ </set>WHERE `packageDetail_id`=${item.packageDetail_id}$
+		</foreach> -->
+	</update>
+	
+	<delete id="deleteInfo" parameterClass="java.util.List">
+		DELETE FROM `package_detail` WHERE `packageDetail_id` IN
+		<iterate open="(" close=")" conjunction=",">  
+            #[].packageDetail_id#  
+        </iterate>  
+	</delete>
+	
+	<select id="baoguoList" parameterClass="java.util.Map" resultClass="PackageInfo">
+		SELECT P.package_id,P.expressNo,P.create_time,P.package_name,P.comment
+		from package P 
+		WHERE P.`status`=0 AND P.supplier_id=#userId#
+		ORDER BY P.create_time DESC 
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="wuliuInfo" parameterClass="java.util.Map" resultClass="PackageVO">
+		SELECT P.package_id,P.expressNo,U.true_name AS supplier_name,P.create_time,P.send_time,P.sign_time,IFNULL(SUM(PD.count),0) AS count,P.`status`,P.`comment`,SUM(PD.count*PD.purchase_price) AS purchase_price
+		from package P LEFT JOIN `user` U ON P.supplier_id=U.user_id LEFT JOIN package_detail PD ON P.package_id=PD.package_id
+		WHERE P.`status`!=0
+		<isNotEqual property="role" compareValue="1">
+			AND P.supplier_id=#userId# 
+			AND P.`status`!=3
+		</isNotEqual>
+		GROUP BY P.package_id 
+		ORDER BY P.send_time DESC 
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="packageDetail" parameterClass="java.lang.Integer" resultClass="PackageDetailVO">
+		SELECT PD.order_id,PD.order_detail_id,PD.brand,PD.model,PD.count,PD.purchase_price,O.img,T.remainCount,O.`comment` from package_detail PD LEFT JOIN `order` O ON PD.order_id=O.order_id
+		LEFT JOIN
+		(
+		SELECT OD.`order_detail_id`,OD.`count`-IFNULL(SUM(PD.count),0) AS remainCount FROM order_detail OD LEFT JOIN package_detail PD ON OD.`order_detail_id`=PD.order_detail_id GROUP BY OD.`order_detail_id`
+		) T ON PD.order_detail_id=T.order_detail_id
+ 
+		where package_id=#package_id#
+	</select>
+	
+	<update id="updateState" parameterClass="PackageInfo">
+		UPDATE package SET `status`=#status#,`sign_time`=#sign_time# WHERE `package_id`=#package_id#
+	</update>
+	
+	<select id="getByState" parameterClass="PackageInfo" resultClass="PackageInfo">
+		SELECT `package_id`,`supplier_id`,`create_time`,`expressNo`,`status`,`comment` FROM package WHERE `package_id`=#package_id# AND `status`=#status#
+	</select>
+	
+	<update id="send" parameterClass="PackageInfo">
+		UPDATE package SET `expressNo`=#expressNo#,`comment`=#comment#,`status`=1,`send_time`=#send_time# WHERE `package_id`=#package_id#
+	</update>
+	
+	<select id="getDetailByIds" parameterClass="PackageDetail" resultClass="PackageDetail">
+		SELECT `packageDetail_id`,`package_id`,`order_id`,`order_detail_id`,`brand`,`model`,`count`,`purchase_price`
+		FROM `package_detail`
+		WHERE `package_id`=#package_id# AND `order_id`=#order_id# AND `order_detail_id`=#order_detail_id#
+		limit 1
+	</select>
+	
+	
+</sqlMap>

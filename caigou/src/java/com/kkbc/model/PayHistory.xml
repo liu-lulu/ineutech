@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="PayHistory" >
+	<typeAlias alias="PayHistory" type="com.kkbc.entity.PayHistory"/>
+	
+	<insert id="saveInfo" parameterClass="PayHistory">
+		INSERT INTO `pay_history`(`order_id`,`type`,`pay_type`,`money`,`pay_comment`) VALUES 
+		(#order_id#,#type#,#pay_type#,#money#,#pay_comment#)
+	</insert>
+	
+	<select id="getByType" parameterClass="PayHistory" resultClass="PayHistory">
+		SELECT `pay_id`,`create_time`,`order_id`,`type`,`pay_type`,`money`,`pay_comment`
+		FROM `pay_history`
+		WHERE `order_id`=#order_id# AND `type`=#type#
+		ORDER BY `create_time` ASC
+	</select>
+	
+</sqlMap>

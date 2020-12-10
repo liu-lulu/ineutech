@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="History" >
+	<typeAlias alias="History" type="com.kkbc.entity.History"/>
+	<typeAlias alias="GoodsHistoryVO" type="com.kkbc.vo.GoodsHistoryVO"/>
+	
+	<insert id="saveInfo" parameterClass="History">
+		INSERT INTO `history`(`goods_id`,`create_time`,`type`,`count`) VALUES (#goods_id#,#create_time#,#type#,#count#)
+	</insert>
+	
+	<select id="getDate" resultClass="java.lang.String">
+		SELECT DATE_FORMAT(create_time,'%Y-%m-%d') FROM `history` GROUP BY DATE_FORMAT(create_time,'%Y-%m-%d')
+	</select>
+	
+	<select id="getPage" parameterClass="java.util.Map" resultClass="GoodsHistoryVO">
+		SELECT G.*,DATE_FORMAT(H.create_time,'%Y-%m-%d %H:%i') AS operate_time,H.type,SUM(H.count) AS count FROM `history` H LEFT JOIN `goods` G ON H.goods_id=G.goods_id
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="goodsId">
+	          H.`goods_id`=#goodsId#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="type">
+	          H.type=#type# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="startTime">
+	          H.create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">
+	          #endTime#>=H.create_time
+	        </isNotEmpty>
+     	</dynamic>
+     	GROUP BY H.goods_id,H.type,DATE_FORMAT(H.create_time,'%Y-%m-%d %H:%i')
+     	ORDER BY DATE_FORMAT(H.create_time,'%Y-%m-%d %H:%i') DESC limit #startIndex#,#pageSize#
+	</select>
+	
+	<select id="getDetailPage" parameterClass="java.util.Map" resultClass="GoodsHistoryVO">
+		SELECT BASE_INFO.*,COUNT_INFO.count FROM
+		(
+		SELECT DATE_FORMAT(H.create_time,'%Y-%m-%d') AS operate_time,DATE_FORMAT(H.create_time,'%Y-%m-%d %H:%i') AS last_time,H.type,G.* FROM 
+		(SELECT * FROM history ORDER BY create_time DESC ) H LEFT JOIN `goods` G ON H.goods_id=G.goods_id
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="startTime">
+	          H.create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">
+	          #endTime#>=H.create_time
+	        </isNotEmpty>
+     	</dynamic>
+		GROUP BY H.goods_id,H.type,DATE_FORMAT(H.create_time,'%Y-%m-%d') ORDER BY H.create_time DESC 
+		)BASE_INFO
+		
+		LEFT JOIN 
+		(
+		SELECT goods_id,type,SUM(count) AS count,DATE_FORMAT(create_time,'%Y-%m-%d') AS operate_time FROM history 
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="startTime">
+	          create_time>=#startTime# 
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">
+	          #endTime#>=create_time
+	        </isNotEmpty>
+     	</dynamic>
+		GROUP BY goods_id,type,DATE_FORMAT(create_time,'%Y-%m-%d')
+		
+		)COUNT_INFO
+		ON BASE_INFO.goods_id=COUNT_INFO.goods_id AND BASE_INFO.type=COUNT_INFO.type AND BASE_INFO.operate_time=COUNT_INFO.operate_time
+		
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend=" " property="brand">
+	          BASE_INFO.`brand` LIKE '%$brand$%'
+	        </isNotEmpty>
+	    </dynamic>
+	    ORDER BY COUNT_INFO.count DESC
+	    <isNotEmpty prepend=" " property="startIndex">
+	   		limit #startIndex#,#pageSize#
+	   	</isNotEmpty>
+	</select>
+	
+
+	
+	
+</sqlMap>

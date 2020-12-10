@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Order" >
+	<typeAlias alias="Order" type="com.kkbc.entity.Order"/>
+	<typeAlias alias="PayHistory" type="com.kkbc.entity.PayHistory"/>
+	
+	<typeAlias alias="OrderVO" type="com.kkbc.vo.OrderVO"/>
+	<typeAlias alias="OrderDetail" type="com.kkbc.entity.OrderDetail"/>
+	<typeAlias alias="OrderDetailVO" type="com.kkbc.vo.OrderDetailVO"/>
+	<typeAlias alias="PackageDetailVO" type="com.kkbc.vo.PackageDetailVO"/>
+	
+	<insert id="saveInfo" parameterClass="java.util.List">
+		insert into `order`(`admin_id`,`supplier_id`,`brand`,`model`,`img`,`num`,`comment`,`price`) values 
+		<iterate conjunction=",">
+			(#[].admin_id#,#[].supplier_id#,#[].brand#,#[].model#,#[].img#,#[].num#,#[].comment#,#[].price#)
+		</iterate>
+	</insert>
+	
+	<select id="orderList" parameterClass="java.util.Map" resultClass="OrderVO">
+		select O.*,T1.boughtCount,U.true_name AS supplierName,T.sendCount,T1.boughtCount-IFNULL(SUM(PD.count),0) AS `remainCount`
+		from `order` O LEFT JOIN `user` U ON O.supplier_id=U.user_id 
+		LEFT JOIN order_detail OD ON O.order_id=OD.order_id LEFT JOIN package_detail PD ON OD.order_detail_id=PD.order_detail_id 
+		LEFT JOIN(
+			SELECT O.order_id,SUM(PD.count) AS sendCount FROM `order` O LEFT JOIN package_detail PD ON O.order_id=PD.order_id LEFT JOIN package P ON PD.package_id=P.package_id
+			WHERE P.`status`!=0
+			GROUP BY O.order_id
+		) T ON O.order_id=T.order_id
+		LEFT JOIN (
+			SELECT O.order_id, IFNULL(SUM( OD.count), 0) AS boughtCount
+			FROM `order` O LEFT JOIN order_detail OD ON O.order_id = OD.order_id GROUP BY O.order_id
+		) T1 ON O.order_id = T1.order_id
+		WHERE 
+		<isEqual property="role" compareValue="1">
+			O.admin_id=#userId# 
+			<isNotEmpty prepend="AND " property="supplierId">  
+				O.supplier_id=#supplierId#
+        	</isNotEmpty>
+		</isEqual>
+		<isNotEqual property="role" compareValue="1">
+			O.supplier_id=#userId# 
+		</isNotEqual>
+		<isNotEmpty prepend="AND " property="brand">  
+           O.brand LIKE '%$brand$%'
+        </isNotEmpty>
+        <isNotEmpty prepend="AND " property="collectionStatus">  
+           O.collection_status=#collectionStatus#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND " property="paymentStatus">  
+           O.payment_status=#paymentStatus#
+        </isNotEmpty>
+        <isNotEmpty prepend="AND " property="deliveryStatus">  
+           <isEqual property="deliveryStatus" compareValue="0">
+				IFNULL(T.sendCount,0)=0
+			</isEqual>
+			<isEqual property="deliveryStatus" compareValue="1">
+				IFNULL(T.sendCount,0)>0
+			</isEqual>
+        </isNotEmpty>
+		GROUP BY O.order_id 
+		<isNotEmpty prepend="HAVING " property="caigouStatus">
+			<isEqual property="caigouStatus" compareValue="0">
+				IFNULL(SUM(OD.count),0)=0
+			</isEqual>
+			<isEqual property="caigouStatus" compareValue="1">
+				IFNULL(SUM(OD.count),0)>0
+			</isEqual>
+        </isNotEmpty>
+		ORDER BY O.create_time DESC limit #startIndex#,#pageSize#
+	</select>
+	
+	<select id="orderInfoById" parameterClass="java.lang.Integer" resultClass="OrderVO">
+		select O.*,IFNULL(SUM(OD.count),0) AS boughtCount,U.true_name AS supplierName 
+		from `order` O LEFT JOIN `user` U ON O.supplier_id=U.user_id 
+		LEFT JOIN order_detail OD ON O.order_id=OD.order_id 
+		WHERE O.`order_id`=#order_id#
+	</select>
+	
+	<select id="orderDetailById" parameterClass="java.lang.Integer" resultClass="OrderDetail">
+		SELECT `order_detail_id`,`order_id`,`create_time`,SUM(`count`) AS count,`purchase_price` FROM `order_detail` WHERE `order_id`=#order_id# GROUP BY `order_id`,purchase_price
+	</select>
+	
+	<select id="packageDetailByOrderId" parameterClass="java.lang.Integer" resultClass="PackageDetailVO">
+		SELECT P.package_id,P.expressNo,P.`status`,PD.brand,PD.model,SUM(PD.count) AS count,PD.purchase_price,P.create_time,P.send_time,P.sign_time FROM package_detail PD LEFT JOIN package P ON PD.package_id=P.package_id WHERE PD.order_id=#order_id# AND P.`status`!=0
+		GROUP BY P.package_id,PD.purchase_price
+	</select>
+	
+	<select id="goodsList" parameterClass="java.util.Map" resultClass="OrderVO">
+		SELECT O.brand,O.model,O.supplier_id,OD.purchase_price,IFNULL(SUM(OD.count),0) AS boughtCount,U.true_name AS supplierName,O.img
+		FROM `order` O LEFT JOIN `order_detail` OD ON OD.order_id=O.order_id LEFT JOIN `user` U ON O.supplier_id=U.user_id 
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="brand">  
+	           O.brand LIKE '%$brand$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="startTime">  
+	           O.create_time>=#startTime#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="endTime">  
+	           #endTime#>=O.create_time
+	        </isNotEmpty>
+     	</dynamic>
+		GROUP BY O.brand,O.model,O.supplier_id,OD.purchase_price
+		ORDER BY O.create_time DESC
+		limit #startIndex#,#pageSize#
+	</select>
+	
+	<select id="getByCaigouPrice" parameterClass="OrderDetail" resultClass="OrderDetail">
+		SELECT `order_detail_id`,`order_id`,`create_time`,`count`,`purchase_price` FROM `order_detail` WHERE `order_id`=#order_id# AND `purchase_price`=#purchase_price# limit 1
+	</select>
+	
+	<insert id="caigou" parameterClass="OrderDetail">
+		INSERT INTO `order_detail`(`order_id`,`count`,`purchase_price`) VALUES (#order_id#,#count#,#purchase_price#)
+		<selectKey resultClass="int" keyProperty="order_detail_id">
+			SELECT LAST_INSERT_ID() AS order_detail_id
+		</selectKey>
+	</insert>
+	
+	<update id="updCaigouNum" parameterClass="OrderDetail">
+		UPDATE `order_detail` SET `count`=`count`+#count# WHERE `order_detail_id`=#order_detail_id#
+	</update>
+	
+	<select id="remainCount" parameterClass="java.lang.Integer" resultClass="OrderDetailVO">
+		SELECT O.`order_id`,O.`brand`,O.`model`, OD.`order_detail_id`,OD.`count`,OD.`purchase_price`,OD.count-IFNULL(SUM(PD.count),0) AS `remainCount`
+		FROM `order` O LEFT JOIN order_detail OD ON O.`order_id`=OD.`order_id` LEFT JOIN package_detail PD ON OD.order_detail_id=PD.order_detail_id 
+		WHERE OD.`order_id`=#order_id#
+		GROUP BY OD.order_detail_id HAVING `remainCount`>0;
+	</select>
+	
+	<update id="updPayInfo" parameterClass="PayHistory">
+		UPDATE `order` SET 
+		<isEqual property="type" compareValue="1"><!-- 收款 -->
+			<isEqual property="pay_type" compareValue="3"><!-- 定金 -->
+				`collection_dingjin`=`collection_dingjin`+#money#
+			</isEqual>
+			<isNotEqual property="pay_type" compareValue="3"><!-- 不是定金 -->
+				<isNotEqual property="pay_type" compareValue="0"><!-- 1已付 2付完 -->
+				`collection_status`=#pay_type#,`collection_money`=`collection_money`+#money#
+				</isNotEqual>
+			</isNotEqual>
+		</isEqual>
+		<isEqual property="type" compareValue="2"><!-- 付款 -->
+			<isEqual property="pay_type" compareValue="3"><!-- 定金 -->
+				`pay_dingjin`=`pay_dingjin`+#money#
+			</isEqual>
+			<isNotEqual property="pay_type" compareValue="3"><!-- 不是定金 -->
+				<isNotEqual property="pay_type" compareValue="0"><!-- 1已付 2付完 -->
+				`payment_status`=#pay_type#,`pay_money`=`pay_money`+#money#
+				</isNotEqual>
+			</isNotEqual>
+		</isEqual>
+		WHERE `order_id`=#order_id#
+	</update>
+	
+	<delete id="delById" parameterClass="java.lang.Integer">
+		DELETE O,OD,PH,PD FROM `order` O LEFT JOIN order_detail OD ON O.order_id=OD.order_id LEFT JOIN `pay_history` PH ON O.order_id=PH.order_id LEFT JOIN package_detail PD ON O.order_id=PD.order_id
+		WHERE O.order_id=#order_id#
+	</delete>
+	
+</sqlMap>

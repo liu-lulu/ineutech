@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="UserHeart" >
+	<typeAlias alias="UserHeartVO" type="com.kkbc.vo.UserHeartVO"/>
+	<typeAlias alias="CustomBindingVO" type="com.kkbc.vo.CustomBindingVO"/>
+	<typeAlias alias="GoodsDescVO" type="com.kkbc.vo.GoodsDescVO"/>
+	
+	<select id="getInfo" parameterClass="UserHeartVO" resultClass="UserHeartVO">
+		SELECT `openId`,`desc_id`,`create_time`,`attention` FROM `$heartTableName$` WHERE `desc_id`=#desc_id# AND `openId`=#openId#
+	</select>
+	
+	<update id="updAttention" parameterClass="UserHeartVO">
+		UPDATE `$heartTableName$` SET `attention`=#attention# WHERE `desc_id`=#desc_id# AND `openId`=#openId#
+	</update>
+	
+	<insert id="saveHeartInfo" parameterClass="UserHeartVO">
+		INSERT INTO `$heartTableName$`(`openId`,`desc_id`,`create_time`,`attention`) VALUES(#openId#,#desc_id#,#create_time#,#attention#)
+	</insert>
+	
+	<delete id="delInfo" parameterClass="java.util.Map">
+		DELETE FROM `$heartTableName$` WHERE `desc_id`=#desc_id#
+	</delete>
+	
+	<insert id="saveTranfer" parameterClass="java.util.Map">
+		INSERT INTO `$toTable$`(`desc_id`,`openId`,`create_time`,`attention`,`confirm`)
+		SELECT `desc_id`,`openId`,`create_time`,`attention`,`confirm`
+		FROM `$fromTable$` WHERE `desc_id`=#desc_id#
+	</insert>
+	
+	<select id="getUserlist" parameterClass="java.util.Map" resultClass="CustomBindingVO">
+		SELECT H.`openId`,H.`desc_id`,H.`confirm`,H.`create_time`,DATE_FORMAT(H.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,`wx_name`,`wx_username`,`user_sex`,`phone`,`address1`,`address2`,`address3`
+		FROM `$heartTableName$` H LEFT JOIN `custombinding` U ON H.`openId`=U.`openId`
+		WHERE H.`desc_id`=#desc_id# AND H.attention=1
+		ORDER BY H.`create_time` DESC
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="getUserCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM `$heartTableName$` H LEFT JOIN `custombinding` U ON H.`openId`=U.`openId`
+		WHERE H.`desc_id`=#desc_id# AND H.attention=1
+	</select>
+	
+	<select id="userAttention" parameterClass="java.util.Map" resultClass="GoodsDescVO">
+		SELECT DATE_FORMAT(PG.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHGT.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHGT.confirm,PG.`desc_id`,PG.`content`,PG.`img1`,PG.`img2`,PG.`img3`,PG.`img4`,PG.`img1_describe`,PG.`img2_describe`,PG.`img3_describe`,PG.`img4_describe`,PG.`heart`,PG.`base`,PG.`goods_state`,PG.`goods_property`,"" AS state, 1 AS type
+		FROM user_heart_guonei_twoday UHGT LEFT JOIN publish_guonei PG ON UHGT.desc_id=PG.desc_id WHERE UHGT.openId=#openId# AND UHGT.attention=1
+		UNION
+		SELECT DATE_FORMAT(PG.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHGF.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHGF.confirm,PG.`desc_id`,PG.`content`,PG.`img1`,PG.`img2`,PG.`img3`,PG.`img4`,PG.`img1_describe`,PG.`img2_describe`,PG.`img3_describe`,PG.`img4_describe`,PG.`heart`,PG.`base`,PG.`goods_state`,PG.`goods_property`,"" AS state, 1 AS type
+		FROM user_heart_guonei_fiveday UHGF LEFT JOIN publish_guonei PG ON UHGF.desc_id=PG.desc_id WHERE UHGF.openId=#openId# AND UHGF.attention=1
+		UNION
+		SELECT DATE_FORMAT(PGO.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHGO.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHGO.confirm,PGO.`desc_id`,PGO.`content`,PGO.`img1`,PGO.`img2`,PGO.`img3`,PGO.`img4`,PGO.`img1_describe`,PGO.`img2_describe`,PGO.`img3_describe`,PGO.`img4_describe`,PGO.`heart`,PGO.`base`,PGO.`goods_state`,PGO.`goods_property`,"" AS state, 1 AS type
+		FROM user_heart_guonei_other UHGO LEFT JOIN publish_guonei_other PGO ON UHGO.desc_id=PGO.desc_id WHERE PGO.desc_id IS NOT NULL AND UHGO.openId=#openId# AND UHGO.attention=1
+		UNION
+		SELECT DATE_FORMAT(GD.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHGO.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHGO.confirm,GD.`desc_id`,GD.`content`,GD.`img1`,GD.`img2`,GD.`img3`,GD.`img4`,GD.`img1_describe`,GD.`img2_describe`,GD.`img3_describe`,GD.`img4_describe`,GD.`heart`,GD.`base`,GD.`goods_state`,GD.`goods_property`,GD.state, 1 AS type
+		FROM user_heart_guonei_other UHGO LEFT JOIN goodsdesc GD ON UHGO.desc_id=GD.desc_id WHERE GD.desc_id IS NOT NULL AND UHGO.openId=#openId# AND UHGO.attention=1
+		UNION
+		SELECT DATE_FORMAT(PM.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHMT.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHMT.confirm,PM.`desc_id`,PM.`content`,PM.`img1`,PM.`img2`,PM.`img3`,PM.`img4`,PM.`img1_describe`,PM.`img2_describe`,PM.`img3_describe`,PM.`img4_describe`,PM.`heart`,PM.`base`,PM.`goods_state`,PM.`goods_property`,"" AS state, 3 AS type
+		FROM user_heart_miaosha_twoday UHMT LEFT JOIN publish_miaosha PM ON UHMT.desc_id=PM.desc_id WHERE UHMT.openId=#openId# AND UHMT.attention=1
+		UNION
+		SELECT DATE_FORMAT(PM.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHMF.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHMF.confirm,PM.`desc_id`,PM.`content`,PM.`img1`,PM.`img2`,PM.`img3`,PM.`img4`,PM.`img1_describe`,PM.`img2_describe`,PM.`img3_describe`,PM.`img4_describe`,PM.`heart`,PM.`base`,PM.`goods_state`,PM.`goods_property`,"" AS state, 3 AS type
+		FROM user_heart_miaosha_fiveday UHMF LEFT JOIN publish_miaosha PM ON UHMF.desc_id=PM.desc_id WHERE UHMF.openId=#openId# AND UHMF.attention=1
+		UNION
+		SELECT DATE_FORMAT(PMO.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHMO.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHMO.confirm,PMO.`desc_id`,PMO.`content`,PMO.`img1`,PMO.`img2`,PMO.`img3`,PMO.`img4`,PMO.`img1_describe`,PMO.`img2_describe`,PMO.`img3_describe`,PMO.`img4_describe`,PMO.`heart`,PMO.`base`,PMO.`goods_state`,PMO.`goods_property`,"" AS state, 3 AS type
+		FROM user_heart_miaosha_other UHMO LEFT JOIN publish_miaosha_other PMO ON UHMO.desc_id=PMO.desc_id WHERE PMO.desc_id IS NOT NULL AND UHMO.openId=#openId# AND UHMO.attention=1
+		UNION
+		SELECT DATE_FORMAT(GD.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(UHMO.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,UHMO.confirm,GD.`desc_id`,GD.`content`,GD.`img1`,GD.`img2`,GD.`img3`,GD.`img4`,GD.`img1_describe`,GD.`img2_describe`,GD.`img3_describe`,GD.`img4_describe`,GD.`heart`,GD.`base`,GD.`goods_state`,GD.`goods_property`,GD.state, 3 AS type
+		FROM user_heart_miaosha_other UHMO LEFT JOIN goodsdesc GD ON UHMO.desc_id=GD.desc_id WHERE GD.desc_id IS NOT NULL AND UHMO.openId=#openId# AND UHMO.attention=1
+		
+		ORDER BY attention_time DESC
+		
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="userAttentionCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM(
+		SELECT UHGT.create_time,UHGT.confirm,PG.`desc_id`,PG.`content`,PG.`img1`,PG.`img2`,PG.`img3`,PG.`img4`,PG.`img1_describe`,PG.`img2_describe`,PG.`img3_describe`,PG.`img4_describe`,PG.`heart`,PG.`base`,PG.`goods_state`,PG.`goods_property`,"" AS state
+		FROM user_heart_guonei_twoday UHGT LEFT JOIN publish_guonei PG ON UHGT.desc_id=PG.desc_id WHERE UHGT.openId=#openId# AND UHGT.attention=1
+		UNION
+		SELECT UHGF.create_time,UHGF.confirm,PG.`desc_id`,PG.`content`,PG.`img1`,PG.`img2`,PG.`img3`,PG.`img4`,PG.`img1_describe`,PG.`img2_describe`,PG.`img3_describe`,PG.`img4_describe`,PG.`heart`,PG.`base`,PG.`goods_state`,PG.`goods_property`,"" AS state
+		FROM user_heart_guonei_fiveday UHGF LEFT JOIN publish_guonei PG ON UHGF.desc_id=PG.desc_id WHERE UHGF.openId=#openId# AND UHGF.attention=1
+		UNION
+		SELECT UHGO.create_time,UHGO.confirm,PGO.`desc_id`,PGO.`content`,PGO.`img1`,PGO.`img2`,PGO.`img3`,PGO.`img4`,PGO.`img1_describe`,PGO.`img2_describe`,PGO.`img3_describe`,PGO.`img4_describe`,PGO.`heart`,PGO.`base`,PGO.`goods_state`,PGO.`goods_property`,"" AS state
+		FROM user_heart_guonei_other UHGO LEFT JOIN publish_guonei_other PGO ON UHGO.desc_id=PGO.desc_id WHERE PGO.desc_id IS NOT NULL AND UHGO.openId=#openId# AND UHGO.attention=1
+		UNION
+		SELECT UHGO.create_time,UHGO.confirm,GD.`desc_id`,GD.`content`,GD.`img1`,GD.`img2`,GD.`img3`,GD.`img4`,GD.`img1_describe`,GD.`img2_describe`,GD.`img3_describe`,GD.`img4_describe`,GD.`heart`,GD.`base`,GD.`goods_state`,GD.`goods_property`,GD.state
+		FROM user_heart_guonei_other UHGO LEFT JOIN goodsdesc GD ON UHGO.desc_id=GD.desc_id WHERE GD.desc_id IS NOT NULL AND UHGO.openId=#openId# AND UHGO.attention=1
+		UNION
+		SELECT UHMT.create_time,UHMT.confirm,PM.`desc_id`,PM.`content`,PM.`img1`,PM.`img2`,PM.`img3`,PM.`img4`,PM.`img1_describe`,PM.`img2_describe`,PM.`img3_describe`,PM.`img4_describe`,PM.`heart`,PM.`base`,PM.`goods_state`,PM.`goods_property`,"" AS state
+		FROM user_heart_miaosha_twoday UHMT LEFT JOIN publish_miaosha PM ON UHMT.desc_id=PM.desc_id WHERE UHMT.openId=#openId# AND UHMT.attention=1
+		UNION
+		SELECT UHMF.create_time,UHMF.confirm,PM.`desc_id`,PM.`content`,PM.`img1`,PM.`img2`,PM.`img3`,PM.`img4`,PM.`img1_describe`,PM.`img2_describe`,PM.`img3_describe`,PM.`img4_describe`,PM.`heart`,PM.`base`,PM.`goods_state`,PM.`goods_property`,"" AS state
+		FROM user_heart_miaosha_fiveday UHMF LEFT JOIN publish_miaosha PM ON UHMF.desc_id=PM.desc_id WHERE UHMF.openId=#openId# AND UHMF.attention=1
+		UNION
+		SELECT UHMO.create_time,UHMO.confirm,PMO.`desc_id`,PMO.`content`,PMO.`img1`,PMO.`img2`,PMO.`img3`,PMO.`img4`,PMO.`img1_describe`,PMO.`img2_describe`,PMO.`img3_describe`,PMO.`img4_describe`,PMO.`heart`,PMO.`base`,PMO.`goods_state`,PMO.`goods_property`,"" AS state
+		FROM user_heart_miaosha_other UHMO LEFT JOIN publish_miaosha_other PMO ON UHMO.desc_id=PMO.desc_id WHERE PMO.desc_id IS NOT NULL AND UHMO.openId=#openId# AND UHMO.attention=1
+		UNION
+		SELECT UHMO.create_time,UHMO.confirm,GD.`desc_id`,GD.`content`,GD.`img1`,GD.`img2`,GD.`img3`,GD.`img4`,GD.`img1_describe`,GD.`img2_describe`,GD.`img3_describe`,GD.`img4_describe`,GD.`heart`,GD.`base`,GD.`goods_state`,GD.`goods_property`,GD.state
+		FROM user_heart_miaosha_other UHMO LEFT JOIN goodsdesc GD ON UHMO.desc_id=GD.desc_id WHERE GD.desc_id IS NOT NULL AND UHMO.openId=#openId# AND UHMO.attention=1
+		)t
+	</select>
+	
+	<update id="updConfirm" parameterClass="UserHeartVO">
+		UPDATE `$heartTableName$` SET `confirm`=#confirm# WHERE `desc_id`=#desc_id# AND `openId`=#openId#
+	</update>
+	
+	
+	<select id="attentionList" parameterClass="java.util.Map" resultClass="GoodsDescVO">
+		SELECT DATE_FORMAT(t2.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,t1.confirm,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`,"" AS state,U.*
+		FROM `$heartTableNamePre$_twoday` t1 LEFT JOIN `$tableName$` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+		UNION
+		SELECT DATE_FORMAT(t2.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,t1.confirm,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`,"" AS state,U.*
+		FROM `$heartTableNamePre$_fiveday` t1 LEFT JOIN `$tableName$` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+		UNION
+		SELECT DATE_FORMAT(t2.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,t1.confirm,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`,"" AS state,U.*
+		FROM `$heartTableNamePre$_other` t1 LEFT JOIN `$tableName$_other` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1 AND t2.`desc_id` IS NOT NULL
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+        UNION
+		SELECT DATE_FORMAT(t2.`create_time`,'%Y-%m-%d %H:%i:%s') AS publish_time,DATE_FORMAT(t1.`create_time`,'%Y-%m-%d %H:%i:%s') AS attention_time,t1.confirm,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`,t2.`state`,U.*
+		FROM `$heartTableNamePre$_other` t1 LEFT JOIN `goodsdesc` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1 AND t2.`desc_id` IS NOT NULL
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+		
+		ORDER BY attention_time DESC
+		
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="attentionListCount" parameterClass="java.util.Map" resultClass="java.lang.Integer">
+		SELECT COUNT(*) FROM
+		(
+		SELECT t1.confirm,t1.`create_time`,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`
+		FROM `$heartTableNamePre$_twoday` t1 LEFT JOIN `$tableName$` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+		UNION
+		SELECT t1.confirm,t1.`create_time`,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`
+		FROM `$heartTableNamePre$_fiveday` t1 LEFT JOIN `$tableName$` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+		UNION
+		SELECT t1.confirm,t1.`create_time`,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`
+		FROM `$heartTableNamePre$_other` t1 LEFT JOIN `$tableName$_other` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1 AND t2.`desc_id` IS NOT NULL
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+        UNION
+		SELECT t1.confirm,t1.`create_time`,t1.`desc_id`,t2.`content`,t2.`img1`,t2.`img2`,t2.`img3`,t2.`img4`,t2.`img1_describe`,t2.`img2_describe`,t2.`img3_describe`,t2.`img4_describe`,t2.`heart`,t2.`base`,t2.`goods_state`,t2.`goods_property`,t2.`brand`,t2.`category`
+		FROM `$heartTableNamePre$_other` t1 LEFT JOIN `goodsdesc` t2 ON t1.desc_id=t2.desc_id LEFT JOIN `custombinding` U ON t1.`openId`=U.`openId`
+		WHERE t1.attention=1 AND t2.`desc_id` IS NOT NULL
+		<isNotEmpty prepend=" AND " property="wx_name">
+	          (U.wx_name LIKE '%$wx_name$%' OR U.wx_username LIKE '%$wx_name$%')
+        </isNotEmpty>
+        <isNotEmpty prepend=" AND " property="confirm">  
+        	<isEqual property="confirm" compareValue="1">
+        		t1.`confirm`=1
+        	</isEqual>
+        </isNotEmpty>
+        
+        )t
+	</select>
+
+	
+</sqlMap>

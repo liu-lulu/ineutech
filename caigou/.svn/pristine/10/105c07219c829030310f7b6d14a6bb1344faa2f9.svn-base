@@ -1,0 +1,7 @@
+db.dirverClass=net.sf.log4jdbc.DriverSpy
+db.url=jdbc:log4jdbc:mysql://localhost:3306/caigou?useUnicode=true&amp;characterEncoding=utf-8&amp;autoReconnect=true
+db.username=tyre
+db.password=KKBC@20161009+ip120*adm
+
+#db.username=tyre
+#db.password=KKBC@20161009+ip120*adm

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Goods" >
+	<typeAlias alias="Goods" type="com.kkbc.entity.Goods"/>
+	
+	<insert id="saveInfo" parameterClass="java.util.List">
+		insert into `goods`(`brand`,`model`,`img`) values 
+		<iterate conjunction=",">
+			(#[].brand#,#[].model#,#[].img#)
+		</iterate>
+	</insert>
+	
+	<update id="updImg" parameterClass="Goods">
+		UPDATE `goods` SET `img`=#img# WHERE `goods_id`=#goods_id#
+	</update>
+	
+	<select id="getInfo" parameterClass="Goods" resultClass="Goods">
+		SELECT `goods_id`,`brand`,`model`,`img`
+		FROM `goods`
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="brand">  
+	          `brand` LIKE '%$brand$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="model">  
+	           `model`=#model#
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="img">  
+	           `img`=#img#
+	        </isNotEmpty>
+     	</dynamic>
+	</select>
+	
+	<select id="getPage" parameterClass="java.util.Map" resultClass="Goods">
+		SELECT `brand`,`model`,`img`
+		FROM `goods`
+		<dynamic prepend="where">  
+	        <isNotEmpty prepend="AND" property="brand">  
+	          `brand` LIKE '%$brand$%'
+	        </isNotEmpty>
+	        <isNotEmpty prepend="AND" property="model">  
+	           `model`=#model#
+	        </isNotEmpty>
+     	</dynamic>
+     	ORDER BY goods_id DESC limit #startIndex#,#pageSize#
+	</select>
+	
+</sqlMap>
