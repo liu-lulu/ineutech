@@ -1,0 +1,52 @@
+package com.kkbc.dao.impl;
+
+import java.util.List;
+
+import com.kkbc.dao.DeviceDao;
+import com.kkbc.entity.Hard;
+import com.kkbc.entity.TestScoreVO;
+import com.kkbc.entity.TestUser;
+
+public class DeviceDaoImpl extends BaseDaoImpl implements DeviceDao{
+
+	@Override
+	public int saveData(TestScoreVO data) {
+		int a=(int) getSqlMapClientTemplate().insert("TestScoreVO.saveData", data);
+		int b=(int) getSqlMapClientTemplate().insert("TestScoreVO.saveToHistory", data);
+		if (a>0&&b>0) {
+			return 1;
+		}
+		return 0;
+		
+	}
+
+	@Override
+	public TestUser getUser(String mac) {
+		return (TestUser) getSqlMapClientTemplate().queryForObject("TestScoreVO.getUser", mac);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<TestUser> getAllTestUser() {
+		return getSqlMapClientTemplate().queryForList("TestScoreVO.getUser");
+	}
+
+	@Override
+	public int saveHardInfo(Hard hard) {
+		
+		return (int) getSqlMapClientTemplate().insert("Hard.saveData", hard);
+	}
+
+	@Override
+	public int updEle(Hard hard) {
+		return (int) getSqlMapClientTemplate().update("Hard.updEle", hard);
+	}
+
+	@Override
+	public Hard getByMac(String mac) {
+		return (Hard) getSqlMapClientTemplate().queryForObject("Hard.getInfoByMac", mac);
+	}
+	
+	
+
+}

@@ -1,0 +1,23 @@
+package com.kkbc.dao;
+
+import java.util.List;
+
+import com.kkbc.entity.Hard;
+import com.kkbc.entity.TestScoreVO;
+import com.kkbc.entity.TestUser;
+
+public interface DeviceDao {
+	
+	int saveData(TestScoreVO data);
+	
+	TestUser getUser(String mac);
+	
+	List<TestUser> getAllTestUser();
+	
+	int saveHardInfo(Hard hard);
+	
+	int updEle(Hard hard);
+	
+	Hard getByMac(String mac);
+
+}

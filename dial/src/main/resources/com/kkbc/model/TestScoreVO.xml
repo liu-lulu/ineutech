@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TestScoreVO" >
+	<typeAlias alias="TestScoreVO" type="com.kkbc.entity.TestScoreVO"/>
+	
+	<typeAlias alias="TestUser" type="com.kkbc.entity.TestUser"/>
+	
+	<typeAlias alias="TestInfo" type="com.kkbc.entity.TestInfo"/>
+	
+	<typeAlias alias="TestLineData" type="com.kkbc.entity.TestLineData"/>
+	
+	<update id="updateScoreFromNow" parameterClass="TestScoreVO">
+		UPDATE `test_now` SET `score`=#score# WHERE `mac`=#mac#
+	</update>
+	
+	<select id="getTestInfoById" parameterClass="java.lang.Integer" resultClass="TestInfo">
+	
+		SELECT test_id,test_name,pty,pro_type1 FROM test_info where test_id=#test_id#
+	</select>
+	
+	<insert id="saveData" parameterClass="TestScoreVO">
+		insert into test_score(caiji_time,test_id,mac,model,score) values (#caiji_time#,#test_id#,#mac#,#model#,#score#)
+		<!-- <selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey> -->
+	</insert>
+	
+	<insert id="saveToHistory" parameterClass="TestScoreVO">
+		insert into test_score_history(caiji_time,test_id,mac,model,score,hard_id,human_id,seat_no,user_group) values (#caiji_time#,#test_id#,#mac#,#model#,#score#,#hard_id#,#human_id#,#seat_no#,#user_group#)
+		<!-- <selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey> -->
+	</insert>
+	
+	<insert id="saveToPackHistory" parameterClass="TestScoreVO">
+		insert into test_score_package(caiji_time,test_id,mac,model,score,hard_id,human_id,seat_no,user_group) values (#caiji_time#,#test_id#,#mac#,#model#,#score#,#hard_id#,#human_id#,#seat_no#,#user_group#)
+		<!-- <selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey> -->
+	</insert>
+	
+	
+	<select id="getUser" parameterClass="java.lang.String" resultClass="TestUser">
+		select TN.process_id,TN.test_id,TN.HUMAN_id,TN.user_name,TN.user_sex,TN.user_age,TN.user_edu,TN.user_job,TN.income,TN.address,TN.seat_no,TN.hard_id,TN.mac,TN.user_group,TI.test_name 
+		from test_now TN LEFT JOIN test_info TI ON TN.test_id=TI.test_id
+		<!-- <isNotEmpty prepend=" where " property="mac"> -->
+		where TN.mac=#mac#
+		<!-- </isNotEmpty> -->
+	</select>
+	
+	<select id="getUserFromBind" parameterClass="TestUser" resultClass="TestUser">
+		select TUB.test_id,TUB.HUMAN_id,TU.user_name,TU.user_sex,TU.user_age,TU.user_edu,TU.user_job,TU.income,TU.address,TUB.seat_no,TUB.hard_id,TH.mac,TI.test_name
+		from test_user_bind TUB LEFT JOIN test_info TI ON TUB.test_id=TI.test_id LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#test_id# and TH.mac=#mac# 
+	</select>
+	
+	<select id="getTestUserFromBind" parameterClass="java.lang.Integer" resultClass="TestUser">
+		select TUB.test_id,TUB.HUMAN_id,TU.user_name,TU.user_sex,TU.user_age,TU.user_edu,TU.user_job,TU.income,TU.address,TUB.seat_no,TUB.hard_id,TH.mac 
+		from test_user_bind TUB LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where test_id=#test_id#
+	</select>
+	
+	<update id="updConfirmName" parameterClass="TestUser">
+		update test_now set confirm_name=#confirm_name# where mac=#mac#
+	</update>
+	
+	<update id="updDeviceStatus" parameterClass="TestUser">
+		update test_now set device_status=#device_status# where mac=#mac#
+	</update>
+	
+	<insert id="saveLineData" parameterClass="java.util.List">
+		insert into test_line_data(`score`,`test_id`,`key`) values
+		<iterate conjunction=",">
+			(#lineData[].score#/#lineData[].count#,#lineData[].test_id#,#lineData[].key#)
+		</iterate>
+	</insert>
+	
+</sqlMap>

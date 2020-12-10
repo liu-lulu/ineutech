@@ -1,0 +1,48 @@
+package com.kkbc.service.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import com.kkbc.dao.DeviceDao;
+import com.kkbc.entity.Hard;
+import com.kkbc.entity.TestScoreVO;
+import com.kkbc.entity.TestUser;
+import com.kkbc.service.DeviceService;
+
+public class DeviceServiceImpl implements DeviceService{
+	
+	@Resource
+	private DeviceDao deviceDao;
+
+	@Override
+	public int saveData(TestScoreVO data) {
+		return deviceDao.saveData(data);
+	}
+
+	@Override
+	public TestUser getUser(String mac) {
+		return deviceDao.getUser(mac);
+	}
+
+	@Override
+	public List<TestUser> getAllTestUser() {
+		return deviceDao.getAllTestUser();
+	}
+
+	@Override
+	public int saveHardInfo(Hard hard) {
+		return deviceDao.saveHardInfo(hard);
+	}
+
+	@Override
+	public int updEle(Hard hard) {
+		return deviceDao.updEle(hard);
+	}
+
+	@Override
+	public Hard getByMac(String mac) {
+		return deviceDao.getByMac(mac);
+	}
+
+}

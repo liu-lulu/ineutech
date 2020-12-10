@@ -1,0 +1,15 @@
+package com.kkbc.control.user;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.kkbc.control.BaseController;
+
+/**
+ * 用户模块
+ * @author liululu
+ *
+ */
+@Controller
+@RequestMapping("/user")
+public class UserController extends BaseController{}

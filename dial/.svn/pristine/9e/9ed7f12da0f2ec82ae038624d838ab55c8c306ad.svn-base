@@ -1,0 +1,75 @@
+package cn.kkbc.tpms.tcp;
+
+
+public class TPMSConsts {
+	
+	// 数据包包头
+	public static final int HEAD = 0xF55F;
+	
+	// 数据包包头数组
+	public static final byte[] HEAD_ARRAY = {(byte) 0xF5,0x5F};
+	
+	// 数据类型:下行数据
+	public static final int DATA_TYPE_DOWN = 0x01;
+	
+	// 数据类型:上行数据
+	public static final int DATA_TYPE_UP = 0x02;
+	
+	// 数据类型:应答数据
+	public static final int DATA_TYPE_ANWSER = 0x03;
+	
+	//命令:关机;应答
+	public static final int COMMAND_SHUTDOWN = 0x01;
+	
+	//命令:当设备连上设备时候，服务器下发的命令;应答
+	public static final int COMMAND_CONNECT = 0x02;
+	
+	//命令:查询电量;应答电量
+	public static final int COMMAND_ELE = 0x03;
+	
+	//命令:查询当前时间;应答当前时间
+	public static final int COMMAND_RETURN_TIME = 0x04;
+	
+	//命令:为投票器设置时间;应答设置结果
+	public static final int COMMAND_SET_TIME = 0x05;
+	
+	//命令:推送人名;应答
+	public static final int COMMAND_SEND_NAME = 0x06;
+	
+	//命令:上传MAC地址
+	public static final int COMMAND_MAC = 0x09;
+	
+	//命令:确认人名
+	public static final int COMMAND_CONFIRM_NAME = 0x10;
+	
+	//命令:采集暂停;应答
+	public static final int COMMAND_PAUSE = 0x11;
+	
+	//命令:测试完成;应答
+	public static final int COMMAND_TEST_COMPLET = 0x12;
+	
+	//命令:进入测试;应答
+	public static final int COMMAND_ENTER_TEST = 0x16;
+	
+	//命令:采集的数据
+	public static final int COMMAND_DATA = 0x17;
+	
+	//命令:切换模式
+	public static final int COMMAND_CHANGE_MODE = 0x18;
+	
+	//命令:删除 Flash 数据 
+	public static final int COMMAND_DELETE_FLASH = 0x19;
+	
+	//命令:选择模式 
+	public static final int COMMAND_SELECT_MODE = 0x15;
+	
+	//命令:设备重启  
+	public static final int COMMAND_RESTART = 0x20;
+	
+	//命令:设置 ID   
+	public static final int COMMAND_SETID = 0x21;
+	
+	
+
+
+}

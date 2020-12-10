@@ -1,0 +1,431 @@
+package cn.kkbc.tpms.tcp.processor;
+
+import java.net.InetSocketAddress;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cn.kkbc.tpms.tcp.TPMSConsts;
+import cn.kkbc.tpms.tcp.entity.DialOperation;
+import cn.kkbc.tpms.tcp.server.SessionManager;
+import cn.kkbc.tpms.tcp.service.codec.MsgDecoder;
+import cn.kkbc.tpms.tcp.service.msg.BaseMsgProcessService;
+import cn.kkbc.tpms.tcp.service.queue.MemoryMsgQueueServiceImpl;
+import cn.kkbc.tpms.tcp.service.queue.MsgQueueService;
+import cn.kkbc.tpms.tcp.util.BitOperator;
+import cn.kkbc.tpms.tcp.util.HexStringUtils;
+import cn.kkbc.tpms.tcp.vo.PackageData;
+import cn.kkbc.tpms.tcp.vo.QueueElement;
+import cn.kkbc.tpms.tcp.vo.Session;
+
+import com.kkbc.entity.DeviceLoginLog;
+import com.kkbc.entity.Hard;
+import com.kkbc.entity.TestScoreVO;
+import com.kkbc.entity.TestUser;
+import com.kkbc.service.DeviceLoginLogService;
+import com.kkbc.service.DeviceService;
+import com.kkbc.service.impl.DeviceLoginLogServiceImpl;
+import com.kkbc.service.impl.DeviceServiceImpl;
+import com.kkbc.util.SpringContextUtils;
+
+public class MsgQueueProcessor extends Thread implements Processor {
+
+	private Logger log = LoggerFactory.getLogger(getClass());
+	private Logger weblog = LoggerFactory.getLogger("weblog");
+
+	private volatile boolean isRunning = false;
+	private MsgQueueService msgQueueService = null;
+	private SessionManager sessionManager;
+	private MsgDecoder msgDecoder;
+	protected BitOperator bitOperator;
+	private DeviceService service;
+	private BaseMsgProcessService sendToDevice;
+	private DeviceLoginLogService deviceLoginLogService;
+	
+
+	public MsgQueueProcessor() {
+		this.msgQueueService = new MemoryMsgQueueServiceImpl();
+		this.sessionManager = SessionManager.getInstance();
+		this.msgDecoder=new MsgDecoder();
+		this.bitOperator=new BitOperator();
+		this.service=(DeviceServiceImpl) SpringContextUtils.getContext().getBean("deviceService");
+		this.deviceLoginLogService=(DeviceLoginLogServiceImpl) SpringContextUtils.context.getBean("deviceLoginLogService");
+		this.sendToDevice=new BaseMsgProcessService();
+		this.setName("TCP-MsgQueueProcessor");
+		this.setDaemon(true);
+	}
+
+	@Override
+	public synchronized void startProcess() {
+		if (this.isRunning) {
+			throw new IllegalStateException(this.getName() + " is already started .");
+		}
+		this.isRunning = true;
+		super.start();
+		this.log.info("队列消息处理器启动完毕...");
+	}
+
+	@Override
+	public synchronized void stopProcess() {
+		if (!this.isRunning) {
+			throw new IllegalStateException(this.getName() + " is not yet started .");
+		}
+		this.isRunning = false;
+		this.interrupt();
+		this.log.info("队列消息处理器已经停止...");
+	}
+
+	@Override
+	public void run() {
+		ExecutorService cachedThreadPool = Executors.newFixedThreadPool(30);
+		
+		while (this.isRunning) {
+			QueueElement msg = null;
+			try {
+				msg = this.msgQueueService.take();
+			} catch (InterruptedException e1) {
+				continue;
+			}
+//			if (msg == null) {
+//				try {
+//					TimeUnit.SECONDS.sleep(1);
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+//				continue;
+//			}
+			try {
+				if (msg!=null) {
+//					processMsg(msg);
+					cachedThreadPool.execute(DoTask(msg));
+				}
+			} catch (Exception e) {
+				log.error("消息处理出现异常:{}", e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		
+		cachedThreadPool.shutdown();
+	}
+
+	/**
+	 * 
+	 * @param queueElement
+	 * @return
+	 */
+	private Runnable DoTask(QueueElement queueElement) {
+		return new Runnable() {
+			@Override
+			public void run() {
+				try {
+					processMsg(queueElement);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	}
+	public void processMsg(QueueElement queueElement) throws InterruptedException, ParseException {
+//		log.info("开始处理数据:{}",HexStringUtils.toHexString(queueElement.getData()));
+		Session session=sessionManager.findBySessionId(queueElement.getChannel().id().asLongText());
+		
+		
+		
+//		TestUser testUser=new TestUser();
+//		testUser.setMac(session.getShefen_id());
+		
+		List<PackageData> packageDatas = null;
+		try {
+			packageDatas = this.msgDecoder.dataToPackageData(queueElement.getData());
+		} catch (Exception e) {
+			log.error("消息解析出错,已忽略本条消息:{}", e.getMessage());
+			e.printStackTrace();
+			return;
+		}
+		
+		if (packageDatas!=null) {
+			SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			for (PackageData packageData : packageDatas) {
+				if (packageData.getDataType()==TPMSConsts.DATA_TYPE_UP) {//上传数据
+					
+					if (packageData.getCommand()==TPMSConsts.COMMAND_MAC) {//MAC地址
+						String mac=HexStringUtils.toHexString(packageData.getData());
+						log.info("设备MAC地址:{}",mac);
+						
+						if (StringUtils.isEmpty(session.getShefen_id())) {//首次获取mac信息时，获取绑定信息
+							Hard hard=service.getByMac(mac);
+							if (hard==null) {
+								hard=new Hard();
+								hard.setHard_type(Hard.TYPE_DIAL);
+								hard.setLast_time(new Date());
+								hard.setMac(mac);
+								int hardId=service.saveHardInfo(hard);
+								session.setDevice_id(hardId);
+							}else {
+								session.setDevice_id(hard.getHard_id());
+							}
+							
+							sendToDevice.send2Client(session.getChannel(), sendToDevice.setIDData(hard.getHard_no().intValue()));
+							
+							session.setHard_no(hard.getHard_no());
+							session.setShefen_id(mac);
+//							session.setTestUser(service.getUser(mac));
+							
+							if (session.getTestUser()!=null) {
+								session.getTestUser().setDevice_status(TestUser.DEVICE_STATUS_ONLINE);
+								service.updateDeviceStatus(session.getTestUser());
+							}else {//测试中设备端掉重新连接时,重新获取设备的绑定信息
+								session.setTestUser(service.getUserFromNow(mac));
+								if (session.getTestUser()!=null) {
+									session.getTestUser().setDevice_status(TestUser.DEVICE_STATUS_ONLINE);
+									service.updateDeviceStatus(session.getTestUser());
+								}
+							}
+							
+							if (sessionManager.findByTerminalShefenId(mac)==null) {
+								sessionManager.getShefenIdMap().put(session.getShefen_id(), queueElement.getChannel().id().asLongText());
+							}
+							
+							DeviceLoginLog log=new DeviceLoginLog();
+							log.setCreate_time(new Date());
+							log.setDevice_id(hard.getHard_id());
+							InetSocketAddress insocket = (InetSocketAddress) session.getChannel().remoteAddress();
+							log.setRemote_ip(insocket.getAddress().getHostAddress());
+							log.setRemote_port(insocket.getPort());
+							log.setStatus(DeviceLoginLog.NORMAL_STATUS);
+							log.setType(DeviceLoginLog.TYPE_LOGIN);
+//							deviceLoginLogService.saveInfo(log);
+						}
+						
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_DATA) {//采集的数据
+						
+						byte[] data=packageData.getData();
+						byte[] temp=new byte[2];
+						
+						//包数
+						System.arraycopy(data, 0, temp, 0, 2);
+						int packageNo=bitOperator.byteToInteger(temp);
+						
+						byte[] time=new byte[8];
+						//时间
+						System.arraycopy(data, 2, time, 0, 8);
+						Date caijiDate=msgDecoder.byteToDate(time);
+						
+						//ID
+						System.arraycopy(data, 10, temp, 0, 2);
+						String ID=HexStringUtils.toHexString(temp);
+						
+						//模式
+						System.arraycopy(data, 12, temp, 0, 1);
+						int mod=temp[0];
+						
+						//分数
+						System.arraycopy(data, 13, temp, 0, 1);
+						int score=temp[0];
+						
+						log.info("设备{}采集数据:{}--->其中,包数:{},时间:{},ID:{},模式:{},分数:{}",session.getHard_no(),HexStringUtils.toHexString(data),packageNo,format.format(caijiDate),ID,mod,score);
+						
+//						if (session.getMod()!=mod||session.getScore()!=score) {
+							TestScoreVO vo=new TestScoreVO();
+							vo.setCreate_time(new Date());
+							vo.setTest_id(session.getTestUser()==null?0:session.getTestUser().getTest_id());
+							vo.setMac(session.getShefen_id());
+							vo.setModel(mod);
+							vo.setScore(score);
+							vo.setHuman_id(session.getTestUser()==null?0:session.getTestUser().getHUMAN_id());
+							vo.setHard_id((int)session.getDevice_id());
+							vo.setSeat_no(session.getTestUser()==null||session.getTestUser().getSeat_no()==null?0:session.getTestUser().getSeat_no());
+							vo.setUser_group(session.getTestUser()==null?"":session.getTestUser().getUser_group());
+							vo.setCaiji_time(format.format(caijiDate));
+							
+							String content="device:{"+session.getDevice_id()+"}---data:--->packageNo:{"+packageNo+"},date:{"+format.format(caijiDate)+"},ID:{"+ID+"},mod:{"+mod+"},score:{"+score+"}";
+							String dates="\n"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())+" ";
+							if (session.getState()==Session.STATE_END) {
+//								AppendToFileUtil.appendMethodA("C:\\Users\\liululu\\Desktop\\硬件\\拨盘\\投票器功能样机演示资料\\package-data.txt", dates+content);
+								service.savePackageData(vo);
+							}else {
+//								AppendToFileUtil.appendMethodA("D:\\data.txt", "\n"+HexStringUtils.toHexString(queueElement.getData())+"--caijiTime---"+format.format(caijiDate));
+								service.saveData(vo);
+							}
+							
+							session.setMod(mod);
+							session.setScore(score);
+//						}
+						
+						
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_CONFIRM_NAME) {//确认人名
+						
+						int receiveResult=bitOperator.byteToInteger(packageData.getData());
+						
+						log.info("设备{}人名:{}",session.getHard_no(),receiveResult==0?"错误":"正确");
+						
+						session.getTestUser().setConfirm_name(receiveResult==0?TestUser.CONFIRM_NAME_ERROR:TestUser.CONFIRM_NAME_SUCCESS);
+						
+						service.updateConfirmNameFlag(session.getTestUser());
+						
+					}else {
+						log.info("设备{}未知上传数据类型:{}",session.getHard_no(),packageData.getCommand());
+					}
+					
+				}else if (packageData.getDataType()==TPMSConsts.DATA_TYPE_ANWSER) {//应答数据
+					int type=DialOperation.TYPE_SEND;
+					boolean saveLog=true;
+					if (packageData.getCommand()==TPMSConsts.COMMAND_SHUTDOWN) {//关机应答
+						log.info("设备{}关机应答",session.getHard_no());
+						type=DialOperation.TYPE_SUCCESS;
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_CONNECT) {//连接成功应答
+						log.info("设备连接成功");
+						
+//						session.setLastCommunicateTimeStamp(new Date().getTime());
+						
+						saveLog=false;
+						
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_ELE) {//返回当前电量
+						int ele=bitOperator.byteToInteger(packageData.getData());
+						log.info("设备{}当前电量:{}",session.getHard_no(),ele);
+						type=DialOperation.TYPE_SUCCESS;
+						
+						if (session.getEle()!=ele) {
+							Hard hard=new Hard();
+							hard.setMac(session.getShefen_id());
+							hard.setHard_elec(ele);
+							hard.setLast_time(new Date());
+							service.updEle(hard);
+							
+							session.setEle(ele);
+						}
+						
+//						session.setLastCommunicateTimeStamp(new Date().getTime());
+						
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_RETURN_TIME) {//返回当前时间
+						String curTime=format.format(msgDecoder.byteToDate(packageData.getData()));
+						log.info("设备{}当前时间:{}",session.getHard_no(),curTime);
+						session.setCurTime(curTime);
+						type=DialOperation.TYPE_SUCCESS;
+						
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_SET_TIME) {//设置设备当前时间
+						
+						if (packageData.getData().length==0) {
+							log.info("设置设备{}当前时间成功",session.getHard_no());
+							session.setSetTimeStatus(true);
+//							session.setLastCommunicateTimeStamp(new Date().getTime());
+							type=DialOperation.TYPE_SUCCESS;
+						}else {
+							log.info("设置设备{}当前时间失败",session.getHard_no());
+							type=DialOperation.TYPE_FAIL;
+						}
+						
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_SEND_NAME) {//推送人名
+						if (packageData.getData().length==0) {
+							log.info("设备{}推送人名成功",session.getHard_no());
+						}else {
+							log.info("设备{}推送人名失败",session.getHard_no());
+						}
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_ENTER_TEST) {//进入测试
+						if (packageData.getData().length==0) {
+							log.info("设备{}进入测试成功",session.getHard_no());
+							
+							if (session.getTestUser()!=null) {
+								session.getTestUser().setDevice_status(TestUser.DEVICE_STATUS_TEST);
+								service.updateDeviceStatus(session.getTestUser());
+							}
+							
+							//更新设备状态:使用中
+							Hard hard=new Hard();
+							hard.setMac(session.getShefen_id());
+							hard.setTest_name(session.getTestUser().getTest_name());
+							hard.setLast_time(new Date());
+							hard.setStatus(Hard.STATUS_USING);
+							service.updLastInfo(hard);
+							
+							session.setState(Session.STATE_TESTING);
+							type=DialOperation.TYPE_SUCCESS;
+						}else {
+							log.info("设备{}进入测试失败",session.getHard_no());
+							type=DialOperation.TYPE_FAIL;
+						}
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_PAUSE) {//暂停 or 取消暂停
+						
+						type=DialOperation.TYPE_SUCCESS;
+						log.info("设备{}暂停或取消暂停成功",session.getHard_no());
+						
+						if (session.getState()==Session.STATE_TESTING) {
+							session.setState(Session.STATE_PAUSE);
+							if (session.getTestUser()!=null) {
+								session.getTestUser().setDevice_status(TestUser.DEVICE_STATUS_PAUSE);
+								service.updateDeviceStatus(session.getTestUser());
+							}
+							
+						}else if(session.getState()==Session.STATE_PAUSE){
+							session.setState(Session.STATE_TESTING);
+							if (session.getTestUser()!=null) {
+								session.getTestUser().setDevice_status(TestUser.DEVICE_STATUS_TEST);
+								service.updateDeviceStatus(session.getTestUser());
+							}
+						}
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_TEST_COMPLET) {//结束测试
+						if (packageData.getData().length==0) {
+							log.info("设备{}结束测试成功",session.getHard_no());
+//							if (session.getTestUser()!=null) {//因在测试结束时已将test_now中对应的数据清除,所以此操作没用
+//								session.getTestUser().setDevice_status(TestUser.DEVICE_STATUS_ENDTEST);
+//								service.updateDeviceStatus(session.getTestUser());
+//							}
+							
+							session.setState(Session.STATE_END);
+							type=DialOperation.TYPE_SUCCESS;
+							
+							//更新设备状态:未使用
+							Hard hard=new Hard();
+							hard.setMac(session.getShefen_id());
+							hard.setTest_name(session.getTestUser().getTest_name());
+							hard.setLast_time(new Date());
+							hard.setStatus(Hard.STATUS_NOUSE);
+							service.updLastInfo(hard);
+						}else {
+							log.info("设备{}结束测试失败",session.getHard_no());
+							type=DialOperation.TYPE_FAIL;
+						}
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_CHANGE_MODE) {//切换模式
+						log.info("设备{}切换模式应答",session.getHard_no());
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_DELETE_FLASH) {//删除flash
+						log.info("设备{}删除flash应答",session.getHard_no());
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_SELECT_MODE) {//选择模式
+						log.info("设备{}选择模式应答",session.getHard_no());
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_SETID) {//设置ID应答
+						log.info("设备{}设置ID应答",session.getHard_no());
+					}else if (packageData.getCommand()==TPMSConsts.COMMAND_RESTART) {//重启应答
+						log.info("设备{}重启应答",session.getHard_no());
+					}else {
+						log.info("设备{}未知应答数据类型:{}",session.getHard_no(),packageData.getCommand());
+					}
+					
+					if (saveLog&&type!=DialOperation.TYPE_SEND) {
+						DialOperation operation=sessionManager.findOperateInfo(session.getShefen_id(), packageData.getCommand());
+						if (operation!=null) {
+							System.out.println("----operate-------"+operation.getId());
+							operation.setType(type);
+							
+							//数据库更新操作日志状态
+						}
+						
+					}
+					
+				}else {
+					log.error("设备{}>>>>>>[未知消息类型],data={}",session.getHard_no(), HexStringUtils.toHexString(packageData.getData()));
+				}
+					
+			}
+		}
+
+	}
+
+}

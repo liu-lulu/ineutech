@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TestScoreVO" >
+	<typeAlias alias="TestScoreVO" type="com.kkbc.entity.TestScoreVO"/>
+	
+	<typeAlias alias="TestUser" type="com.kkbc.entity.TestUser"/>
+	
+	<insert id="saveData" parameterClass="TestScoreVO">
+		insert into test_score(create_time,test_id,mac,model,score) values (#create_time#,#test_id#,#mac#,#model#,#score#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	<insert id="saveToHistory" parameterClass="TestScoreVO">
+		insert into test_score_history(create_time,test_id,mac,model,score,hard_id,human_id,seat_no,user_group) values (#create_time#,#test_id#,#mac#,#model#,#score#,#hard_id#,#human_id#,#seat_no#,#user_group#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	
+	<select id="getUser" parameterClass="java.lang.String" resultClass="TestUser">
+		select process_id,test_id,HUMAN_id,user_name,user_sex,user_age,user_edu,user_job,income,address,seat_no,hard_id,mac,user_group,bmpFile 
+		from test_now
+		<!-- <isNotEmpty prepend=" where " property="mac"> -->
+		where mac=#mac#
+		<!-- </isNotEmpty> -->
+	</select>
+	
+</sqlMap>

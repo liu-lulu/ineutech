@@ -1,0 +1,256 @@
+package com.kkbc.control.device;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import cn.kkbc.tpms.tcp.TPMSConsts;
+import cn.kkbc.tpms.tcp.entity.DialOperation;
+import cn.kkbc.tpms.tcp.server.SessionManager;
+import cn.kkbc.tpms.tcp.service.msg.BaseMsgProcessService;
+import cn.kkbc.tpms.tcp.util.BmpFileUtil;
+import cn.kkbc.tpms.tcp.vo.Session;
+
+import com.kkbc.control.BaseController;
+import com.kkbc.entity.TestUser;
+import com.kkbc.service.DeviceService;
+
+/**
+ * dtu设备
+ * @author liululu
+ *
+ */
+@Controller
+@RequestMapping("/device")
+public class DeviceController extends BaseController{
+	
+	private SessionManager sessionManager=SessionManager.getInstance();
+	private BaseMsgProcessService msgProcessService=new BaseMsgProcessService();
+	
+	@Resource
+	private DeviceService deviceService;
+	
+	@RequestMapping("/enterTest")
+	public void enterTest(HttpServletRequest request, HttpServletResponse response) throws IOException, NumberFormatException, InterruptedException{
+		for (Session session : sessionManager.toList()) {
+			msgProcessService.send2Client(session.getChannel(), msgProcessService.getSendGetOperationDtuData(TPMSConsts.COMMAND_ENTER_TEST));
+		}
+	}
+	
+	@RequestMapping("/endTest")
+	public void endTest(HttpServletRequest request, HttpServletResponse response) throws IOException, NumberFormatException, InterruptedException{
+		for (Session session : sessionManager.toList()) {
+			if (session.getState()!=Session.STATE_NO_START) {
+				msgProcessService.send2Client(session.getChannel(), msgProcessService.getSendGetOperationDtuData(TPMSConsts.COMMAND_TEST_COMPLET));
+			}
+		}
+	}
+	
+	@RequestMapping("/shutDown")
+	public void shutDown(HttpServletRequest request, HttpServletResponse response) throws IOException, NumberFormatException, InterruptedException{
+		for (Session session : sessionManager.toList()) {
+			msgProcessService.send2Client(session.getChannel(), msgProcessService.getSendGetOperationDtuData(TPMSConsts.COMMAND_SHUTDOWN));
+		}
+	}
+	
+	@RequestMapping("/getDeviceInfo")
+	public void getDeviceInfo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NumberFormatException, InterruptedException {
+		
+		response.setContentType("text/json;charset=UTF-8");
+		response.setCharacterEncoding("utf-8");
+		request.setCharacterEncoding("utf-8");
+		
+		String mac=request.getParameter("mac");
+		String command=request.getParameter("command");
+		Session session=sessionManager.findByTerminalShefenId(mac);
+		
+		PrintWriter out = response.getWriter();
+		if (session==null) {
+			out.print("不在线");
+		}else {
+			if (StringUtils.isEmpty(command)){
+				out.print("操作命令为空");
+			}else {
+				DialOperation operation=new DialOperation();
+				operation.setMac(mac);
+				operation.setCommand(Integer.valueOf(command));
+				
+				//数据库计入操作日志,获取日志ID
+				long id=1;
+				operation.setId(id);
+				
+				String uuid=UUID.randomUUID().toString();
+				System.out.println("----uuid-----"+uuid);
+				
+				sessionManager.getOperationMap().put(mac+uuid, operation);
+				
+				msgProcessService.send2Client(session.getChannel(), msgProcessService.getSendGetOperationDtuData(Integer.valueOf(command)));
+				
+				int state=0;
+				String msg="mac="+mac;
+				int i=0;
+				while(true){
+					System.err.println(new Date()+"========="+i);
+					++i;
+					try {
+						if(operation.getType()==DialOperation.TYPE_FAIL){//操作失败
+							msg+=",操作失败";
+							break;
+						}else if(operation.getType()==DialOperation.TYPE_SUCCESS){//操作成功
+							state=1;
+							msg+=",操作成功";
+							break;
+						}else if(System.currentTimeMillis()-operation.getTime()>DialOperation.INTERVAL_TIME){
+							state=2;
+							msg+=",操作超时了";
+							operation.setType(DialOperation.TYPE_TIMEOUT);
+							//--------更新操作日志状态
+							break;
+						}
+						Thread.sleep(200);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				
+				sessionManager.getOperationMap().remove(mac+uuid);
+				
+				JSONObject jsonObject=new JSONObject();
+				jsonObject.put("state", state);
+				jsonObject.put("msg", msg);
+				jsonObject.put("info", JSONArray.fromObject(session));
+				
+				out.print(jsonObject);
+			}
+			
+		}
+		
+	
+	}
+	
+	@RequestMapping("/pause")
+	public void pause(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NumberFormatException, InterruptedException {
+		
+//		String mac=request.getParameter("mac");
+//		Session session=sessionManager.findByTerminalShefenId(mac);
+		
+		for (Session session : sessionManager.toList()) {
+			msgProcessService.send2Client(session.getChannel(), msgProcessService.pause_data());
+		}
+	}
+	
+	@RequestMapping("/cancelPause")
+	public void cancelPause(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NumberFormatException, InterruptedException {
+		
+//		String mac=request.getParameter("mac");
+//		Session session=sessionManager.findByTerminalShefenId(mac);
+		
+		for (Session session : sessionManager.toList()) {
+			msgProcessService.send2Client(session.getChannel(), msgProcessService.cancelPause_data());
+		}
+	}
+	
+	@RequestMapping("/setTime")
+	public void setTime(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NumberFormatException, InterruptedException, ParseException {
+		response.setContentType("text/json;charset=UTF-8");
+		response.setCharacterEncoding("utf-8");
+		request.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		
+		String mac=request.getParameter("mac");
+		String time=request.getParameter("time");
+		Session session=sessionManager.findByTerminalShefenId(mac);
+		if (session==null) {
+			out.print("不在线");
+		}else {
+			msgProcessService.send2Client(session.getChannel(), msgProcessService.setTime_data(time));
+		}
+	}
+	
+	@RequestMapping("/sendName")
+	public void sendName(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NumberFormatException, InterruptedException {
+		
+		String info = request.getParameter("mac");
+//		info=URLDecoder.decode(info, "utf-8");
+//		JSONArray jsonArray=JSONArray.fromObject(info);
+//		@SuppressWarnings("unchecked")
+//		List<TestUser> testUsers=(List<TestUser>)JSONArray.toCollection(jsonArray, TestUser.class);
+		
+		TestUser testUser=null;
+		BmpFileUtil util=new BmpFileUtil();
+		
+		if (StringUtils.isEmpty(info)) {//给所有在线设备发送姓名确认
+			for (Session session : sessionManager.toList()) {
+				testUser=deviceService.getUser(session.getShefen_id());
+				if (session!=null&&testUser!=null) {
+					byte zimo[]=util.getZimo(BmpFileUtil.BASE_SRC+testUser.getBmpFile());
+					msgProcessService.send2Client(session.getChannel(), msgProcessService.sendName_data(zimo));
+				}
+			}
+		}else {
+			for (String mac : info.split(",")) {
+				Session session=sessionManager.findByTerminalShefenId(mac);
+				testUser=deviceService.getUser(mac);
+				if (session!=null&&testUser!=null) {
+					byte zimo[]=util.getZimo(BmpFileUtil.BASE_SRC+testUser.getBmpFile());
+					msgProcessService.send2Client(session.getChannel(), msgProcessService.sendName_data(zimo));
+				}
+			}
+		}
+		
+	}
+	
+	@RequestMapping("/sendNameTest")
+	public void sendNameTest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NumberFormatException, InterruptedException {
+		
+		String info = request.getParameter("mac");
+		
+		for (String mac : info.split(",")) {
+			Session session=sessionManager.findByTerminalShefenId(mac);
+			
+//			byte zimo[]=util.getZimo(baseSrc+session.getTestUser().getBmpFile());
+//			msgProcessService.send2Client(session.getChannel(), msgProcessService.sendName_data(zimo));
+			
+//			byte zimo[]={(byte)0xF5,0x5F,0x01,0x06,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3E,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x3E,0x00,0x00,0x01,0x23,0x22,0x26,0x2C,0x3C,0x3E,0x20,0x28,0x2C,0x24,0x22,0x02,0x00,0x00,0x3E,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x3E,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x13,0x12,0x1E,0x1E,0x01,0x3F,0x01,0x05,0x09,0x19,0x31,0x01,0x00,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0E,0x0C,0x0C,0x0F,0x07,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0E,0x0C,0x0C,0x0F,0x07,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte) 0x80,(byte) 0x9C,(byte) 0xF8,(byte) 0xF8,(byte) 0x88,(byte) 0x8C,(byte) 0xFC,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x84,0x00,0x00,(byte) 0xFC,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0xFC,0x00,0x00,(byte) 0x80,(byte) 0x9C,(byte) 0xF8,(byte) 0xF8,(byte) 0x88,(byte) 0x8C,(byte) 0xFC,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x84,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte) 0xC4,0x44,0x7C,0x60,0x00,(byte) 0xFC,0x0C,(byte) 0x88,(byte) 0xE0,0x38,0x0C,0x00,0x04,0x04,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,0x04,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x6C,(byte) 0xEC,(byte) 0xC0,(byte) 0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x6C,(byte) 0xEC,(byte) 0xC0,(byte) 0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x19};
+			
+			byte zimo[]={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x3E,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x3E,0x00,0x00,0x01,0x23,0x22,0x26,0x2C,0x3C,0x3E,0x20,0x28,0x2C,0x24,0x22,0x02,0x00,0x00,0x3E,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x2A,0x3E,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x13,0x12,0x1E,0x1E,0x01,0x3F,0x01,0x05,0x09,0x19,0x31,0x01,0x00,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0E,0x0C,0x0C,0x0F,0x07,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0E,0x0C,0x0C,0x0F,0x07,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte) 0x80,(byte) 0x9C,(byte) 0xF8,(byte) 0xF8,(byte) 0x88,(byte) 0x8C,(byte) 0xFC,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x84,0x00,0x00,(byte) 0xFC,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0x88,(byte) 0xFC,0x00,0x00,(byte) 0x80,(byte) 0x9C,(byte) 0xF8,(byte) 0xF8,(byte) 0x88,(byte) 0x8C,(byte) 0xFC,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x94,(byte) 0x84,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte) 0xC4,0x44,0x7C,0x60,0x00,(byte) 0xFC,0x0C,(byte) 0x88,(byte) 0xE0,0x38,0x0C,0x00,0x04,0x04,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,(byte) 0x84,0x04,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x6C,(byte) 0xEC,(byte) 0xC0,(byte) 0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x6C,(byte) 0xEC,(byte) 0xC0,(byte) 0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+			
+			msgProcessService.send2Client(session.getChannel(), msgProcessService.sendName_data(zimo));
+		}
+	}
+	
+	@RequestMapping("/reloadDeviceInfo")
+	public void reloadDeviceInfo(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException  {
+		response.setContentType("text/json;charset=UTF-8");
+		response.setCharacterEncoding("utf-8");
+		request.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		
+		String mac = request.getParameter("mac");
+		
+		Session session=sessionManager.findByTerminalShefenId(mac);
+		
+		if (session==null) {
+			out.print("不在线");
+		}else {
+			session.setTestUser(deviceService.getUser(mac));
+		}
+	}
+	
+	
+	
+}

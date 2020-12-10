@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceLoginLog" >
+	<typeAlias alias="DeviceLoginLog" type="com.kkbc.entity.DeviceLoginLog"/>
+	
+	<insert id="saveData" parameterClass="DeviceLoginLog">
+		insert into device_login_log(create_time,status,remote_ip,remote_port,type,device_id) values (#create_time#,#status#,#remote_ip#,#remote_port#,#type#,#device_id#)
+		<selectKey resultClass="long" keyProperty="device_login_log_id">
+			SELECT LAST_INSERT_ID() AS device_login_log_id
+		</selectKey>
+	</insert>
+	
+</sqlMap>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Hard" >
+	<typeAlias alias="Hard" type="com.kkbc.entity.Hard"/>
+	
+	<insert id="saveData" parameterClass="Hard">
+		insert into hard(`mac`,`hard_type`,`last_time`) values (#mac#,#hard_type#,#last_time#)
+		<selectKey resultClass="int" keyProperty="hard_id">
+			SELECT LAST_INSERT_ID() AS hard_id
+		</selectKey>
+	</insert>
+	
+	<update id="updEle" parameterClass="Hard">
+		update hard set `last_time`=#last_time#,`hard_elec`=#hard_elec# where `mac`=#mac#
+	</update>
+	
+	<select id="getInfoByMac" parameterClass="java.lang.String" resultClass="Hard">
+		select `hard_id`,`mac`,`hard_elec` from hard where mac=#mac#
+	</select>
+	
+</sqlMap>

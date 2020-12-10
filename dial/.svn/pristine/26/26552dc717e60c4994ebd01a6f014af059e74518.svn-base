@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>接口</title>
+</head>
+<body>
+<br/>1.登录接口(修改时间:2016-7-7)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=login
+<br/>参数:name  >>登录名
+<br/>password   >>登录密码
+<br/>type   >>登录类型,1代表管理员登录,2.修理工登录,3.代表司机
+<br/>remark  >>备注(ios及android和版本标识，方便兼容等问题的查找)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=login&name=psy&password=111&type=1&remark=android5.0&client_time=20161220112459&singal=F632C77A8105DB2E47D2FEA177016685624F2C0F41ADF368ABD626AD93232272CD697285DBC834763E02430A7008D01ED87E7F0E4CF655A57CE90C0075FD9D1078FF50E32C9DCFE07D5BF568CFB8A2DF2DA6021046DC9BDB" >
+action=login&name=psy&password=111&type=1&remark=android5.0
+</a>
+<br/>
+返回结果:1登录成功{"state": 0,"user":{}},2.用户名或密码错误或登录类型错误{"state": 1},3.用户名或密码为空{"state": 2}
+<br/>
+
+<br/>2.获取轮胎规格列表
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getSpecificationList
+<br/>参数:无
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getSpecificationList" >
+action=getSpecificationList
+</a>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+
+<br/>3.获取轮胎品牌列表(修改时间:2016-7-26)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getTyreBrandList
+<br/>参数:无
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getTyreBrandList" >
+action=getTyreBrandList
+</a>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+
+
+<br/>
+<br/>4.根据用户获取胎汇总列表(修改时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=countTyreInfo
+<br/>参数:user_id  >>用户id
+<br/>tyre_brand  >>品牌(可选参数)
+<br/>tyre_type1  >>规格(可选参数)
+<br/>tyre_type2  >>花纹代码(可选参数)
+<br/>tyre_health  >>健康值 1是正常,0是不正常(可选参数)
+<br/>column   >>排序列标记  1：品牌  2：规格  3：花纹代码  4:数量  5：健康(可选参数)
+<br/>order  >>顺序标记  1：升序  2：降序(可选参数)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=countTyreInfo&token=dcb1a1e6-1151-4574-b339-f125f2b6c862&tyre_brand=倍耐力&tyre_type1=12R22.5&tyre_type2=HF01&tyre_health=1&column=1&order=1&client_time=20161220112659&singal=929BEF66AA4547AD0A27E7F19F9C72AF929BEF66AA4547AD80CCDD3B657CC9D0994238480E967BDFFB360E8E58BAADE31E9DFA05B363BE9C8C357EA7986FBBE5E3E1D8D08521E2844B05B2A07CD7F489B404D6D3A177EF454CFEB355012B3480D9D80623EDD5F07B98D2C45B3F7F4D08DF806D09587AF7EF56616BABA4260AD9CB002A71778971B49582D27FAACB1CAFFD7F42DCB3A59601AA7F9AD6E365D52FA5D97D087B79DF8A29049EE899E1A8300D99BC826E109494
+" >
+action=countTyreInfo&user_id=2&tyre_brand=倍耐力&tyre_type1=12R22.5&tyre_type2=HF01&tyre_health=1&column=1&order=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/><br/>说明:tyre_brand为品牌,tyre_type1为规格,tyre_type2为花纹代码,tyre_type3为花纹,count为胎总数,tyre_health为平均健康值
+<br/>
+
+
+<br/>
+<br/>5.根据用户品牌规格花纹获取胎列表(修改时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getTyreList
+<br/>参数:user_id  >>用户id
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>tyre_brand  >>品牌
+<br/>tyre_type1  >>规格
+<br/>tyre_type2  >>花纹代码
+<br/>tyre_type3  >>花纹
+<br/>tyre_flag  >>状态   1--装载，0--卸下(可选参数)
+<br/>tyre_health  >>健康值 1是正常,0是不正常(可选参数)
+<br/>keyWord      >>关键字(胎号)搜索(可选参数)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getTyreList&user_id=2&pagenum=1&tyre_brand=倍耐力&tyre_type1=11R22.5&tyre_type2=FH88&tyre_type3=条纹&tyre_flag=1&tyre_health=1&keyWord=" >
+action=getTyreList&user_id=2&pagenum=1&tyre_brand=倍耐力&tyre_type1=11R22.5&tyre_type2=FH88&tyre_type3=条纹&tyre_flag=1&tyre_health=1&keyWord=
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/><br/>说明:tyre_id为胎号,tyre_flag为状态(0为装载,1为卸下),tyre_km为里程,tyre_health为健康值
+<br/>
+
+
+<br/>
+<br/>6.轮胎详情管理员(修改时间:2016-7-26)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreDetialByAdmin
+<br/>参数:tyre_id   >>胎号
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreDetialByAdmin&tyre_id=HAM67339" >
+action=tyreDetialByAdmin&tyre_id=HAM67339
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>说明:tyre_id代表胎号,tyre_brand代表品牌,tyre_flag代表1--装载，0--卸下,tyre_type1代表规格,tyre_type2代表花纹代码,tyre_type3代表花纹,tyre_type5:有无气门,tyre_type6:内胎---有无,tyre_type7:性质--全钢，半钢
+,create_time:入库时间,trucks_id:所安装的车牌号,tyre_p_time:轮胎花纹检测时间,tyre_paver:轮胎花纹平均深度,tyre_health:健康值,tyre_depth:原始深度,tyre_where:车胎具体位置,
+mabiao_install:装车码表数,li_cheng_run:行驶里程,li_cheng_estimate:预计里程,trucks_li_cheng_run:车，当前行驶里程,deviceFasheqi:发射器监测数据,dimian_sulu:地面速率即速度,dtuOnlineStatus:dtu是否在线,dtu_id:DTU ID若为null代表没有设备监视该车,trucks_flag:车状态   1--行驶，0--停止
+,<br/>tyre_type4代表检测轮毂,tyre_value:检测气门 正常或受损,0正常,1是受损,tyre_trauma:轮胎外伤 有或无,0无,1有,tyre_abnormal:轮胎异常 正常或异常,0无,1有,tyre_fanxin:翻新 0否,1是
+<br/>remark代表胎的小贴士---mabiao代表车的码表数---trucks_mode代表车辆型号,如J6P---trucks_brand代表厂牌---dan_hao代表单耗
+
+<br/>
+
+
+<br/>
+<br/>7.根据用户获取车辆列表(修改时间:2016-7-14)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=searchTrucksList
+<br/>参数:user_id  >>用户id
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>trucks_flag    >>状态   1--行驶，0--停止(可选参数)
+<br/>trucks_health    >>健康值 1是正常,0是不正常(可选参数)
+<br/>trucks_type    >>类型--主车/挂车(可选参数)
+<br/>keyWord      >>关键字(车牌)搜索(可选参数)
+<br/>transport_type   >>运输类型,分别：危险品、快递、公交、冷链、客运、其他(可选参数)
+<br/>column   >>排序列标记  1：车牌  2：厂牌  3：车型  4：健康度 
+<br/>order  >>顺序标记  1：升序  2：降序
+<br/>
+<a  target="_blank" href="ServletAll.do?action=searchTrucksList&user_id=2&pagenum=1&trucks_flag=1&trucks_health=1&trucks_type=主车&keyWord=沪DE1071&transport_type=&column=1&order=1" >
+action=searchTrucksList&user_id=2&pagenum=1&trucks_flag=1&trucks_health=1&trucks_type=主车&keyWord=沪DE1071&transport_type=&column=1&order=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/><br/>说明:trucks_id为车牌,trucks_brand为厂牌,trucks_style为车型,trucks_flag为状态(1是行使,0是停放),trucks_health为车辆安全指数,trucks_type为类型--主车/挂车,transport_type为运输类型,分别：危险品、快递、公交、冷链、客运、其他,
+<br/>guache_save_flag(司机端要用的)挂车保存标志,0表示挂车信息是保存在主车上的，司机是不可以选择挂其他挂车的，1表示挂车信息是单独保存的，司机可以选择挂其他挂车的---guache_trucks_id代表当前挂车车牌
+<br/>---li_cheng_run代表行驶里程---trucks_mode代表车辆型号,如J6P
+<br/>
+
+
+
+<br/>
+<br/>8.根据车牌号获取车信息(修改时间:2016-7-26)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getByTrucks_id
+<br/>参数:trucks_id  >>车牌号
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getByTrucks_id&trucks_id=沪DE1071" >
+action=getByTrucks_id&trucks_id=沪DE1071
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+<br/>说明:info对象中trucks_brand代表厂牌---trucks_type代表类型--主车/挂车---trucks_style代表车型---trucks_flag代表1是行使,0是停放---trucks_health代表车辆安全指数---li_cheng_run代表行驶里程---mabiao代表码表数--transport_type代表运输类型,分别：危险品、快递、公交、冷链、客运、其他---guache_trucks_id代表挂车车牌---trucks_mode代表车辆型号,如J6P---guache_save_flag代表挂车保存标志,0表示挂车信息是保存在主车上的，司机是不可以选择挂其他挂车的，1表示挂车信息是单独保存的，司机可以选择挂其他挂车的---dimian_sulu代表地面速率,速度---guache挂车信息
+<br/>---gps_status代表GPS的定位状态（0表示有效定位，1表示无效定位）---latitude代表纬度---latitude_type代表北纬或南纬(0表示北纬,1表示南纬)---longitude代表经度---longitude_type代表东经或西经(0表示东经,1表示西经)
+<br/>---warn代表dtu是否有报警0无,1有---caiji_time代表dtu最后一次上传时间---dtu_id代表 dtu id为空代表没有安装dtu---dtuOnlineStatus代表dtu是否在线0不在线,1在线--deviceFasheqis代表发射器信息
+<br/>    deviceFasheqis中的louqi急漏气告警（0表示无告警，1表示有告警）---gaoya高压告警（0表示无告警，1表示有告警）---diya低压告警（0表示无告警，1表示有告警）---gaowen高温告警（0表示无告警，1表示有告警）---dianchi设备电池低电（0表示无告警，1表示有告警）---fasheqidianchi发射器低电池告警（0表示无告警，1表示有告警）---zhongduan发射器发射中断告警（0表示无告警，1表示有告警）---shilian失联（0表示无，1表示失联）---warn是否有警告信息（0表示无，1表示有）---yali当前压力---wendu当前温度---
+<br/> true_name架驶员名字---user_phone架驶员电话---user_id架驶员id---from_adress出发地---to_adress目的地---mapHealth胎健康度---mapPattern胎花纹深度
+
+
+
+
+<br/>
+<br/>9.获取最近一次驾驶记录(增加时间:2016-7-11)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getLastDrivingRecord
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getLastDrivingRecord&user_id=6" >
+action=getLastDrivingRecord&user_id=6
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+<br/>说明:info对象中trucks_id代表车牌---from_adress代表出发地---to_adress代表目的地---create_time代表创建时间---start_time代表开始驾驶时间---end_time代表结束时间---driver_id代表架驶员用户id--transport_type代表运输类型,分别：危险品、快递、公交、冷链、客运、其他
+<br/>    star_unobstructed代表通畅度星评---star_heart代表心情星评---status代表状态,1是创建成功并进入架驶状态,2是结束但还没完成,3是完成---li_cheng_run代表开车时,行驶里程---li_cheng_end代表结束时,行驶里程---guache_trucks_id代表挂车车牌
+<br/><br/>
+
+
+<br/>
+<br/>10.根据用户获取架驶记录列表(增加时间:2016-7-11)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getDrivingRecordList
+<br/>参数:user_id  >>用户id
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getDrivingRecordList&user_id=6&pagenum=1" >
+action=getDrivingRecordList&user_id=6&pagenum=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/><br/>说明:
+<br/>
+
+<br/>
+<br/>11.开始架驶(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=startDriving
+<br/>参数:user_id  >>用户id
+<br/>trucks_id    >>主车牌
+<br/>from_adress    >>出发地
+<br/>to_adress    >>目的地
+<br/>start_time    >>开始时间，格式为yyyy-MM-dd HH:mm
+<br/>transport_type    >>运输类型
+<br/>mabao          >>码表数
+<br/>guache_trucks_id    >>挂车牌(可选)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=startDriving&user_id=6&trucks_id=沪DE1071&from_adress=上海&to_adress=北京&start_time=2016-07-13 12:06&transport_type=公交&mabao=200" >
+action=startDriving&user_id=6&trucks_id=沪DE1071&from_adress=上海&to_adress=北京&start_time=2016-07-13 12:06&transport_type=公交&mabao=200
+</a>
+<br/>
+<br/>
+一般返回结果:{"state": 0}
+<br/><br/>说明:state为0成功,1车不存在,2码表数不能低于原本的码表数,3还正在开始，不能创建,4运输类型不一致,5挂车不存在,6挂车还在正在驾驶的其他车上,7其他
+<br/>state为3时,结果为{"state": 3,"info":{}},info中主要有正在开始的架驶员电话等
+<br/>state为6时,结果为{"state": 3,"info":{}},info中主要为挂车所在主车的架驶员信息等
+<br/>
+
+<br/>
+<br/>12.结束架驶(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=endDriving
+<br/>参数:user_id  >>用户id
+<br/>mabao          >>码表数
+<br/>
+<a  target="_blank" href="ServletAll.do?action=endDriving&user_id=6&mabao=200" >
+action=endDriving&user_id=6&mabao=200
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0}
+<br/><br/>说明:state为0成功,1没有要结束的,2结束码表数小于开始码表数,3.其他
+<br/>
+
+<br/>
+<br/>13.架驶员评分(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=scoreDriving
+<br/>参数:user_id  >>用户id
+<br/>star_unobstructed          >>通畅度,星值,1到5(最小为1)
+<br/>star_heart          >>心情,星值,1到5(最小为1)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=scoreDriving&user_id=6&star_unobstructed=1&star_heart=1" >
+action=scoreDriving&user_id=6&star_unobstructed=1&star_heart=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0}
+<br/><br/>说明:state为0成功,1还未结束不能评分,2已评分,3没有架驶记录,4其他
+<br/>
+
+
+<br/>
+<br/>14.获取驾驶员驾驶记录汇总(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getDrivingRecordCount
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getDrivingRecordCount&user_id=6" >
+action=getDrivingRecordCount&user_id=6
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":{}}
+<br/><br/>说明:count总数,li_cheng公里,service_phone客服电话
+<br/>
+
+<br/>15.获取轮胎花纹代码列表
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getPatternCodeList
+<br/>参数:无
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getPatternCodeList" >
+action=getPatternCodeList
+</a>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+
+
+<br/>
+<br/>16.根据关键字获取胎列表(增加时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreListByKeyWord
+<br/>参数:user_id  >>用户id
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>keyWord      >>关键字(胎号)搜索(可选参数)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreListByKeyWord&user_id=2&pagenum=1&keyWord=" >
+action=tyreListByKeyWord&user_id=2&pagenum=1&keyWord=
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/><br/>说明:tyre_id为胎号,tyre_flag为状态(0为装载,1为卸下),tyre_km为里程,tyre_health为健康值
+<br/>
+
+<br/>
+<br/>16-1.根据关键字等获取胎库存列表(修改时间:2016-9-14)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreListByKucun
+<br/>参数:user_id  >>用户id
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>keyWord      >>关键字(胎号)搜索(可选参数)
+<br/>tyre_flag  >>(可选参数)1--装载，0--卸下
+<br/>tyre_brand  >>品牌(可选参数)
+<br/>tyre_type1  >>规格(可选参数)
+<br/>tyre_type2  >>花纹代码(可选参数)
+<br/>state      >>(可选参数)胎的状态,0报废轮胎,1新胎,2修补轮胎,3翻新轮胎
+<br/>column   >>排序列标记  1：品牌  2：规格  3：花纹代码  4：总里程  5：健康值(可选参数)
+<br/>order  >>顺序标记  1：升序  2：降序
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreListByKucun&user_id=2&pagenum=1&keyWord=&state=1&tyre_flag=1&tyre_brand=倍耐力&tyre_type1=12R22.5&tyre_type2=HF01&column=1&order=1" >
+action=tyreListByKucun&user_id=2&pagenum=1&keyWord=&state=1&tyre_flag=1&tyre_brand=倍耐力&tyre_type1=12R22.5&tyre_type2=HF01&column=1&order=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/><br/>说明:tyre_id为胎号,tyre_flag为状态(0为装载,1为卸下),tyre_km为里程,tyre_health为健康值
+,tyre_brand代表品牌,tyre_type1代表规格,tyre_type2代表花纹代码,tyre_type3代表花纹,status代表状态(轮胎种类),0报废轮胎,1新胎,2修补轮胎,3翻新轮胎
+<br/>
+
+<br/>
+<br/>17.获取最近一次工单(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getLastWorkOrder
+<br/>参数:user_id  >>用户id
+<br/>flag    >>1数据带进工单日志数据,0不带进工单日志数据
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getLastWorkOrder&user_id=5" >
+action=getLastWorkOrder&user_id=5
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+<br/>说明:info对象中id代表工单id---create_time代表创建时间---start_time代表开始时间---end_time代表结束时间---user_id代表修理工用户id---status代表状态,1是创建成功并进入架驶状态,2是结束完成---workOrderRecords工单日志数据
+<br/>其中workOrderRecords中数据,work_order_id代表工单id---action代表事件属性---content代表内容---tyre_id代表胎号
+<br/><br/>
+
+
+<br/>
+<br/>18.创建工单,开始工单记录(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=createWorkOrder
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=createWorkOrder&user_id=5" >
+action=createWorkOrder&user_id=5
+</a>
+<br/>
+<br/>
+一般返回结果:{"state": 0}
+<br/><br/>说明:state为0成功,1工单还未结束不能创建,2其他
+<br/><br/>
+
+<br/>
+<br/>19.结束工单(增加时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=endWorkOrder
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=endWorkOrder&user_id=5" >
+action=createWorkOrder&user_id=5
+</a>
+<br/>
+<br/>
+一般返回结果:{"state": 0}
+<br/><br/>说明:state为0成功,1没有要结束的工单,2其他
+<br/><br/>
+
+
+<br/>20.录入轮胎花纹深度及其他检测数据信息(修改时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=saveTyrePatternItem
+<br/>参数:user_id  >>用户id
+<br/>tyrePattern   >>json对象,且需要url编码(如java:java.net.URLEncoder.encode("str", "utf-8")),再传
+<br/>flag  >>可选参数默认为1,0代表胎位置为A1、A2...,1代表胎序号(硬件测量时用)
+<br/>remark  >>温馨提示
+<br/>item  >>检测项(比如检测,修补,动平衡,四轮定位,充氮气,气压调整,报废),注意不要有多余的逗号,检测项中"检测"只有tyrePattern不为空时才出现
+<br/>tyre_id  >>胎号
+<br/>mabiao  >>码表数(可选参数),报废时，如果胎在车上，必须填写否则可以不填
+<br/>repaircontent >>修补详情(检测项中含"修补"时的详情)
+<br/>
+<form action="ServletAll" target="_blank" method="get">
+<input name="action" value="saveTyrePatternItem" type="hidden"><br/>
+<input name="user_id" value="5">>>用户id<br/>
+<input name="tyrePattern" value="">>>tyrePattern<br/>
+<input name="remark" value="">>>remark<br/>
+<input name="item" value="检测,修补,动平衡,四轮定位,充氮气,气压调整,翻新">>>item(注意:"翻新"和"修补"和"报废"是定死的字)<br/>
+<input name="tyre_id" value="">>>tyre_id<br/>
+<input name="mabiao" value="">>>mabiao<br/>
+<input name="repaircontent" value="">>>repaircontent<br/>
+<button type="submit">提交</button>
+</form>
+
+<br/>
+返回结果:{"state": 0}
+<br/>
+<br/>说明:state,0成功,1失败,10没有开始工单或已结束,3其他
+<br/>
+
+
+<br/>21.批量保存轮胎基本信息(修改时间:2016-7-12)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=saveTyreBaseByList
+<br/>参数:user_id  >>用户id
+<br/>tyres   >>json数组,且需要url编码(如java:java.net.URLEncoder.encode("str", "utf-8")),再传
+<br/>
+<form action="ServletAll" target="_blank" method="get">
+<input name="action" value="saveTyreBaseByList" type="hidden"><br/>
+<input name="user_id" value="13">>>用户id<br/>
+<input name="tyres" value="">>>tyres<br/>
+<button type="submit">提交</button>
+</form>
+
+<br/>
+返回结果:{"state": 0}
+<br/>
+<br/>说明:state,0成功,1失败,10没有开始工单或已结束
+<br/>
+
+<br/>21.批量保存轮胎基本信息---入库工具专用(修改时间:2016-7-14)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=saveTyreBaseByListTool
+<br/>参数:user_id  >>用户id
+<br/>tyres   >>json数组,且需要url编码(如java:java.net.URLEncoder.encode("str", "utf-8")),再传
+<br/>
+<form action="ServletAll" target="_blank" method="get">
+<input name="action" value="saveTyreBaseByListTool" type="hidden"><br/>
+<input name="user_id" value="13">>>用户id<br/>
+<input name="tyres" value="">>>tyres<br/>
+<button type="submit">提交</button>
+</form>
+
+<br/>
+返回结果:{"state": 0}
+<br/>
+<br/>说明:state,0成功,1失败
+<br/>
+
+
+<br/>
+<br/>22.查询轮胎详情,注:暂不维护了(根据轮胎号或车牌胎位置)(修改时间:2016-7-13)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreDetial
+<br/>参数:user_id  >>用户id
+<br/>tyre_id   >>胎号(若用此参数,trucks_id,tyre_where就不需要)
+<br/>trucks_id   >>车牌号
+<br/>tyre_where   >>胎位置
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreDetial&user_id=2&tyre_id=TB16042625" >
+action=tyreDetial&user_id=2&tyre_id=TB16042625
+</a>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>说明:tyre_id代表胎号,tyre_brand代表品牌,tyre_flag代表1--装载，0--卸下,tyre_type1代表规格,tyre_type2代表花纹代码,tyre_type3代表花纹,tyre_type5:有无气门,tyre_type6:内胎---有无,tyre_type7:性质--全钢，半钢--tyre_where胎位置---
+,tyre_depth:原始深度,tyre_health:健康值,tyre_paver:轮胎花纹平均深度,tyre_p_time:轮胎花纹检测时间,trucks_id:所安装的车牌号,mabiao_install:装车码表数,li_cheng_run:行驶里程
+<br/>
+
+
+<br/>
+<br/>23.胎装载(修改时间:2016-7-14)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreToTrucks
+<br/>参数:user_id  >>用户id
+<br/>tyre_id   >>胎号
+<br/>trucks_id   >>车牌号
+<br/>updateColName   >>胎位置(如:A1/A2/A3/A4..........)
+<br/>mabiao  >>码表数(可选参数)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreToTrucks&user_id=5&tyre_id=LMD7&trucks_id=沪AK2233&updateColName=A1&mabiao=" >
+action=tyreToTrucks&user_id=5&tyre_id=LMD7&trucks_id=沪AK2233&updateColName=A1&mabiao=
+</a>
+<br/>
+<br/>
+返回结果:{"state": 状态},状态可能的值:0成功,1车牌不存在,2该位置存在胎,3保存失败,4轮胎不存在或已在车上不能再安装了,5保存胎日志失败,10没有开始工单或已结束
+<br/>
+
+<br/>
+<br/>24.胎卸下(修改时间:2016-7-14)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreDown
+<br/>参数:user_id  >>用户id
+<br/>tyre_id   >>胎号(若用此参数,trucks_id,tyre_where就不需要)
+<br/>trucks_id   >>车牌号
+<br/>updateColName   >>胎位置(如:A1/A2/A3/A4..........)
+<br/>mabiao  >>码表数(可选参数)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreDown&user_id=5&tyre_id=LMD7&trucks_id=沪AK2233&updateColName=A1&mabiao=" >
+action=tyreDown&user_id=5&tyre_id=LMD7&trucks_id=沪AK2233&updateColName=A1&mabiao=
+</a>
+<br/>
+<br/>
+返回结果:{"state": 状态},状态可能的值:0成功,1不存在车牌或位置上没有此胎,2保存失败,3保存胎日志失败,4其他,10没有开始工单或已结束
+<br/>
+
+<br/>
+<br/>25.轮胎交换(修改时间:2016-7-14)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreExchange
+<br/>参数:user_id  >>用户id
+<br/>tyre_id1   >>胎号1
+<br/>tyre_id2   >>胎号2
+<br/>mabiao1  >>胎号1的码表数(可选参数)
+<br/>mabiao2  >>胎号2的码表数(可选参数)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreExchange&user_id=2&tyre_id1=LMD7&tyre_id2=LMD8&mabiao1=&mabiao2=" >
+action=tyreExchange&user_id=2&tyre_id1=LMD7&tyre_id2=LMD8&mabiao1=&mabiao2=
+</a>
+<br/>
+<br/>
+返回结果:{"state": 状态},状态可能的值:0成功,1不存在两个胎信息,2两个胎都不在车上，交换没有意义,3保存失败,4其他,10没有开始工单或已结束
+<br/>
+
+<br/>
+<br/>26.获取历史工单列表(增加时间:2016-7-13)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=workOrderList
+<br/>参数:user_id  >>用户id
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>
+<a  target="_blank" href="ServletAll.do?action=workOrderList&user_id=5&pagenum=1" >
+action=workOrderList&user_id=5&pagenum=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+<br/>说明:info对象中id代表工单id---create_time代表创建时间---start_time代表开始时间---end_time代表结束时间---user_id代表修理工用户id---status代表状态,1是创建成功并进入架驶状态,2是结束完成---workOrderRecords工单日志数据
+<br/>
+<br/>
+
+<br/>
+<br/>27.删除工单记录项(增加时间:2016-7-13)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=deleteWorkOrderRecord
+<br/>参数:user_id  >>用户id
+<br/>id   >>工单记录项id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=deleteWorkOrderRecord&user_id=5&id=20" >
+action=deleteWorkOrderRecord&user_id=5&id=20
+</a>
+<br/>
+<br/>
+返回结果:{"state": 状态},状态可能的值:0成功,1工单已结束不能删除记录项,2不存在,3记录项已删除,4其他
+<br/>
+
+<br/>
+<br/>28.根据工单id获取记录项(增加时间:2016-7-13)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=recordByWorkOrderId
+<br/>参数:workOrderId  >>工单id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=recordByWorkOrderId&workOrderId=2" >
+action=recordByWorkOrderId&workOrderId=2
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+<br/>说明:info对象中id代表工单记录项id--work_order_id代表工单id---action代表事件属性---content代表内容---tyre_id代表胎号
+<br/>
+<br/>
+
+<br/>29.个人信息修改(增加时间:2016-7-13)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=updateProfile
+<br/>参数:user_id  >>用户id
+<br/>true_name   >>真实名
+<br/>user_phone  >>手机号码
+<br/>
+<form action="ServletAll.do?action=updateProfile" target="_blank" method="post" enctype="multipart/form-data">
+<input name="action" value="updateProfile" type="hidden"><br/>
+<input name="user_id" value="6">>>用户id<br/>
+<input name="user_phone" value="18721">>>user_phone<br/>
+<input name="true_name" value="真实名100">>>true_name<br/>
+<input type="file" name="file">>>用户头像<br/>
+<input name="token" value="d430385c-675f-40b8-8609-4e3dd85fd3db">>>token<br/>
+<input name="client_time" value="20161220143959">>>client_time<br/>
+<input name="singal" value="aaaaaaaa">>>client_time<br/>
+<button type="submit">提交</button>
+</form>
+
+<br/>
+返回结果:{"state": 0},其中,成功时为有上传头像时{"state": 0,"user_face":"用户头像"},无上传头像时{"state": 0}
+<br/>
+<br/>说明:state,0成功,-2文件过大,-1表单提出问题,1保存数据时不成功,100token信息失效
+<br/>
+
+<br/>
+<br/>30.管理员汇总个人页面(修改时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getUserCountByAdmin
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getUserCountByAdmin&user_id=13" >
+action=getUserCountByAdmin&user_id=13
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":{}}
+<br/>说明:info中--trucksCount车总数--tyreCount胎总数--service_phone客服电话--newTyreCount新胎个数--oldTyreCount旧胎个数--baofeiTyreCount报废胎个数--xiubuTyreCount修补胎个数--fanxinTyreCount翻新胎个数--qianzhuangTyreCount前装胎个数--health平均健康度
+<br/>
+
+<br/>
+<br/>30-1.获取新消息推送(增加时间:2016-9-2)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getMessageList
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getMessageList&user_id=13" >
+action=getMessageList&user_id=13
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":{}}
+<br/>
+<br/>说明:messages中,type类型，1.温馨提示，2.擂台赛，3.每日报价，4.车报警
+<br/> remark当车报警时，为车牌号
+
+<br/>
+<br/>31.温馨提示小贴士列表(增加时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreTips
+<br/>参数:user_id  >>用户id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreTips&user_id=13" >
+action=tyreTips&user_id=13
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+<br/>说明remark温馨提示小贴士内容---tyre_where位置---trucks_id车牌号---tyre_id胎号
+
+
+<br/>
+<br/>32.查询轮胎轨迹列表(修改时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=getTyreHistoryListByTyreId
+<br/>参数:tyre_id  >>胎号
+<br/>pagenum    >>第几页,1,2,3。。。每页15条数据
+<br/>
+<a  target="_blank" href="ServletAll.do?action=getTyreHistoryListByTyreId&tyre_id=HAM62887&pagenum=1" >
+action=getTyreHistoryListByTyreId&tyre_id=HAM62887&pagenum=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+
+
+<br/>
+<br/>33.胎,司机自行修补(添加时间:2016-8-9)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreByDriverXiuBu
+<br/>参数:user_id  >>用户id
+<br/>tyre_id   >>胎号
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreByDriverXiuBu&user_id=5&tyre_id=LMD7" >
+action=tyreByDriverXiuBu&user_id=5&tyre_id=LMD7
+</a>
+<br/>
+<br/>
+返回结果:{"state": 状态},状态可能的值:0成功,1轮胎不存在,2保存失败
+<br/>
+
+
+<br/>
+<br/>34.更新车码表数(增加时间:2016-8-10)
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=goUpdateTrucksMabiao
+<br/>参数:user_id  >>用户id
+<br/>trucks_id    >>主车牌
+<br/>mabiao          >>码表数
+<br/>
+<a  target="_blank" href="ServletAll.do?action=goUpdateTrucksMabiao&user_id=6&trucks_id=沪DE1071&mabiao=200" >
+action=goUpdateTrucksMabiao&user_id=6&trucks_id=沪DE1071&mabiao=200
+</a>
+<br/>
+<br/>
+一般返回结果:{"state": 0}
+<br/><br/>说明:state为0成功,1车不存在或码表数小于当前值,2其他
+<br/>
+
+
+
+
+
+
+
+
+
+<br/><br/><br/><br/>
+<br/>10000.Android检查版本更新接口(修改时间:2016-7-13)
+<br/>http://localhost:9090/tyre/ServletAll.do?action=AndroidCheckVersion
+<br/>参数:appname  >>app名字---现在值分别为manage、driver、fuwu、OrderManager,tyrePush(manage管理端,driver司机端,fuwu胎工服务端,OrderManager微信订单管理端,tyrePush推送端)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=AndroidCheckVersion&appname=tyre" >
+ServletAll.do?action=AndroidCheckVersion&appname=tyre
+</a>
+
+
+
+
+
+
+
+
+
+<br/><strong>以下还没改</strong><br/><br/><br/><br/><br/><br/><br/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>
+<br/>8.胎推荐
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=tyreTuiJian
+<br/>参数:company_id  >>公司id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=tyreTuiJian&company_id=1" >
+action=tyreTuiJian&company_id=1
+</a>
+<br/>
+<br/>
+<br/>
+
+<br/>
+<br/>9.录入轮胎花纹深度
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=saveTyrePattern
+<br/>参数:user_id  >>用户id
+<br/>tyre_id   >>胎号
+<br/>tyre_p1   >>花纹深度1(不能为空)
+<br/>tyre_p2   >>花纹深度2(不能为空)
+<br/>tyre_p3   >>花纹深度3(不能为空)
+<br/>tyre_p4   >>花纹深度4(不能为空)
+<br/>tyre_p5   >>花纹深度5(不能为空)
+<br/>tyre_p6   >>花纹深度6(不能为空)
+<br/>tyre_paver   >>花纹平均深度(不能为空)
+<br/>
+<a  target="_blank" href="ServletAll.do?action=saveTyrePattern&user_id=13&tyre_id=LMD7&tyre_p1=1&tyre_p2=1&tyre_p3=1&tyre_p4=1&tyre_p5=1&tyre_p6=1&tyre_paver=1" >
+action=saveTyrePattern&user_id=13&tyre_id=LMD7&tyre_p1=1&tyre_p2=1&tyre_p3=1&tyre_p4=1&tyre_p5=1&tyre_p6=1&tyre_paver=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 状态},状态可能的值:0成功,1胎不存在,2保存失败
+<br/>
+
+
+
+
+
+<br/>
+<br/>17.硬件花纹深度测试,车列表
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=trucksListByPattern
+<br/>参数:company_id   >>公司id
+<br/>
+<a  target="_blank" href="ServletAll.do?action=trucksListByPattern&company_id=1" >
+action=trucksListByPattern&company_id=1
+</a>
+<br/>
+<br/>
+返回结果:{"state": 0,"info":[]}
+<br/>
+
+
+<br/>18.硬件批量录入轮胎花纹深度及其他信息
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=saveTyrePatternList
+<br/>参数:user_id  >>用户id
+<br/>tyrePatternlist   >>json数组,且需要url编码(如java:java.net.URLEncoder.encode("str", "utf-8")),再传
+<br/>flag  >>可选参数默认为1,0代表胎位置为A1、A2...,1代表胎序号(硬件测量时用)
+<br/>
+<form action="ServletAll" target="_blank" method="get">
+<input name="action" value="saveTyrePatternList" type="hidden"><br/>
+<input name="user_id" value="13">>>用户id<br/>
+<input name="tyrePatternlist" value="">>>tyrePatternlist<br/>
+<button type="submit">提交</button>
+</form>
+
+<br/>
+返回结果:1成功{"state": 0,"info":[]},2.失败{"state": 1}
+<br/>
+<br/>说明:info对象中state,0是成功,1是胎不存在,2是保存失败,4是位置不正确
+<br/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/><br/><br/><br/><br/><br/><br/><br/>
+<br/>
+<br/>12.IOS检查版本更新接口
+<br/>http://localhost:8090/tyre4.0/ServletAll.do?action=CheckVersion
+<br/>
+<a  target="_blank" href="ServletAll.do?action=CheckVersion" >
+ServletAll.do?action=CheckVersion
+</a>
+<br/>
+
+
+
+
+
+
+<br/><br/><br/><br/><br/>
+</body>
+</html>

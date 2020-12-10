@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>接口</title>
+</head>
+<body>
+
+<br>
+<br/>1.开始测试
+<br/>http://localhost:8090/dial/device/enterTest.do
+<form action="device/enterTest.do" target="_blank" method="get">
+<input type="submit" value="所有在线设备进入测试">
+</form>
+<br/>参数:无
+<br/>
+<br/>
+
+<br>
+<br/>2.结束测试
+<br/>http://localhost:8090/dial/device/endTest.do
+<form action="device/endTest.do" target="_blank" method="get">
+<input type="submit" value="所有在线设备结束测试">
+</form>
+<br/>参数:无
+<br/>
+<br/>
+
+<br>
+<br/>3.设备关机(该功能设备暂未开放)
+<br/>http://localhost:8090/dial/device/shutDown.do
+<form action="device/shutDown.do" target="_blank" method="get">
+<input type="submit" value="所有在线设备关机">
+</form>
+<br/>参数:无
+<br/>
+<br/>
+
+<br/>
+<br/>4.服务器获取设备信息
+<br/>http://localhost:8090/dial/device/getDeviceInfo.do
+<form action="device/getDeviceInfo.do" target="_blank" method="get">
+mac地址：<input name="mac" value="A020A6108523">>>mac<br/>
+控制命令:<input name="command" value="">>>command<br/>
+<br/>
+<button type="submit">提交</button>
+</form>
+<br/>参数说明:
+<br/>mac  >>设备mac
+<br/>command  >>操作命令
+<br/>
+<br/>
+返回结果:
+<br/>
+<br/>说明
+
+<br/>控制命令序号表格：
+<br/>3	查询设备的电量
+<br/>4	查询投票器当前时间
+
+<br/>
+<br/>
+
+<br/>
+<br/>5.设备暂停打分
+<br/>http://localhost:8090/dial/device/pause.do
+<form action="device/pause.do" target="_blank" method="get">
+<input type="submit" value="暂停打分">
+</form>
+<br/>参数:无
+
+<br/>
+<br/>
+<br/>6.设备取消暂停,重新进入打分模式
+<br/>http://localhost:8090/dial/device/pause.do
+<form action="device/cancelPause.do" target="_blank" method="get">
+<input type="submit" value="取消暂停">
+</form>
+<br/>参数:无
+
+<br/>
+<br/>7.设置设备时间
+<br/>http://localhost:8090/dial/device/setTime.do
+<form action="device/setTime.do" target="_blank" method="get">
+mac地址：<input name="mac" value="A020A6108523">>>mac<br/>
+日期(yyyy-MM-dd HH:mm:ss):<input name="time" value="">
+<input type="submit" value="设置时间">
+</form>
+<br/>参数说明:
+<br/>mac  >>设备mac
+<br/>time  >>时间
+
+<br/>
+<br/>8.给设备推送其绑定的人员姓名(使用时刻:开始测试之前给所有人员进行姓名确认)
+<br/>http://localhost:8090/dial/device/sendName.do
+<form action="device/sendName.do" target="_blank" method="get">
+mac地址：<input name="mac" value="A020A6108523">>>mac<br/>
+<input type="submit" value="推送人名">
+</form>
+<br/>参数说明:
+<br/>mac  >>设备mac(如需多个设备用,分割)；如若没有该参数,或该参数值为空,则是给所有在线设备发送姓名确认；
+
+<br/>
+<br/>
+<br/>
+<a href="device/sendNameTest.do?mac=A020A6108523">推送人名测试</a>
+<br/>
+
+<br/>
+
+
+
+<br/><br/><br/><br/><br/>
+</body>
+</html>

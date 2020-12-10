@@ -1,0 +1,128 @@
+package cn.kkbc.tpms.tcp.processor;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import cn.kkbc.tpms.tcp.server.SessionManager;
+import cn.kkbc.tpms.tcp.service.msg.BaseMsgProcessService;
+import cn.kkbc.tpms.tcp.vo.Session;
+
+import com.kkbc.util.StringHelper;
+
+public class HeartProcessor extends Thread implements Processor {
+
+	private Logger log = LoggerFactory.getLogger(getClass());
+	private Logger weblog = LoggerFactory.getLogger("weblog");
+
+	private volatile boolean isRunning = false;
+	private SessionManager sessionManager;
+
+	private BaseMsgProcessService sendToDevice;
+
+	public HeartProcessor() {
+		this.sessionManager = SessionManager.getInstance();
+		this.sendToDevice = new BaseMsgProcessService();
+		this.setName("TCP-HeartProcessor");
+		this.setDaemon(true);
+	}
+
+	@Override
+	public synchronized void startProcess() {
+		if (this.isRunning) {
+			throw new IllegalStateException(this.getName()
+					+ " is already started .");
+		}
+		this.isRunning = true;
+		super.start();
+		this.log.info("心跳服务启动完毕...");
+	}
+
+	@Override
+	public synchronized void stopProcess() {
+		if (!this.isRunning) {
+			throw new IllegalStateException(this.getName()
+					+ " is not yet started .");
+		}
+		this.isRunning = false;
+		this.interrupt();
+		this.log.info("心跳服务已经停止...");
+	}
+
+	@Override
+	public void run() {
+		System.out.println("开始心跳发送");
+		SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		while (this.isRunning) {
+			
+			
+			long currentTime = System.currentTimeMillis();
+			Date date=new Date(currentTime);
+			
+			
+//			boolean heartFlag;
+//			if (currentTime / 1000L - sendHeartTime >= 2L) {
+//				sendHeartTime = currentTime / 1000L;
+//				heartFlag = true;
+//			} else {
+//				heartFlag = false;
+//			}
+//			
+			long timeOut=30000L;
+			
+			long sleepTime = 2000L;
+
+			Iterator<Entry<String, Session>> ite = sessionManager.entrySet()
+					.iterator();
+			try {
+			while (ite.hasNext()) {
+				
+					Entry<String, Session> entry = ite.next();
+
+					Session session = (Session) entry.getValue();
+					
+					if (session.getLastCommunicateTimeStamp() > 0L) {
+						long temp = timeOut - (currentTime - session
+								.getLastCommunicateTimeStamp());
+						
+						if (temp < 0L) {
+							System.out.println("设备"+session.getHard_no()+":当前时间:"+format.format(date)+";最近心跳时间"+format.format(new Date(session.getLastCommunicateTimeStamp()))+";超过30s,强制断开连接");
+							session.getChannel().disconnect();
+						}else {
+							if (sleepTime > temp) {
+								sleepTime = temp;
+							}
+							
+							if (StringUtils.isNotEmpty(session.getShefen_id())&&!session.isSetTimeStatus()) {
+								log.info("给设备{}发送设置时间包",session.getHard_no());
+								sendToDevice.send2Client(session.getChannel(), sendToDevice.setTime_data(new Date()));
+							}
+//							else {
+//								log.info("给设备{}发送查询电量包",session.getHard_no());
+//								sendToDevice.send2Client(session.getChannel(), sendToDevice.eleQuery_data());
+//							}
+							
+						}
+
+					} 
+
+					if (sleepTime < 200L) {
+						sleepTime = 200L;
+					}
+//					Thread.sleep(sleepTime);
+
+				
+			}
+			Thread.sleep(sleepTime);
+			} catch (Exception e) {
+				log.error("发送心跳数据包出现异常:{}", StringHelper.getTrace(e));
+				e.printStackTrace();
+			}
+	}
+}
+}

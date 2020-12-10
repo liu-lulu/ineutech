@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Hard" >
+	<typeAlias alias="Hard" type="com.kkbc.entity.Hard"/>
+	
+	<insert id="saveData" parameterClass="Hard">
+		insert into test_hard(`mac`,`hard_type`,`last_time`) values (#mac#,#hard_type#,#last_time#)
+		<selectKey resultClass="int" keyProperty="hard_id">
+			SELECT LAST_INSERT_ID() AS hard_id
+		</selectKey>
+	</insert>
+	
+	<update id="updEle" parameterClass="Hard">
+		update test_hard set `last_time`=#last_time#,`hard_elec`=#hard_elec# where `mac`=#mac#
+	</update>
+	
+	<update id="updLastInfo" parameterClass="Hard">
+		update test_hard set `last_time`=#last_time#,`test_name`=#test_name#,`status`=#status# where `mac`=#mac#
+	</update>
+	<update id="updLastInfoByBatch" parameterClass="java.util.List">
+		BEGIN
+		<iterate conjunction="">
+		update test_hard set `last_time`=#[].last_time#,`test_name`=#[].test_name#,`status`=#[].status# where `mac`=#[].mac#;
+		</iterate>
+		END;
+		
+	</update>
+	
+	<select id="getInfoByMac" parameterClass="java.lang.String" resultClass="Hard">
+		select `hard_id`,`mac`,`hard_no`,`hard_type`,`last_time`,`test_name`,`hard_elec`,`status` from test_hard where `mac` like '%$mac$%' limit 1
+		<!-- like '%$mac$%' -->
+	</select>
+	
+	<select id="getInfoById" parameterClass="java.lang.Integer" resultClass="Hard">
+		select `hard_id`,`mac`,`hard_no`,`hard_type`,`last_time`,`test_name`,`hard_elec`,`status` from test_hard where `hard_id`=#hard_id#
+	</select>
+	
+	<select id="getTestDevice" parameterClass="java.lang.Integer" resultClass="Hard">
+		select TH.hard_id,TH.mac,TH.hard_no,TH.hard_type,TH.last_time,TH.test_name,TH.hard_elec,TH.`status` 
+		from test_user_bind TUB LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#test_id#
+	</select>
+	
+	<insert id="saveNowInfo" parameterClass="java.lang.Integer">
+		INSERT into test_now(test_id,HUMAN_id,user_name,user_sex,user_age,user_edu,user_job,income,address,seat_no,hard_id,mac)
+		select TUB.test_id,TUB.HUMAN_id,TU.user_name,TU.user_sex,TU.user_age,TU.user_edu,TU.user_job,TU.income,TU.address,TUB.seat_no,TUB.hard_id,TH.mac
+		from test_user_bind TUB LEFT JOIN test_info TI ON TUB.test_id=TI.test_id LEFT JOIN test_user TU ON TUB.HUMAN_id=TU.HUMAN_id LEFT JOIN test_hard TH ON TUB.hard_id=TH.hard_id
+		where TUB.test_id=#test_id#
+		<!-- <selectKey resultClass="java.lang.Integer" keyProperty="id">
+			select max(process_id) as id from test_now
+		</selectKey> -->
+	</insert>
+	
+	<delete id="deleteFromNow" parameterClass="java.lang.Integer">
+		delete from test_now where test_id=#test_id#
+	</delete>
+	
+	<update id="updateWhenChange" parameterClass="Hard">
+		UPDATE `test_hard` TH left join `test_now` TN on TH.hard_id=TN.hard_id 
+		SET TH.`mac`=#mac#,TH.`hard_type`=#hard_type#,TH.`last_time`=#last_time#,TH.`test_name`=#test_name#,TH.`hard_elec`=#hard_elec#,TH.`status`=#status#,TN.`mac`=#mac#
+		WHERE TH.`hard_id`=#hard_id#
+	</update>
+	
+</sqlMap>
