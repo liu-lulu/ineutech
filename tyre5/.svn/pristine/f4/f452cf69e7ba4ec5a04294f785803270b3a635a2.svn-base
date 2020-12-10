@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreByAdminVO" >
+	<typeAlias alias="TyreByAdminVO" type="com.kkbc.vo.TyreByAdminVO"/>
+	<typeAlias alias="TyrePattern2" type="com.kkbc.entity.TyrePattern2"/>
+	
+	<select id="getTyreInfo" parameterClass="java.lang.String" resultClass="TyreByAdminVO">
+		SELECT TD.tyre_id,TD.tyre_health,TB.tyre_paver 
+		FROM tyre_dynamic TD LEFT JOIN tyre_base TB ON TB.tyre_id=TD.tyre_id 
+		WHERE TD.tyre_id in($tyreIds$)
+	</select>
+	
+	<update id="updatePattern" parameterClass="TyrePattern2">
+		update  tyre_base LEFT JOIN tyre_dynamic ON tyre_dynamic.tyre_id=tyre_base.tyre_id set 
+		tyre_p1=#tyre_paver#,tyre_p2=#tyre_paver#,tyre_p3=#tyre_paver#,tyre_p4=#tyre_paver#,tyre_p5=#tyre_paver#,tyre_p6=#tyre_paver#,tyre_p_time=#tyre_p_time#,
+		tyre_p_person=#true_name#,tyre_paver=#tyre_paver#,check_user_id=#user_id#,unit=#unit#,tyre_base.tyre_trauma=#tyre_trauma#,tyre_base.tyre_abnormal=#tyre_abnormal#,
+		tyre_base.tyre_type4=#tyre_felloe#,tyre_base.tyre_value=#tyre_value#,tyre_base.dan_hao=#dan_hao#,tyre_dynamic.tyre_health=#tyre_health#,tyre_dynamic.li_cheng_estimate=#li_cheng_estimate# 
+		where tyre_base.tyre_id=#tyre_id#
+	</update>
+	
+	<select id="tyreDetialByAdmin" parameterClass="java.lang.String" resultClass="TyreByAdminVO">
+		SELECT DISTINCT TB.tyre_id,TB.tyre_brand,TB.tyre_flag,TB.tyre_type1,TB.tyre_type2,TB.tyre_type3,TB.tyre_type4,TB.tyre_type5,TB.tyre_type6,TB.tyre_type7,TB.tyre_type8,TB.tyre_type9,TB.tyre_where,TB.tyre_depth,TB.user_id,TB.tyre_trauma,TB.tyre_abnormal 
+		,TD.tyre_km,TD.mabiao_install,TD.li_cheng_run,TD.li_cheng_estimate,TD.tyre_health,TB.tyre_paver,TB.tyre_p_time,T.trucks_id,T.trucks_flag,T.trucks_brand,T.trucks_style,TB.tyre_value,T.li_cheng_run as trucks_li_cheng_run,D.dtu_id,T.trucks_mode,T.mabiao,TB.remark,TB.tyre_fanxin,TB.dan_hao,D.caiji_time 
+		FROM tyre_base TB 
+		LEFT JOIN tyre_dynamic TD ON TD.tyre_id=TB.tyre_id 
+		LEFT JOIN trucks T ON ((T.trucks_id=TB.trucks_id ) OR (T.guache_trucks_id=TB.trucks_id AND T.guache_trucks_id!='') ) 
+		LEFT JOIN device D ON  D.trucks_id=T.trucks_id 
+		WHERE TB.tyre_id=#tyre_id# LIMIT 1
+	</select>
+	
+	<select id="getByTruckIdAndWhere" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT GT.trucks_$tyre_where$ as GTwhere,T.trucks_$tyre_where$ as Twhere,T.dtu_multi_flag,T.trucks_id,GT.trucks_id as GTtrucks_id,U.true_name,T.mabiao,T.guache_trucks_id 
+		FROM trucks GT LEFT JOIN Trucks T  ON (GT.trucks_id=T.guache_trucks_id AND T.trucks_type='主车') LEFT JOIN `user` U ON U.user_company_id=GT.company_id 
+		WHERE ((T.trucks_id=#trucks_id# AND T.guache_save_flag=1) or (GT.trucks_id=#trucks_id# AND GT.trucks_type='挂车')) and U.user_id=#user_id#
+		UNION 
+		SELECT GT.trucks_$tyre_where$ as GTwhere,T.trucks_$tyre_where$ as Twhere,T.dtu_multi_flag,T.trucks_id,GT.trucks_id as GTtrucks_id,U.true_name,T.mabiao,T.guache_trucks_id 
+		FROM Trucks T LEFT JOIN `user` U ON U.user_company_id=T.company_id LEFT JOIN trucks GT ON (GT.trucks_id=T.guache_trucks_id) 
+		WHERE ((T.trucks_id=#trucks_id# and ((locate('C',#tyre_where#)>0 AND T.guache_save_flag=0) or (locate('C',#tyre_where#)=0)) ) or (GT.trucks_id=#trucks_id# AND GT.trucks_type='挂车')) and U.user_id=#user_id# AND T.trucks_type='主车'
+	</select>
+	
+</sqlMap>

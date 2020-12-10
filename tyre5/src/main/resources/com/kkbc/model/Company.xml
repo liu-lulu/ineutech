@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Company" >
+	<typeAlias alias="Company" type="com.kkbc.entity.Company"/>
+	
+	<select id="allCompanyList" parameterClass="java.lang.Integer" resultClass="Company">
+		SELECT * FROM  company c1 where c1.company_id=#companyId#
+		union
+		SELECT * FROM company c2  where c2.parent_id=#companyId#
+	</select>
+	
+</sqlMap>

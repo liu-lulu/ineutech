@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="WorkOrder" >
+	<typeAlias alias="WorkOrder" type="com.kkbc.entity.WorkOrder"/>
+	
+	<select id="getInfo" parameterClass="WorkOrder" resultClass="WorkOrder">
+		SELECT WO.* 
+		FROM work_order WO LEFT JOIN `user` U ON U.user_id=WO.user_id LEFT JOIN company C ON C.company_id=U.user_company_id LEFT JOIN `user` UU ON UU.user_company_id=C.company_id 
+		WHERE WO.`status`=#status# AND UU.user_id=#user_id# 
+		ORDER BY WO.create_time DESC LIMIT 1
+	</select>
+</sqlMap>

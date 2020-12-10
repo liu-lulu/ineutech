@@ -1,0 +1,66 @@
+.comment {
+        /**width: 350px;**/
+        margin: 0px auto 0px auto;
+    }
+
+    .comment-text-area {
+        /**width: 350px;**/
+    }
+
+    .text-area-input-length {
+        font-size: 12px;
+        line-height: 30px;
+    }
+
+    .text-area-input-length span {
+        margin: 0px 5px 0px 5px;
+        color: red;
+    }
+
+    .text-area-bottom {
+        text-align: right;
+        margin: 5px 0px 0px 0px;
+        float: right;
+        padding: 0px 0px 0px 0px;
+    }
+
+    .text-area-bottom a {
+        border: #ebebeb 2px solid;
+        padding: 10px 20px 10px 20px;
+        text-decoration: none;
+        color: #000000;
+        font-size: 14px;
+    }
+
+    .text-area-star {
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .text-area-star label {
+        float: left;
+        line-height: 35px;
+        height: 35px;
+        font-size: 12px;
+        margin: 0px 10px 10px 0px;
+        padding: 0px 5px 0px 5px;
+        cursor: pointer;
+        border: 1px solid #ebebeb;
+    }
+
+    .red {
+        color: red;
+        border: 1px solid red !important;
+    }
+
+    .text-area-star label input {
+        filter: alpha(opacity=0);
+        -moz-opacity: 0;
+        opacity: 0;
+        position: absolute;
+    }
+
+    .text-area-star label span {
+        padding: 10px 10px 10px 10px;
+        position: relative;
+    }

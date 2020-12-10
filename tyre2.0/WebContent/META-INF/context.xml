@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+
+    <!-- Default set of monitored resources -->
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+ 
+    <!-- Uncomment this to disable session persistence across Tomcat restarts
+-->
+    <!--
+    <Manager pathname="" />
+    -->
+
+ <Resource name="jdbc/DBPOOL_tyre"
+   auth="Container"
+   type="javax.sql.DataSource"
+   maxActive="50"
+   maxIdel="5"
+   maxWait="5000"
+   username="root"
+   password="root"
+   validationQuery="SELECT 1"  
+   validationInterval="30000"
+   driverClassName="net.sf.log4jdbc.DriverSpy"
+   url="jdbc:log4jdbc:mysql://localhost:3306/tyre2.0?useUnicode=true&amp;characterEncoding=utf-8&amp;autoReconnect=true"
+   />
+   <!-- 重连
+   validationQuery="SELECT 1"  
+   validationInterval="30000"
+    -->
+</Context>

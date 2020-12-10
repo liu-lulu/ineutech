@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TrucksByAdminVO" >
+	<typeAlias alias="TrucksByAdminVO" type="com.kkbc.vo.TrucksByAdminVO"/>
+	
+	<select id="queryByTrucksId" parameterClass="java.lang.String" resultClass="TrucksByAdminVO">
+		SELECT DISTINCT T.id,T.trucks_id,T.trucks_brand,T.trucks_style,T.trucks_flag,T.trucks_health,TD.dtu_id,T.li_cheng,TD.warn,TD.caiji_time,T.li_cheng_run,T.mabiao,T.transport_type,T.guache_trucks_id,T.trucks_mode,T.guache_save_flag,TD.dimian_sulu,T.trucks_type,TD.gps_status,TD.latitude,TD.latitude_type,TD.longitude,TD.longitude_type
+		,T.trucks_A1,T.trucks_A2,T.trucks_A3,T.trucks_A4,T.trucks_A5,T.trucks_A6
+		,T.trucks_B1,T.trucks_B2,T.trucks_B3,T.trucks_B4,T.trucks_B5,T.trucks_B6,T.trucks_B7,T.trucks_B8
+		,T.trucks_C1,T.trucks_C2,T.trucks_C3,T.trucks_C4,T.trucks_C5,T.trucks_C6,T.trucks_C7,T.trucks_C8,T.trucks_C9,T.trucks_C10,T.trucks_C11,T.trucks_C12,T.trucks_C13,T.trucks_C14,T.trucks_C15,T.trucks_C16
+		,U.user_phone,U.true_name,DR.from_adress,DR.to_adress,U.user_id 
+		FROM trucks T LEFT JOIN device TD ON TD.trucks_id=T.trucks_id LEFT JOIN driving_record DR ON DR.id=T.last_driving_record_id LEFT JOIN `user` U ON U.user_id=DR.driver_id 
+		WHERE T.trucks_id=#trucks_id# LIMIT 1 
+	</select>
+	
+	<select id="getDriveInfo" parameterClass="java.lang.String" resultClass="TrucksByAdminVO">
+		SELECT T.trucks_id,T.dtu_multi_flag,T.mabiao,T.guache_trucks_id,T.transport_type,T.trucks_style,DR.`status`,T.guache_save_flag,T.trucks_type 
+		FROM trucks T LEFT JOIN driving_record DR ON DR.id=T.last_driving_record_id 
+		WHERE T.trucks_id=#trucks_id# LIMIT 1
+	</select>
+	
+	<select id="getGuacheDriveInfo" parameterClass="java.lang.String" resultClass="TrucksByAdminVO">
+		SELECT GT.trucks_style,GT.trucks_type,GT.trucks_id as guache_trucks_id,GT.dtu_multi_flag,T.trucks_id,DR.`status`,
+		GT.trucks_C1,GT.trucks_C2,GT.trucks_C3,GT.trucks_C4,GT.trucks_C5,GT.trucks_C6,GT.trucks_C7,GT.trucks_C8,GT.trucks_C9,GT.trucks_C10,GT.trucks_C11,GT.trucks_C12,GT.trucks_C13,GT.trucks_C14,GT.trucks_C15,GT.trucks_C16
+		FROM trucks GT LEFT JOIN trucks T ON T.guache_trucks_id=GT.trucks_id LEFT JOIN driving_record DR ON DR.id=T.last_driving_record_id 
+		WHERE GT.trucks_id=#guache_trucks_id# LIMIT 1
+	</select>
+	
+	<update id="updateGuchequTyre" parameterClass="TrucksByAdminVO">
+		update trucks set trucks_C1=#trucks_C1#,trucks_C2=#trucks_C2#,trucks_C3=#trucks_C3#,trucks_C4=#trucks_C4#,trucks_C5=#trucks_C5#,trucks_C6=#trucks_C6#,trucks_C7=#trucks_C7#,trucks_C8=#trucks_C8#,trucks_C9=#trucks_C9#,trucks_C10=#trucks_C10#,trucks_C11=#trucks_C11#,trucks_C12=#trucks_C12#,trucks_C13=#trucks_C13#,trucks_C14=#trucks_C14#,trucks_C15=#trucks_C15#,trucks_C16=#trucks_C16# 
+		where trucks_id=#trucks_id#
+	</update>
+	
+	<update id="updateGuacheAndStyle" parameterClass="TrucksByAdminVO">
+		update trucks set guache_trucks_id=#guache_trucks_id#,trucks_style=#trucks_style#,dtu_multi_flag=#dtu_multi_flag# 
+		where trucks_id=#trucks_id#
+	</update>
+	
+	<update id="clearGuchequTyre" parameterClass="java.lang.String">
+		update trucks set trucks_C1=null,trucks_C2=null,trucks_C3=null,trucks_C4=null,trucks_C5=null,trucks_C6=null,trucks_C7=null,trucks_C8=null,trucks_C9=null,trucks_C10=null,trucks_C11=null,trucks_C12=null,trucks_C13=null,trucks_C14=null,trucks_C15=null,trucks_C16=null 
+		where trucks_id=#trucks_id#
+	</update>
+	
+	<update id="downGuache" parameterClass="java.lang.String">
+		update trucks set trucks_style=left(trucks_style,4),guache_trucks_id=null,dtu_multi_flag=0 where trucks_id=#trucks_id#
+	</update>
+</sqlMap>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="FasheqiDataHistoryVO" >
+	<typeAlias alias="FasheqiDataHistoryVO" type="com.kkbc.vo.web.FasheqiDataHistoryVO"/>
+	
+	<select id="queryHistoryfasheqi" parameterClass="java.util.HashMap" resultClass="FasheqiDataHistoryVO">
+		SELECT DDH.id,DDH.dtu_id,DDH.trucks_id,DDH.create_time,DDO.fasheqi_id,DDO.louqi,DDO.gaoya,DDO.diya,DDO.gaowen,DDO.dianchi,DDO.fasheqidianchi,DDO.zhongduan,DDO.shilian,DDO.warn,DDO.`no`,DDO.tyre_id,DDYW.yali,DDYW.wendu 
+		FROM device_data_history DDH LEFT JOIN device D ON D.dtu_id=DDH.dtu_id 
+		INNER JOIN device_data_offon DDO ON DDO.uuid=DDH.offon_uuid LEFT JOIN device_data_yali_wendu DDYW ON (DDYW.uuid=DDH.yaliwendu_uuid and DDYW.fasheqi_id=DDO.fasheqi_id) LEFT JOIN company CD ON CD.company_id=D.company_id 
+		WHERE (CD.company_id=#company_id# or CD.parent_id=#company_id#)
+		<isNotEmpty prepend="and" property="startTime">
+			DDH.create_time>=#startTime#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			#endTime#>=DDH.create_time
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="keyWord">
+			(DDO.fasheqi_id=#keyWord# or DDO.tyre_id=#keyWord#)
+		</isNotEmpty>
+		ORDER BY id DESC LIMIT #startIndex#,#pageSize#
+	</select>
+</sqlMap>

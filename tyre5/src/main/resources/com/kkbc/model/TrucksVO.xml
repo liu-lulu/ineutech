@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TrucksVO" >
+	<typeAlias alias="TrucksVO" type="com.kkbc.vo.TrucksVO"/>
+	
+	<select id="searchByList" parameterClass="java.util.HashMap" resultClass="TrucksVO">
+		SELECT * FROM (
+		SELECT DISTINCT T.id,T.trucks_id,T.trucks_brand,T.trucks_style,case when #timeOut#>TIMESTAMPDIFF(SECOND, caiji_time, CURRENT_TIMESTAMP())*1000 then T.trucks_flag else 0 END as trucks_flag,T.trucks_health,T.trucks_type,T.transport_type,T.guache_save_flag,T.guache_trucks_id,T.li_cheng_run,T.trucks_mode,TD.caiji_time 
+		FROM trucks T LEFT JOIN device TD ON TD.trucks_id=T.trucks_id LEFT JOIN `user` U ON U.user_company_id=T.company_id WHERE U.user_id=#user_id# 
+		)T where 1=1
+		<isNotEmpty prepend="and" property="trucks_flag">
+			T.trucks_flag=#trucks_flag#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="trucks_health">
+			<isEqual property="trucks_health" compareValue="1">
+				T.trucks_health>30
+			</isEqual>
+			<isNotEqual property="trucks_health" compareValue="1">
+				30>=T.trucks_health
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="trucks_type">
+			T.trucks_type=#trucks_type#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="transport_type">
+			T.transport_type=#transport_type#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="keyWord">
+			T.trucks_id like '%$keyWord$%'
+		</isNotEmpty>
+		<isNotEmpty prepend="order by" property="column">
+			<isEqual property="column" compareValue="1">
+				T.trucks_id
+			</isEqual>
+			<isEqual property="column" compareValue="2">
+				T.trucks_brand
+			</isEqual>
+			<isEqual property="column" compareValue="3">
+				T.trucks_style
+			</isEqual>
+			<isEqual property="column" compareValue="4">
+				T.trucks_health
+			</isEqual>
+			<isEqual property="column" compareValue="5">
+				T.trucks_flag
+			</isEqual>
+			<isNotEmpty prepend=" " property="order">
+				<isEqual property="order" compareValue="2">
+					DESC
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+		LIMIT #startIndex#,#pageSize#
+	</select>
+
+</sqlMap>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Specification" >
+	<typeAlias alias="Specification" type="com.kkbc.entity.Specification"/>
+	
+	<select id="getSpecificationList" resultClass="Specification">
+		SELECT id,name FROM specification ORDER BY create_time DESC 
+	</select>
+	
+	<select id="getPatternCodeList" resultClass="Specification">
+		SELECT id,name FROM pattern_code ORDER BY create_time DESC 
+	</select>
+	
+</sqlMap>

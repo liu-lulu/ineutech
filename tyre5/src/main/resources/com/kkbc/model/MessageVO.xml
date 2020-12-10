@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="MessageVO" >
+	<typeAlias alias="MessageVO" type="com.kkbc.vo.MessageVO"/>
+	
+	<select id="getMessageList" parameterClass="java.lang.Integer" resultClass="MessageVO">
+		SELECT type,COUNT(DISTINCT id) as count,content,remark FROM message WHERE user_id=#user_id# GROUP BY type,remark
+	</select>
+	
+	<insert id="saveToM_del" parameterClass="java.lang.Integer">
+		insert into message_del select * from message where user_id=#user_id#
+	</insert>
+	
+	<delete id="deleteFromM" parameterClass="java.lang.Integer">
+		delete from message where user_id=#user_id#
+	</delete>
+	
+	<insert id="saveToM" parameterClass="java.util.List">
+		insert into message(create_time,content,senduser_id,user_id,type,remark) values 
+		<iterate conjunction=",">
+			(#messageInfo[].create_time#,#messageInfo[].content#,#messageInfo[].senduser_id#,#messageInfo[].user_id#,#messageInfo[].type#,#messageInfo[].remark#)
+		</iterate>
+	</insert>
+</sqlMap>

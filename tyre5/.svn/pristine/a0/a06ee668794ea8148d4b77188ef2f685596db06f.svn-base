@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceTrucksVo" >
+	<typeAlias alias="DeviceTrucksVo" type="com.kkbc.vo.DeviceTrucksVo"/>
+	
+	<select id="queryByDtuId" parameterClass="java.lang.String" resultClass="DeviceTrucksVo">
+		SELECT TD.id,TD.trucks_id,TD.li_cheng,TD.dtu_id,T.trucks_style,
+			TD.dtu_tpms_status,TD.dtu_status,TD.tpms_pinlu,
+			TD.yali_set_low_zhou_1,TD.yali_set_low_zhou_2,TD.yali_set_low_zhou_3,TD.yali_set_low_zhou_4,TD.yali_set_high_zhou_1,TD.yali_set_high_zhou_2,TD.yali_set_high_zhou_3,TD.yali_set_high_zhou_4,
+			TD.gao_wen_bao_jing_set,TD.yuliu1_phone,TD.yuliu2_phone,TD.yuliu3_phone,TD.yuliu4_phone,TD.gps_status,TD.latitude,TD.latitude_type,TD.longitude,TD.longitude_type,TD.dimian_sulu,TD.dimian_hangxiang,TD.company_id,
+			T.trucks_A1,T.trucks_A2,T.trucks_A3,T.trucks_A4,T.trucks_A5,T.trucks_A6,T.trucks_B1,T.trucks_B2,T.trucks_B3,T.trucks_B4,T.trucks_B5,T.trucks_B6,T.trucks_B7,T.trucks_B8,T.trucks_C1,T.trucks_C2,T.trucks_C3,T.trucks_C4,T.trucks_C5,T.trucks_C6,T.trucks_C7,T.trucks_C8,T.trucks_C9,T.trucks_C10,T.trucks_C11,T.trucks_C12,T.trucks_C13,T.trucks_C14,T.trucks_C15,T.trucks_C16
+		FROM device TD LEFT JOIN trucks T ON T.trucks_id=TD.trucks_id
+		WHERE TD.dtu_id=#dtu_id# LIMIT 1
+	</select>
+</sqlMap>

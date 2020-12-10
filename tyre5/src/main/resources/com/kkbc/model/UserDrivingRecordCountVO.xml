@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="UserDrivingRecordCountVO" >
+	<typeAlias alias="UserDrivingRecordCountVO" type="com.kkbc.vo.UserDrivingRecordCountVO"/>
+	
+	<select id="getCount" parameterClass="java.lang.Integer" resultClass="UserDrivingRecordCountVO">
+		SELECT * FROM (SELECT U.li_cheng,COUNT(DR.id) as count,U.user_id FROM `user` U LEFT JOIN driving_record DR ON (DR.`status`!=1 AND DR.driver_id=U.user_id) WHERE U.user_id=#user_id# GROUP BY U.user_id) as T1 
+		LEFT JOIN (SELECT P.phone as service_phone,U.user_id FROM `user` U LEFT JOIN team T ON T.c_id=U.user_company_id LEFT JOIN person P ON T.p_id=P.id WHERE P.job='客服' AND U.user_id=#user_id# LIMIT 1) as T2 
+		on T1.user_id=T2.user_id
+	</select>
+	
+</sqlMap>

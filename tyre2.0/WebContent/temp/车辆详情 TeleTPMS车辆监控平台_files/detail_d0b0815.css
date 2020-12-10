@@ -1,0 +1,109 @@
+.start-time {
+	float: right
+}
+
+.tire-ctn {
+	width: 660px;
+	overflow: hidden;
+	margin: 0 auto;
+	padding: 10px
+}
+
+.tire {
+	padding: 15px 0 0 10px;
+	width: 120px;
+	height: 170px;
+	float: left;
+	margin: 30px 10px
+}
+
+.tire-active {
+	border-radius: 60px;
+	background: #c1eab1
+}
+
+.tire-active p {
+	color: #333
+}
+
+.tire-lost {
+	background: #E4E4E4
+}
+
+.tire-lost .tire-msg {
+	text-align: center;
+	padding-top: 25px
+}
+
+.tire-lost .tire-msg p {
+	color: #666
+}
+
+.tire-warning {
+	background: #fec0c0
+}
+
+.tire-null {
+	background: transparent;
+	border: 1px solid #e6e6e7
+}
+
+.tire-null .tire-number {
+	border: 1px solid #ebebeb
+}
+
+.tire-null .tire-msg {
+	text-align: center;
+	padding-top: 25px
+}
+
+.tire-null .tire-msg p {
+	color: #999
+}
+
+.tire-middle {
+	width: 25px;
+	height: 230px;
+	float: left;
+	background: #d7d7d8;
+	margin: 0 25px
+}
+
+.tire-middle-top {
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px
+}
+
+.tire-middle-bottom {
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px
+}
+
+.tire-number {
+	margin: 0 auto;
+	width: 30px;
+	height: 30px;
+	border-radius: 50%;
+	background: #fff;
+	line-height: 30px;
+	text-align: center;
+	font-size: 16px;
+	color: #666
+}
+
+.tire-horizontal {
+	height: 25px;
+	background: #eaeaeb;
+	border-radius: 3px;
+	float: left;
+	width: 100%;
+	margin-top: 10px
+}
+
+.tire-middle-track {
+	background: #eaeaeb
+}
+
+.tire-msg {
+	padding: 10px 0 0
+}

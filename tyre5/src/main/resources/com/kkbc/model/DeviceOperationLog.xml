@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceOperationLog" >
+	<typeAlias alias="DeviceOperationLog" type="com.kkbc.entity.DeviceOperationLog"/>
+	
+	<update id="updateTypeById" parameterClass="DeviceOperationLog">
+		update device_operation_log  set type=#type#,update_time=now() where id=#type#
+	</update>
+</sqlMap>

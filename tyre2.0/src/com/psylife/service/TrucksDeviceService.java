@@ -1,0 +1,31 @@
+package com.psylife.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.psylife.hardware.HardwareElement;
+
+/**
+ * 车胎设备
+ * @author xu
+ *
+ */
+public interface TrucksDeviceService {		
+	
+	static final Logger logger = LoggerFactory.getLogger(TrucksDeviceService.class);
+
+	/**
+	 * 设备数据保存
+	 * @param element
+	 */
+	void saveDeviceData(HardwareElement element);
+
+	/**
+	 * 重新加载设备和车牌对应关系
+	 * @param element
+	 * @return 
+	 */
+	boolean reloadTrucksDevice(HardwareElement element);
+	
+	int readWarnMsg(int id);
+	
+}

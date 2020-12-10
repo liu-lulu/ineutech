@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceDataHistory" >
+	<typeAlias alias="DeviceDataHistory" type="com.kkbc.entity.DeviceDataHistory"/>
+	
+	<select id="queryByDtuid" parameterClass="java.lang.String" resultClass="DeviceDataHistory">
+		SELECT id,dtu_id,create_time,float_caiji_time,string_caiji_time,offon_caiji_time,base_id,dingwei_id,offon_uuid,yaliwendu_uuid,trucks_id,warn 
+		FROM device_data_history
+		WHERE dtu_id=#dtu_id# ORDER BY id DESC LIMIT 1
+	</select>
+	
+</sqlMap>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="User" >
+	<typeAlias alias="User" type="com.kkbc.entity.User"/>
+	<typeAlias alias="Company" type="com.kkbc.entity.Company"/>
+	<select id="login" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT 
+		U.user_id,U.user_name,C.company as user_company,C.company_id as user_company_id,U.user_phone,U.user_role,U.sex,U.true_name,U.create_time,U.`status`,U.user_face 
+        FROM `user` U INNER JOIN company C ON C.company_id=U.user_company_id 
+        WHERE U.user_name=#loginName# and U.user_password=#pwd# and U.`status`=#status# LIMIT 1
+	</select>
+	
+	<select id="valiLoginName" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT U.user_id,U.user_name,C.company as user_company,C.company_id as user_company_id,U.user_phone,U.user_role,U.sex,U.true_name,U.create_time,U.`status`
+        FROM `user` U INNER JOIN company C ON C.company_id=U.user_company_id 
+        WHERE U.user_name=#loginName# and U.`status`=#status# LIMIT 1
+	</select>
+	
+	<select id="queryUserFace" parameterClass="java.util.HashMap" resultClass="User">
+		SELECT user_id,user_face FROM `user` WHERE `status`=#status# AND user_id=#user_id#
+	</select>
+	
+	<update id="updateInfo" parameterClass="User">
+		update `user` set user_face=#user_face#,true_name=#true_name#,user_phone=#user_phone# where user_id=#user_id#
+	</update>
+	
+	<select id="getSameCompanyUsers" parameterClass="java.lang.Integer" resultClass="User">
+		SELECT U.user_id,U.true_name 
+		FROM `user` U LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id 
+		WHERE UU.user_id=#user_id# AND U.user_role=1
+	</select>
+	
+	<select id="getTrueName" parameterClass="java.lang.Integer" resultClass="java.lang.String">
+		SELECT true_name FROM `user` WHERE user_id=#user_id#
+	</select>
+	
+	<select id="getByTrucksId" parameterClass="java.lang.String" resultClass="User">
+		SELECT U.user_id,U.true_name,U.user_company 
+		FROM `user` U LEFT JOIN trucks T ON T.company_id=U.user_company_id 
+		WHERE T.trucks_id=#trucks_id# AND U.user_role=1
+	</select>
+	
+	<select id="getCompanyId" parameterClass="Company" resultClass="User">
+		select U.* from company C LEFT JOIN user U on U.user_company_id=C.company_id 
+		WHERE (C.company_id=#company_id# or C.parent_id=#company_id#) and C.company=#company# and U.user_role=1 limit 1
+	</select>
+</sqlMap>

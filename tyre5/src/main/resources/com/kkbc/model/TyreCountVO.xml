@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreCountVO" >
+	<typeAlias alias="TyreCountVO" type="com.kkbc.vo.TyreCountVO"/>
+	
+	<select id="getList" parameterClass="java.util.HashMap" resultClass="TyreCountVO">
+		SELECT * FROM (
+		SELECT count(DISTINCT TB.id) as count,TB.tyre_brand,TB.tyre_type1,TB.tyre_type2,TB.tyre_type3,AVG(TD.tyre_health) AS tyre_health
+		FROM tyre_base TB LEFT JOIN tyre_dynamic TD ON TB.tyre_id=TD.tyre_id
+		LEFT JOIN `user` U ON TB.user_id=U.user_id LEFT JOIN `user` UU ON U.user_company_id=UU.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`!=#status#  GROUP BY TB.tyre_brand,TB.tyre_type1,TB.tyre_type2 
+		)t where 1=1
+		<isNotEmpty prepend="and" property="tyre_brand">
+			tyre_brand=#tyre_brand#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_type1">
+			tyre_type1=#tyre_type1#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_type3">
+			tyre_type3=#tyre_type3#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_health">
+			<isEqual property="tyre_health" compareValue="1">
+				tyre_health>30
+			</isEqual>
+			<isNotEqual property="tyre_health" compareValue="1">
+				30>=tyre_health
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend=" order by " property="column">
+			<isEqual property="column" compareValue="1">
+				tyre_brand 
+			</isEqual>
+			<isEqual property="column" compareValue="2">
+				tyre_type1
+			</isEqual>
+			<isEqual property="column" compareValue="3">
+				tyre_type2 
+			</isEqual>
+			<isEqual property="column" compareValue="4">
+				count
+			</isEqual>
+			<isEqual property="column" compareValue="5">
+				tyre_health
+			</isEqual>
+			<isEqual property="column" compareValue="6">
+				tyre_type3
+			</isEqual>
+			
+			<isNotEmpty prepend=" " property="order">
+				<isEqual property="order" compareValue="2">
+					DESC
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+</sqlMap>

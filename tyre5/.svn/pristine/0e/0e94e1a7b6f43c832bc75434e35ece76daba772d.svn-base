@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreBase" >
+	<typeAlias alias="TyreBase" type="com.kkbc.entity.TyreBase"/>
+	
+	<update id="baofeiFromTruck" parameterClass="java.lang.String">
+		UPDATE tyre_base SET tyre_flag=0,tyre_where=null,trucks_id=null,`status`=0 WHERE tyre_id=#tyre_id#
+	</update>
+	<update id="baofei" parameterClass="java.lang.String">
+		UPDATE tyre_base SET `status`=0 WHERE tyre_id=#tyre_id#
+	</update>
+	
+	<update id="updateTyreInfo" parameterClass="java.util.HashMap">
+		update tyre_base set #updCol# where tyre_id=#tyre_id#
+	</update>
+	
+	<insert id="saveList" parameterClass="java.util.List">
+		insert into tyre_base(create_time,tyre_id,tyre_brand,tyre_flag,tyre_type1,tyre_type2,tyre_type3,tyre_type4,tyre_type5,tyre_type6,tyre_type7,tyre_type8,tyre_type9,tyre_where,tyre_depth,user_id,trucks_id,tyre_depth) 
+		values
+		<iterate conjunction=",">
+			(#tyreInfo[].create_time#,#tyreInfo[].tyre_id#,#tyreInfo[].tyre_brand#,#tyreInfo[].tyre_flag#,#tyreInfo[].tyre_type1#,#tyreInfo[].tyre_type2#,#tyreInfo[].tyre_type3#,#tyreInfo[].tyre_type4#,#tyreInfo[].tyre_type5#,#tyreInfo[].tyre_type6#,#tyreInfo[].tyre_type7#,#tyreInfo[].tyre_type8#,#tyreInfo[].tyre_type9#,#tyreInfo[].tyre_where#,#tyreInfo[].tyre_depth#,#tyreInfo[].user_id#,#tyreInfo[].trucks_id#,#tyreInfo[].tyre_depth#)
+		</iterate>
+	</insert>
+	
+</sqlMap>

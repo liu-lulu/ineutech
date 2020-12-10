@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Trucks" >
+	<typeAlias alias="Trucks" type="com.kkbc.entity.Trucks"/>
+	<typeAlias alias="TyreVO" type="com.kkbc.vo.TyreVO"/>
+	
+	<select id="getByTrucksId" parameterClass="java.util.HashMap" resultClass="Trucks">
+		SELECT T.trucks_id,T.trucks_style,T.trucks_type,T.guache_trucks_id,T.guache_save_flag,T.dtu_multi_flag 
+		FROM trucks T WHERE T.trucks_id=#trucksId#
+		<isNotEmpty prepend=" " property="isCtyre">
+			<isEqual property="isCtyre" compareValue="true">
+				OR T.guache_trucks_id=#trucksId# UNION 
+				SELECT GT.trucks_id,GT.trucks_style,GT.trucks_type,GT.guache_trucks_id,GT.guache_save_flag,GT.dtu_multi_flag 
+				FROM trucks T LEFT JOIN trucks GT ON T.guache_trucks_id=GT.trucks_id 
+				WHERE T.trucks_id=#trucksId# or T.guache_trucks_id=#trucksId#
+			</isEqual>
+		</isNotEmpty>
+	</select>
+	<update id="updateHealth" parameterClass="Trucks">
+		UPDATE trucks SET trucks_health=#trucks_health# where trucks_id=#trucks_id#
+	</update>
+	<select id="getListByCompany" parameterClass="java.lang.Integer" resultClass="Trucks">
+		SELECT * from trucks where company_id=#company_id#
+	</select>
+	<update id="updateTrucksFlag" parameterClass="Trucks">
+		UPDATE trucks SET trucks_flag=#trucks_flag# WHERE trucks_id=#trucks_id#
+	</update>
+	<update id="updateTrucksToStop" parameterClass="java.sql.Timestamp" >
+		UPDATE trucks INNER JOIN device ON device.trucks_id=trucks.trucks_id SET trucks.trucks_flag=0 WHERE #endTime#>device.caiji_time
+	</update>
+	
+	<update id="updateTrucksToStopWhenServerClose" >
+		UPDATE trucks INNER JOIN device ON device.trucks_id=trucks.trucks_id SET trucks.trucks_flag=0 
+	</update>
+	
+	<update id="downGuache" parameterClass="java.lang.String">
+		update trucks set trucks_style=left(trucks_style,4),dtu_multi_flag=0,guache_trucks_id=null,trucks_C1=null,trucks_C2=null,trucks_C3=null,trucks_C4=null,trucks_C5=null,trucks_C6=null,trucks_C7=null,trucks_C8=null,trucks_C9=null,trucks_C10=null,trucks_C11=null,trucks_C12=null,trucks_C13=null,trucks_C14=null,trucks_C15=null,trucks_C16=null 
+		where guache_trucks_id=#guache_trucks_id#
+	</update>
+	
+	<update id="downTyreFromTruck" parameterClass="java.util.HashMap">
+		update trucks SET trucks_$tyre_where$=null where trucks_$tyre_where$=#tyre_id#
+	</update>
+	
+<!-- 	<update id="updateHealth" parameterClass="java.lang.String">
+		UPDATE trucks 
+		SET trucks_health=(
+		SELECT health from (
+		SELECT SUM(TD.tyre_health)/COUNT(*) AS health FROM trucks T 
+		LEFT JOIN tyre_dynamic TD ON (T.trucks_A1=TD.tyre_id OR T.trucks_A2=TD.tyre_id OR T.trucks_A3=TD.tyre_id OR T.trucks_A4=TD.tyre_id OR T.trucks_A5=TD.tyre_id OR T.trucks_A6=TD.tyre_id OR  
+		T.trucks_B1=TD.tyre_id OR T.trucks_B2=TD.tyre_id OR T.trucks_B3=TD.tyre_id OR T.trucks_B4=TD.tyre_id OR T.trucks_B5=TD.tyre_id OR T.trucks_B6=TD.tyre_id OR T.trucks_B7=TD.tyre_id OR T.trucks_B8=TD.tyre_id OR  
+		T.trucks_C1=TD.tyre_id OR T.trucks_C2=TD.tyre_id OR T.trucks_C3=TD.tyre_id OR T.trucks_C4=TD.tyre_id OR T.trucks_C5=TD.tyre_id OR T.trucks_C6=TD.tyre_id OR  
+		T.trucks_C7=TD.tyre_id OR T.trucks_C8=TD.tyre_id OR T.trucks_C9=TD.tyre_id OR T.trucks_C10=TD.tyre_id OR T.trucks_C11=TD.tyre_id OR T.trucks_C12=TD.tyre_id OR  
+		T.trucks_C13=TD.tyre_id OR T.trucks_C14=TD.tyre_id OR T.trucks_C15=TD.tyre_id OR T.trucks_C16=TD.tyre_id) 
+		WHERE T.trucks_id=#trucksId# AND TD.tyre_health!=''
+		)t
+		) where trucks_id=#trucksId#
+	</update> -->
+	
+	<select id="getTrucksStyle" parameterClass="java.util.HashMap" resultClass="java.lang.String">
+		SELECT T.trucks_style FROM trucks T LEFT JOIN `user` U ON U.user_company_id=T.company_id 
+		WHERE T.trucks_id=#trucks_id# AND U.user_id=#user_id#
+	</select>
+	
+	<select id="getByTrucks_id" parameterClass="java.lang.String" resultClass="Trucks">
+		SELECT * FROM trucks T WHERE trucks_type='主车' AND (trucks_id=#trucks_id# OR guache_trucks_id=#trucks_id# ) LIMIT 1
+	</select>
+	
+	<update id="updateLiChengRun" parameterClass="java.util.HashMap">
+		UPDATE trucks SET trucks.li_cheng_run=trucks.li_cheng_run+#dis#,trucks.mabiao=#mabiao# WHERE trucks.trucks_id=#trucks_id#
+	</update>
+	
+	<select id="getMabiao" parameterClass="java.util.HashMap" resultClass="Trucks">
+		SELECT T.trucks_id,T.mabiao 
+		FROM trucks T  LEFT JOIN `user` U ON U.user_company_id=T.company_id 
+		WHERE (T.trucks_id=#trucks_id# or T.guache_trucks_id=#trucks_id#) and  U.user_id=#user_id# and T.trucks_type='主车' and #mabiao#>T.mabiao
+		LIMIT 1
+	</select>
+	
+	<select id="getMabiaoByTyreWhere" parameterClass="TyreVO" resultClass="Trucks">
+		SELECT T.trucks_id,T.mabiao 
+		FROM trucks T LEFT JOIN trucks GT ON GT.trucks_id=T.guache_trucks_id 
+		WHERE T.trucks_type='主车' and (T.trucks_$tyre_where$=#tyre_id# or GT.trucks_$tyre_where$=#tyre_id#)
+		LIMIT 1
+	</select>
+	
+	<update id="updateTyreTrucksLichengRun" parameterClass="java.util.HashMap">
+		UPDATE tyre_dynamic RIGHT JOIN trucks ON (
+		<iterate open="(" close=")" conjunction="OR" property="tyreWhereArr">
+			trucks.trucks_$tyreWhereArr[]$=tyre_dynamic.tyre_id
+		</iterate>
+		) 
+		SET tyre_dynamic.li_cheng_run=tyre_dynamic.li_cheng_run+#dis#,trucks.li_cheng_run=trucks.li_cheng_run+#dis#,trucks.mabiao=#mabiao# WHERE trucks.trucks_id=#trucks_id#
+	</update>
+	
+	<update id="updateLastDriveId" parameterClass="Trucks">
+		update trucks set last_driving_record_id=#last_driving_record_id# where trucks_id=#trucks_id#
+	</update>
+	
+	<update id="tyreToTruck" parameterClass="java.util.HashMap">
+		update trucks SET trucks_$tyre_where$=#tyre_id# where trucks_id=#trucks_id2# 
+		<isEqual property="trucks_id_flag" compareValue="true">
+			or guache_trucks_id=#trucks_id2# 
+		</isEqual>
+	</update>
+	
+	<insert id="saveInfo" parameterClass="java.util.HashMap">
+		insert into trucks(trucks_id,trucks_brand,trucks_style,trucks_type,trucks_flag,trucks_health,company,company_id,li_cheng,li_cheng_run,mabiao,mabiao_ruku,transport_type,guache_trucks_id,trucks_mode,guache_save_flag,dtu_multi_flag
+			$tyreColumn$
+			)
+		values(#trucks_id#,#trucks_brand#,#trucks_style#,#trucks_type#,#trucks_flag#,#trucks_health#,#company#,#company_id#,#li_cheng#,#li_cheng_run#,#mabiao#,#mabiao_ruku#,#transport_type#,#guache_trucks_id#,#trucks_mode#,#guache_save_flag#,#dtu_multi_flag#
+		<isNotNull property="tyreIdValue" prepend=",">
+			<iterate open="" close="" conjunction="," property="tyreIdValue">
+				#tyreIdValue[]#
+			</iterate>
+		</isNotNull>
+			)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id 
+		</selectKey>
+	</insert>
+	
+	<update id="updateTyreLicheng" parameterClass="java.util.HashMap">
+		UPDATE tyre_dynamic INNER JOIN trucks ON (
+		<iterate open="(" close=")" conjunction="OR" property="tyreWhereArr">
+			trucks.trucks_$tyreWhereArr[]$=tyre_dynamic.tyre_id
+		</iterate>
+		) 
+		SET tyre_dynamic.tyre_km=tyre_dynamic.tyre_km+#dis#,trucks.li_cheng=trucks.li_cheng+#dis# WHERE trucks.trucks_id=#trucks_id#
+	</update>
+	
+</sqlMap>

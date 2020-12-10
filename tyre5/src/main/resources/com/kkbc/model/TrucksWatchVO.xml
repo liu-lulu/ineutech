@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TrucksWatchVO" >
+	<typeAlias alias="TrucksWatchVO" type="com.kkbc.vo.web.TrucksWatchVO"/>
+	
+	<select id="searchWatchlist" parameterClass="java.util.HashMap" resultClass="TrucksWatchVO">
+		select DISTINCT T.id,T.trucks_id,T.trucks_brand,T.trucks_style,T.trucks_flag,T.trucks_health,T.company_id,C.company,D.phone,D.dtu_id,D.caiji_time,D.create_time,D.gps_status,D.longitude,D.latitude,D.warn 
+		FROM device D LEFT JOIN trucks T  ON D.trucks_id=T.trucks_id LEFT JOIN company C ON C.company_id=T.company_id  LEFT JOIN company CD ON CD.company_id=D.company_id 
+		where (CD.company_id=#company_id# or CD.parent_id=#company_id#)
+		<isNotEmpty prepend="and" property="keyWord">
+			(T.trucks_id like '%$keyWord$%' or D.dtu_id like '%$keyWord$%')
+		</isNotEmpty>
+		order by T.id desc limit #startIndex#,#pageSize#
+	</select>
+	
+	<select id="searchWatchlistCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+		select count(DISTINCT D.id)
+		FROM device D LEFT JOIN trucks T  ON D.trucks_id=T.trucks_id LEFT JOIN company C ON C.company_id=T.company_id  LEFT JOIN company CD ON CD.company_id=D.company_id 
+		where (CD.company_id=#company_id# or CD.parent_id=#company_id#)
+		<isNotEmpty prepend="and" property="keyWord">
+			(T.trucks_id like '%$keyWord$%' or D.dtu_id like '%$keyWord$%')
+		</isNotEmpty>
+	</select>
+	
+	<select id="searchlistBind" parameterClass="java.util.HashMap" resultClass="TrucksWatchVO">
+		select DISTINCT T.id,T.trucks_id,T.company_id,C.company 
+		FROM trucks T LEFT JOIN company C ON C.company_id=T.company_id 
+		where not EXISTS(SELECT 1 FROM device D WHERE D.trucks_id=T.trucks_id) 
+		and (C.company_id=#company_id# or C.parent_id=#company_id#) 
+		<isNotEmpty prepend="and" property="keyWord">
+			(T.trucks_id like '%$keyWord$%') 
+		</isNotEmpty>
+		 order by T.id desc limit #startIndex#,#pageSize#
+	</select>
+	
+	<select id="searchlistBindCount" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+		select count(DISTINCT T.id)
+		FROM trucks T LEFT JOIN company C ON C.company_id=T.company_id 
+		where not EXISTS(SELECT 1 FROM device D WHERE D.trucks_id=T.trucks_id) 
+		and (C.company_id=#company_id# or C.parent_id=#company_id#) 
+		<isNotEmpty prepend="and" property="keyWord">
+			(T.trucks_id like '%$keyWord$%') 
+		</isNotEmpty>
+	</select>
+</sqlMap>

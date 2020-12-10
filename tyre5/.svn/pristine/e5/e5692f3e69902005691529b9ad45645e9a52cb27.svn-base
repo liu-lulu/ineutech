@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreDynamic" >
+	<typeAlias alias="TyreDynamic" type="com.kkbc.entity.TyreDynamic"/>
+	
+	<insert id="saveList" parameterClass="java.util.ArrayList">
+		insert into tyre_dynamic(tyre_id,mabiao_install,li_cheng_run) values
+		<iterate conjunction="," >
+			(#dynamicInfo[].tyre_id#,#dynamicInfo[].mabiao_install#,#dynamicInfo[].li_cheng_run#)
+		</iterate>
+	</insert>
+
+</sqlMap>

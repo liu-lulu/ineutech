@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>接口</title>
+</head>
+<body>
+
+<br/><h3>重新加载dtu与车牌号对应关系</h3>
+<form action="ServletAll" target="_blank" method="get">
+<input name="action" value="reloadTrucksDevice" type="hidden"><br/>
+<input name="dtuid" value="">>>dtuid<br/>
+<br/>
+<button type="submit">提交</button>
+</form>
+
+<br/>
+返回结果:1成功true,2.失败false
+<br/>
+<br/>
+
+<br/><h3>服务器操作dtu命令</h3>
+<form action="ServletAll" target="_blank" method="get">
+<input name="action" value="operationdtu" type="hidden"><br/>
+<input name="dtuid" value="">>>dtuid<br/>
+<input name=info value="">>>info(控制命令串)<br/>
+<br/>
+<button type="submit">提交</button>
+</form>
+<br/>说明
+<br/>
+<br/>
+返回结果:1成功true,2.失败false
+<br/>
+<br/>说明
+<pre>
+命令串内容举例:
+例如:0,300  表示设置TPMS的发送频率为300秒
+     1,13.5,8.6表示第一轴高压设置为13.5Bar,低压设置为8.6 Bar,
+     6,50表示轮胎高温告警设置为50度
+     15,8,AABBCC   表示设定8号轮胎的ID为AABBCC，软件上同时输入轮胎的位置和ID两个参数
+     16,12  表示对12号轮胎进行重新对码，软件上只需要输入12
+     如18,13988888888，表示将DTU的号码改为13988888888
+
+
+控制命令序号表格：
+0	TPMS发送频率
+1	第一轴高低压设置 单位：Bar
+2	第二轴高低压设置 单位：Bar
+3	第三轴高低压设置 单位：Bar
+4	第四轴高低压设置 单位：Bar
+6	高温报警设置     单位：℃
+7	车牌
+15	手动设码命令（如15,8，AABBCC   表示设定8号轮胎的ID为AABBCC，软件上同时输入轮胎的位置和ID两个参数）
+16	充气对码命令(如16,12  表示对12号轮胎进行重启对码，软件上只需要输入12)
+18	设置SIM号码（如18,13988888888，表示将DTU的号码改为13988888888）
+19	设置睡眠时上传间隔，单位分钟，取值范围5~720分钟 ，0表示睡眠时不会自动唤醒上传数据 
+20	设置心跳信号的间隔，单位秒，例如20，取值范围30~65535秒，0表示关闭心跳信号
+</pre>
+<br/>
+<br/>
+<br/>
+
+
+
+
+
+
+
+
+
+
+<br/><br/><br/><br/><br/>
+</body>
+</html>

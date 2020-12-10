@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DrivingRecord" >
+	<typeAlias alias="DrivingRecord" type="com.kkbc.entity.DrivingRecord"/>
+	
+	<select id="getByUserId" parameterClass="java.lang.Integer" resultClass="DrivingRecord">
+		SELECT id,trucks_id,from_adress,to_adress,create_time,start_time,end_time,driver_id,transport_type,star_unobstructed,star_heart,`status`,li_cheng_run,li_cheng_end,guache_trucks_id
+		FROM driving_record
+		WHERE driver_id=#user_id# 
+		ORDER BY id DESC LIMIT 1
+	</select>
+	
+	<select id="getPageByUserId" parameterClass="java.util.HashMap" resultClass="DrivingRecord">
+		SELECT id,trucks_id,from_adress,to_adress,create_time,start_time,end_time,driver_id,transport_type,star_unobstructed,star_heart,`status`,li_cheng_run,li_cheng_end,guache_trucks_id
+		FROM driving_record 
+		WHERE driver_id=#user_id# 
+		ORDER BY id DESC LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<update id="updateInfo" parameterClass="java.util.HashMap">
+		update driving_record INNER JOIN `user` ON `user`.user_id=driving_record.driver_id 
+		set 
+		driving_record.`status`=#status#,driving_record.li_cheng_end=#endLicheng#,driving_record.end_time=#end_time#,`user`.li_cheng=`user`.li_cheng+#dis# 
+		where driving_record.id=#id#
+	</update>
+	
+	<update id="scoreDriving" parameterClass="DrivingRecord">
+		update driving_record set star_unobstructed=#star_unobstructed#,star_heart=#star_heart# where id=#id#
+	</update>
+	
+	<insert id="saveInfo" parameterClass="DrivingRecord">
+		insert into driving_record(trucks_id,from_adress,to_adress,create_time,start_time,driver_id,transport_type,`status`,li_cheng_run,guache_trucks_id) 
+		values(#trucks_id#,#from_adress#,#to_adress#,#create_time#,#start_time#,#driver_id#,#transport_type#,#status#,#li_cheng_run#,#guache_trucks_id#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id 
+		</selectKey>
+	</insert>
+	
+	<select id="getByUserIdAndState" parameterClass="DrivingRecord" resultClass="DrivingRecord">
+		SELECT id,trucks_id,from_adress,to_adress,create_time,start_time,end_time,driver_id,transport_type,star_unobstructed,star_heart,`status`,li_cheng_run,li_cheng_end,guache_trucks_id
+		FROM driving_record
+		WHERE driver_id=#driver_id# and status=#status# 
+		ORDER BY id DESC LIMIT 1
+	</select>
+</sqlMap>

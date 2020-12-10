@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreRemarkVO" >
+	<typeAlias alias="TyreRemarkVO" type="com.kkbc.vo.TyreRemarkVO"/>
+	<typeAlias alias="WorkOrder" type="com.kkbc.entity.WorkOrder"/>
+	
+	<select id="getList" parameterClass="WorkOrder" resultClass="TyreRemarkVO">
+		SELECT DISTINCT TB.tyre_id,TB.tyre_where,T.trucks_id,TB.remark 
+		FROM tyre_base TB 
+		LEFT JOIN `user` U ON U.user_id=TB.user_id 
+		LEFT JOIN company C ON C.company_id=U.user_company_id 
+		LEFT JOIN `user` UU ON UU.user_company_id=C.company_id 
+		INNER JOIN work_order_record WOR ON (WOR.tyre_id=TB.tyre_id AND WOR.`status`=1) 
+		LEFT JOIN trucks T ON ((T.trucks_id=TB.trucks_id ) OR (T.guache_trucks_id=TB.trucks_id AND T.guache_trucks_id!='') )
+		WHERE (TB.remark!='' OR TB.remark!=NULL) and TB.`status`=1 and UU.user_id=#user_id# and WOR.work_order_id=#id# GROUP BY TB.tyre_id ORDER BY WOR.create_time DESC 
+	</select>
+</sqlMap>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreHistory" >
+	<typeAlias alias="TyreHistory" type="com.kkbc.entity.TyreHistory"/>
+	
+	<select id="getListByTyreId" parameterClass="java.util.HashMap" resultClass="TyreHistory">
+		SELECT id,tyre_id,tyre_action,tyre_content,tyre_person,user_id,tyre_time FROM 
+		(SELECT id,tyre_id,tyre_action,tyre_content,tyre_person,user_id,tyre_time FROM tyre_history WHERE tyre_id=#tyre_id#
+		UNION ALL 
+		SELECT W.id,W.tyre_id,W.action as tyre_action,W.content as tyre_content,'工单记录' as tyre_person,WO.user_id,W.create_time as tyre_time 
+		FROM work_order_record W LEFT JOIN work_order WO ON WO.id=W.work_order_id WHERE tyre_id=#tyre_id# AND (W.action='检测' OR W.action='修补')) as T 
+		ORDER BY tyre_time DESC LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<insert id="saveInfo" parameterClass="TyreHistory">
+		insert into tyre_history(tyre_time,tyre_id,tyre_action,tyre_content,tyre_person,user_id) values(#tyre_time#,#tyre_id#,#tyre_action#,#tyre_content#,#tyre_person#,#user_id#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	
+	<insert id="saveList" parameterClass="java.util.ArrayList">
+		insert into tyre_history(tyre_time,tyre_id,tyre_action,tyre_content,tyre_person,user_id) values
+		<iterate conjunction=",">
+			(#historyInfo[].tyre_time#,#historyInfo[].tyre_id#,#historyInfo[].tyre_action#,#historyInfo[].tyre_content#,#historyInfo[].tyre_person#,#historyInfo[].user_id#)
+		</iterate>
+	</insert>
+	
+	<select id="getActionInfoByTyreId" parameterClass="TyreHistory" resultClass="TyreHistory">
+		SELECT * FROM tyre_history WHERE tyre_id=#tyre_id# AND tyre_action=#tyre_action# limit 1
+	</select>
+	
+</sqlMap>

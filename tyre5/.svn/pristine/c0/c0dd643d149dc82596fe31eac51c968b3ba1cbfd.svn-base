@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="Device" >
+	<typeAlias alias="Device" type="com.kkbc.entity.Device"/>
+	
+	<select id="currentDtu" parameterClass="java.lang.Integer" resultClass="Device">
+		SELECT DISTINCT T.trucks_id,D.caiji_time,D.warn 
+		FROM trucks T INNER JOIN device D ON D.trucks_id=T.trucks_id LEFT JOIN company C ON C.company_id=T.company_id 
+		WHERE C.company_id=#company_id# OR C.parent_id=#company_id#
+	</select>
+	
+	<insert id="saveInfo" parameterClass="Device">
+		insert into device(dtu_id,create_time,update_time,li_cheng) values(#dtu_id#,#create_time#,#update_time#,#li_cheng#)
+		<selectKey resultClass="long" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id 
+		</selectKey>
+	</insert>
+	
+	<update id="removeBind" parameterClass="java.lang.String">
+		UPDATE device SET trucks_id=null WHERE dtu_id=#dtu_id#
+	</update>
+	
+	<select id="getByTrucksid" parameterClass="java.lang.String" resultClass="Device">
+		SELECT T.trucks_id as trucks_id,D.dtu_id as dtu_id,T.company_id as company_id 
+		FROM trucks T LEFT JOIN device D ON D.trucks_id=T.trucks_id 
+		WHERE T.trucks_id=#trucks_id#
+	</select>
+	
+	<select id="getByDtuid" parameterClass="java.lang.String" resultClass="Device">
+		SELECT * FROM device D WHERE D.dtu_id=#dtu_id# 
+	</select>
+	
+	<update id="trucksDtuBind" parameterClass="Device">
+		UPDATE device SET trucks_id=#trucks_id#,company_id=#company_id#,phone=#phone# WHERE dtu_id=#dtu_id#
+	</update>
+	
+	<update id="updateInfoWhenChange" parameterClass="Device">
+		UPDATE device SET trucks_id=#trucks_id#,caiji_time=#caiji_time#,dtu_tpms_status=#dtu_tpms_status#,dtu_status=#dtu_status#,tpms_pinlu=#tpms_pinlu#,
+		yali_set_low_zhou_1=#yali_set_low_zhou_1#,yali_set_low_zhou_2=#yali_set_low_zhou_2#,yali_set_low_zhou_3=#yali_set_low_zhou_3#,yali_set_low_zhou_4=#yali_set_low_zhou_4#,
+		yali_set_high_zhou_1=#yali_set_high_zhou_1#,yali_set_high_zhou_2=#yali_set_high_zhou_2#,yali_set_high_zhou_3=#yali_set_high_zhou_3#,yali_set_high_zhou_4=#yali_set_high_zhou_4#,gao_wen_bao_jing_set=#gao_wen_bao_jing_set#,
+		yuliu1_phone=#yuliu1_phone#,yuliu2_phone=#yuliu2_phone#,yuliu3_phone=#yuliu3_phone#,yuliu4_phone=#yuliu4_phone#,gps_status=#gps_status#,latitude=#latitude#,latitude_type=#latitude_type#,longitude=#longitude#,longitude_type=#longitude_type#,dimian_sulu=#dimian_sulu#,dimian_hangxiang=#dimian_hangxiang#,li_cheng=li_cheng+#li_cheng#,warn=#warn# 
+		WHERE dtu_id=#dtu_id#
+	</update>
+	
+	<update id="updateInfoNoChange" parameterClass="Device">
+		UPDATE device SET caiji_time=#caiji_time#,li_cheng=li_cheng+#li_cheng#,warn=#warn# WHERE dtu_id=#dtu_id#
+	</update>
+</sqlMap>

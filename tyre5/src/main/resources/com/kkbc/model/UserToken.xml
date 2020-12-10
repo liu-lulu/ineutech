@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="UserToken" >
+	<typeAlias alias="UserToken" type="com.kkbc.entity.UserToken"/>
+	
+	<insert id="saveInfo" parameterClass="UserToken">
+		INSERT INTO USER_TOKEN(user_id,token,create_time) VALUES(#user_id#,#token#,#create_time#)
+		<selectKey resultClass="int" keyProperty="id">
+			SELECT LAST_INSERT_ID() AS id
+		</selectKey>
+	</insert>
+	<update id="updateInfo" parameterClass="UserToken" >
+		UPDATE USER_TOKEN SET token=#token#,create_time=#create_time# where user_id=#user_id#
+	</update>
+	
+	<select id="getInfo" parameterClass="java.lang.String" resultClass="UserToken">
+		SELECT * FROM USER_TOKEN WHERE TOKEN=#token#
+	</select>
+	
+	<select id="getInfoByUserId" parameterClass="java.lang.Integer" resultClass="UserToken">
+		SELECT * FROM USER_TOKEN WHERE user_id=#user_id#
+	</select>
+	
+</sqlMap>

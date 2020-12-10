@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyrePattern" >
+	<typeAlias alias="TyrePattern" type="com.kkbc.entity.TyrePattern"/>
+	
+	<select id="getUserName" parameterClass="TyrePattern" resultClass="TyrePattern">
+		SELECT T.tyre_id,UU.true_name AS tyre_p_person
+		FROM tyre_base T LEFT JOIN `user` U ON U.user_id=T.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id  
+		WHERE UU.user_id=#user_id# AND T.tyre_id=#tyre_id#
+	</select>
+	
+	<update id="saveTyrePattern" parameterClass="TyrePattern">
+		update  tyre_base set 
+		tyre_p1=#tyre_p1#,tyre_p2=#tyre_p2#,tyre_p3=#tyre_p3#,tyre_p4=#tyre_p4#,tyre_p5=#tyre_p5#,tyre_p6=#tyre_p6#,tyre_p_time=#tyre_p_time#,tyre_p_person=#tyre_p_person#,tyre_paver=#tyre_paver#,check_user_id=#user_id# where tyre_id=#tyre_id#
+	</update>
+	
+</sqlMap>

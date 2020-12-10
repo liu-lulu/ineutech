@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DrivingRecordVO" >
+	<typeAlias alias="DrivingRecordVO" type="com.kkbc.vo.DrivingRecordVO"/>
+	
+	<select id="getByTrucksId" parameterClass="java.util.HashMap" resultClass="DrivingRecordVO">
+		SELECT DR.id,DR.trucks_id,DR.from_adress,DR.to_adress,DR.create_time,DR.start_time,DR.end_time,DR.driver_id,DR.transport_type,DR.star_unobstructed,DR.star_heart,DR.`status`,DR.li_cheng_run,
+		DR.li_cheng_end,DR.guache_trucks_id,U.true_name,U.user_phone,U.user_id
+		FROM driving_record DR LEFT JOIN trucks T ON T.last_driving_record_id=DR.id LEFT JOIN `user` U ON U.user_id=DR.driver_id 
+		WHERE 
+		<isEqual property="isMain" compareValue="true">
+			T.trucks_id=#trucks_id#
+		</isEqual>
+		<isEqual property="isMain" compareValue="false">
+			T.guache_trucks_id=#trucks_id#
+		</isEqual>
+		LIMIT 1
+	</select>
+</sqlMap>

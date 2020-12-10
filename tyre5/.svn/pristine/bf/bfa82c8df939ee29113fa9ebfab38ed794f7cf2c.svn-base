@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="UserTrucksTyreVO" >
+	<typeAlias alias="UserTrucksTyreVO" type="com.kkbc.vo.UserTrucksTyreVO"/>
+	
+	<select id="getUserCount" parameterClass="java.lang.Integer" resultClass="UserTrucksTyreVO">
+		SELECT (SELECT COUNT(DISTINCT T.trucks_id) FROM trucks T LEFT JOIN `user` U ON U.user_company_id=T.company_id WHERE U.user_id=#user_id#) as trucksCount,
+		(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`!=0) as tyreCount
+		,(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`tyre_flag`=0 and TB.`status`=1) as newTyreCount
+		,(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`tyre_flag`=0 and (TB.`status`!=0 AND TB.`status`!=1)) as oldTyreCount
+		,(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`=0 ) as baofeiTyreCount
+		,(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`=2 ) as xiubuTyreCount
+		,(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`=3 ) as fanxinTyreCount
+		,(SELECT COUNT(DISTINCT TB.tyre_id) FROM tyre_base TB LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`=4 ) as qianzhuangTyreCount
+		,(SELECT IFNULL(SUM(tyre_health)/COUNT(*),0) FROM (SELECT DISTINCT TB.tyre_id,TD.tyre_health FROM tyre_dynamic TD LEFT JOIN tyre_base TB ON TB.tyre_id=TD.tyre_id LEFT JOIN `user` U ON U.user_id=TB.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`!=0 and TD.tyre_health!='') T) as health
+		,(SELECT P.phone FROM `user` U LEFT JOIN team T ON T.c_id=U.user_company_id LEFT JOIN person P ON T.p_id=P.id WHERE P.job='客服' AND U.user_id=#user_id# LIMIT 1) as service_phone
+	</select>
+</sqlMap>

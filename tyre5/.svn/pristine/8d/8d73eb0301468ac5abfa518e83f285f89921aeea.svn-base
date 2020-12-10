@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TyreVO" >
+	<typeAlias alias="TyreVO" type="com.kkbc.vo.TyreVO"/>
+	
+	<select id="getByTyreId" parameterClass="TyreVO" resultClass="TyreVO">
+		SELECT T.tyre_id,UU.true_name,T.tyre_depth,TD.li_cheng_run,C.tyre_safe_depth,T.trucks_id,T.tyre_where 
+		FROM tyre_base T LEFT JOIN `user` U ON U.user_id=T.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id LEFT JOIN tyre_dynamic TD ON TD.tyre_id=T.tyre_id LEFT JOIN company C ON C.company_id=UU.user_company_id 
+		WHERE UU.user_id=#user_id# AND T.tyre_id=#tyre_id#
+	</select>
+	
+	<select id="getByTruckAndWhere" parameterClass="TyreVO" resultClass="TyreVO">
+		SELECT T.tyre_id,UU.true_name,T.tyre_depth,TD.li_cheng_run,C.tyre_safe_depth,T.trucks_id,T.tyre_where 
+		FROM tyre_base T LEFT JOIN `user` U ON U.user_id=T.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id LEFT JOIN tyre_dynamic TD ON TD.tyre_id=T.tyre_id LEFT JOIN company C ON C.company_id=UU.user_company_id 
+		LEFT JOIN trucks TT ON TT.trucks_$tyre_where$=T.tyre_id
+		WHERE TT.trucks_id=#trucks_id# AND UU.user_id=#user_id#
+	</select>
+	
+	<select id="getTyreState" parameterClass="TyreVO" resultClass="TyreVO">
+		SELECT T.tyre_id,T.tyre_flag,T.tyre_where,UU.true_name,TD.tyre_health 
+		FROM tyre_base T LEFT JOIN tyre_dynamic TD ON TD.tyre_id=T.tyre_id LEFT JOIN `user` U ON U.user_id=T.user_id LEFT JOIN `user` UU ON UU.user_company_id=U.user_company_id 
+		WHERE UU.user_id=#user_id# AND T.tyre_id=#tyre_id# limit 1
+	</select>
+	
+	<select id="tyreDetial" parameterClass="TyreVO" resultClass="TyreVO">
+		SELECT DISTINCT TB.tyre_id,TB.tyre_brand,TB.tyre_flag,TB.tyre_type1,TB.tyre_type2,TB.tyre_type3,TB.tyre_type4,TB.tyre_type5,TB.tyre_type6,TB.tyre_type7,TB.tyre_type8,TB.tyre_type9,TB.tyre_where,TB.tyre_depth,TB.user_id 
+				,TD.tyre_km,TD.tyre_health,TB.tyre_paver,TB.tyre_p_time,T.trucks_id,TD.mabiao_install,TD.li_cheng_run 
+		FROM tyre_base TB 
+		LEFT JOIN `user` U ON U.user_id=TB.user_id 
+		LEFT JOIN company C ON C.company_id=U.user_company_id 
+		LEFT JOIN `user` UU ON UU.user_company_id=C.company_id 
+		LEFT JOIN tyre_dynamic TD ON TD.tyre_id=TB.tyre_id 
+		LEFT JOIN trucks T ON
+		<isNotEmpty prepend=" " property="tyre_id">
+			((T.trucks_id=TB.trucks_id ) OR (T.guache_trucks_id=TB.trucks_id AND T.guache_trucks_id!='') )
+		</isNotEmpty>
+		<isEmpty prepend=" " property="tyre_id">
+			<isNotEmpty prepend=" " property="trucks_id">
+				<isNotEmpty prepend=" " property="tyre_where">
+					(T.trucks_$tyre_where$=TB.tyre_id)
+				</isNotEmpty>
+			</isNotEmpty>
+		</isEmpty>
+		WHERE UU.user_id=#user_id#
+		<isNotEmpty prepend="AND" property="tyre_id">
+			TB.tyre_id=#tyre_id#
+		</isNotEmpty>
+		<isEmpty prepend=" " property="tyre_id">
+			<isNotEmpty prepend=" " property="trucks_id">
+				<isNotEmpty prepend="AND" property="tyre_where">
+					T.trucks_id=#trucks_id#
+				</isNotEmpty>
+			</isNotEmpty>
+		</isEmpty>
+	</select>
+	
+	<select id="getTwoTyreInfo" parameterClass="java.util.HashMap" resultClass="TyreVO">
+		SELECT DISTINCT TB.tyre_id,TB.tyre_brand,TB.tyre_flag,TB.tyre_type1,TB.tyre_type2,TB.tyre_type3,TB.tyre_type4,TB.tyre_type5,TB.tyre_type6,TB.tyre_type7,TB.tyre_type8,TB.tyre_type9,TB.tyre_where,TB.tyre_depth,TB.user_id 
+			,TD.tyre_km,TD.tyre_health,TB.tyre_paver,TB.tyre_p_time,TB.trucks_id,UU.true_name as queryer,GT.mabiao as li_cheng_run,T.dtu_multi_flag,T.trucks_type 
+		FROM tyre_base TB  
+		LEFT JOIN `user` U ON U.user_id=TB.user_id 
+		LEFT JOIN company C ON C.company_id=U.user_company_id 
+		LEFT JOIN `user` UU ON UU.user_company_id=C.company_id 
+		LEFT JOIN tyre_dynamic TD ON TD.tyre_id=TB.tyre_id 
+		LEFT JOIN trucks T ON ((T.trucks_id=TB.trucks_id ) OR (T.guache_trucks_id=TB.trucks_id AND T.guache_trucks_id!='') )
+		LEFT JOIN trucks GT ON (GT.trucks_id=T.trucks_id or GT.guache_trucks_id=T.trucks_id) 
+		WHERE UU.user_id=#user_id# AND (TB.tyre_id=#tyre_id1# or TB.tyre_id=#tyre_id2#)
+	</select>
+	
+	<update id="changeTyre" parameterClass="java.util.HashMap">
+		update trucks SET trucks_$tyreWhere$=#desTyreId# where trucks_$tyreWhere$=#srcTyreId#
+	</update>
+	
+	<update id="updateBaseDynamicInfoAfterChange" parameterClass="java.util.HashMap">
+		UPDATE tyre_base LEFT JOIN tyre_dynamic on tyre_dynamic.tyre_id=tyre_base.tyre_id  
+		SET tyre_base.tyre_flag=1,tyre_base.tyre_where=#tyreWhere#,tyre_base.trucks_id=#trucksId#,tyre_dynamic.mabiao_install=#mabiao# WHERE tyre_base.tyre_id=#tyreId#
+	</update>
+	
+	<update id="downTyre" parameterClass="java.lang.String">
+		UPDATE tyre_base SET tyre_flag=0,tyre_where=null,trucks_id=null WHERE tyre_id=#tyre_id#
+	</update>
+	
+	<select id="getByTrucksId" parameterClass="java.lang.String" resultClass="TyreVO">
+		SELECT T.trucks_id,TB.tyre_id,TB.tyre_brand,TB.tyre_flag,TB.tyre_type1,TB.tyre_type3,TB.tyre_where,TP.tyre_paver 
+		FROM tyre_base TB LEFT JOIN tyre_pattern TP ON TP.tyre_id=TB.tyre_id LEFT JOIN trucks T 
+		ON (TB.tyre_id=T.trucks_A1 OR TB.tyre_id=T.trucks_A2 OR TB.tyre_id=T.trucks_A3 OR TB.tyre_id=T.trucks_A4 OR TB.tyre_id=T.trucks_A5 OR TB.tyre_id=T.trucks_A6 
+		OR TB.tyre_id=T.trucks_B1 OR TB.tyre_id=T.trucks_B2 OR TB.tyre_id=T.trucks_B3 OR TB.tyre_id=T.trucks_B4 OR TB.tyre_id=T.trucks_B5 OR TB.tyre_id=T.trucks_B6 OR TB.tyre_id=T.trucks_B7 OR TB.tyre_id=T.trucks_B8 
+		OR TB.tyre_id=T.trucks_C1 OR TB.tyre_id=T.trucks_C2 OR TB.tyre_id=T.trucks_C3 OR TB.tyre_id=T.trucks_C4 OR TB.tyre_id=T.trucks_C5 OR TB.tyre_id=T.trucks_C6
+		OR TB.tyre_id=T.trucks_C7 OR TB.tyre_id=T.trucks_C8 OR TB.tyre_id=T.trucks_C9 OR TB.tyre_id=T.trucks_C10 OR TB.tyre_id=T.trucks_C11 OR TB.tyre_id=T.trucks_C12 
+		OR TB.tyre_id=T.trucks_C13 OR TB.tyre_id=T.trucks_C14 OR TB.tyre_id=T.trucks_C15 OR TB.tyre_id=T.trucks_C16) 
+		WHERE T.trucks_id=#trucks_id# GROUP BY TB.tyre_id 
+	</select>
+	
+	<select id="getPageList" parameterClass="java.util.HashMap" resultClass="TyreVO">
+		SELECT DISTINCT TB.id,TB.tyre_id,TB.tyre_flag,TD.tyre_health,TD.li_cheng_run as tyre_km
+		FROM tyre_base TB LEFT JOIN tyre_dynamic TD ON TB.tyre_id=TD.tyre_id
+		LEFT JOIN `user` U ON TB.user_id=U.user_id LEFT JOIN `user` UU ON U.user_company_id=UU.user_company_id
+		WHERE UU.user_id=#user_id# AND TB.tyre_brand=#tyre_brand# AND TB.tyre_type1=#tyre_type1# AND TB.tyre_type2=#tyre_type2# AND TB.tyre_type3=#tyre_type3# and TB.`status`!=#status# 
+		<isNotEmpty prepend="and" property="tyre_flag">
+			TB.tyre_flag=#tyre_flag#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_health">
+			<isEqual property="tyre_health" compareValue="1">
+				TD.tyre_health>30
+			</isEqual>
+			<isNotEqual property="tyre_health" compareValue="1">
+				30>=TD.tyre_health
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="keyWord">
+			TB.tyre_id like '%$keyWord$%'
+		</isNotEmpty>
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="searchByKeyWord" parameterClass="java.util.HashMap" resultClass="TyreVO">
+		SELECT DISTINCT TB.id,TB.tyre_id,TB.tyre_flag,TD.tyre_health,TD.li_cheng_run as tyre_km
+		FROM tyre_base TB LEFT JOIN tyre_dynamic TD ON TB.tyre_id=TD.tyre_id
+		LEFT JOIN `user` U ON TB.user_id=U.user_id LEFT JOIN `user` UU ON U.user_company_id=UU.user_company_id
+		WHERE UU.user_id=#user_id# and TB.`status`!=#status# 
+		<isNotEmpty prepend="and" property="keyWord">
+			TB.tyre_id like '%$keyWord$%'
+		</isNotEmpty>
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="searchByKucun" parameterClass="java.util.HashMap" resultClass="TyreVO">
+		SELECT DISTINCT TB.id,TB.tyre_id,TB.tyre_flag,TD.tyre_health,TD.li_cheng_run as tyre_km,TB.tyre_brand,TB.tyre_type1,TB.tyre_type2,TB.tyre_type3,TB.status
+		FROM tyre_base TB LEFT JOIN tyre_dynamic TD ON TB.tyre_id=TD.tyre_id
+		LEFT JOIN `user` U ON TB.user_id=U.user_id LEFT JOIN `user` UU ON U.user_company_id=UU.user_company_id
+		WHERE UU.user_id=#user_id# 
+		<isNotEmpty prepend="and" property="tyre_brand">
+			TB.tyre_brand=#tyre_brand#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_type1">
+			TB.tyre_type1=#tyre_type1#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_type3">
+			TB.tyre_type3=#tyre_type3#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="status">
+			TB.status=#status#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="tyre_flag">
+			TB.tyre_flag=#tyre_flag#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="keyWord">
+			TB.tyre_id like '%$keyWord$%'
+		</isNotEmpty>
+		<isNotEmpty prepend=" order by " property="column">
+			<isEqual property="column" compareValue="1">
+				TB.tyre_brand 
+			</isEqual>
+			<isEqual property="column" compareValue="2">
+				TB.tyre_type1
+			</isEqual>
+			<isEqual property="column" compareValue="3">
+				TB.tyre_type2 
+			</isEqual>
+			<isEqual property="column" compareValue="4">
+				TD.li_cheng_run
+			</isEqual>
+			<isEqual property="column" compareValue="5">
+				TD.tyre_health
+			</isEqual>
+			<isEqual property="column" compareValue="6">
+				TB.tyre_type3
+			</isEqual>
+			<isEqual property="column" compareValue="7">
+				TB.tyre_flag
+			</isEqual>
+			<isEqual property="column" compareValue="8">
+				TB.status
+			</isEqual>
+			
+			<isNotEmpty prepend=" " property="order">
+				<isEqual property="order" compareValue="2">
+					DESC
+				</isEqual>
+			</isNotEmpty>
+		</isNotEmpty>
+		LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="getTyreHealthExceptTyreId" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT IFNULL(SUM(TD.tyre_health),0) as totalHealth,COUNT(*) AS count FROM trucks T LEFT JOIN trucks GT ON T.guache_trucks_id=GT.trucks_id 
+		LEFT JOIN tyre_dynamic TD ON (T.trucks_A1=TD.tyre_id OR T.trucks_A2=TD.tyre_id OR T.trucks_A3=TD.tyre_id OR T.trucks_A4=TD.tyre_id OR T.trucks_A5=TD.tyre_id OR T.trucks_A6=TD.tyre_id OR 
+		T.trucks_B1=TD.tyre_id OR T.trucks_B2=TD.tyre_id OR T.trucks_B3=TD.tyre_id OR T.trucks_B4=TD.tyre_id OR T.trucks_B5=TD.tyre_id OR T.trucks_B6=TD.tyre_id OR T.trucks_B7=TD.tyre_id OR T.trucks_B8=TD.tyre_id OR 
+		<isNotEmpty prepend=" " property="getGucheTyre">
+			<isEqual property="getGucheTyre" compareValue="true">
+				GT.trucks_C1=TD.tyre_id OR GT.trucks_C2=TD.tyre_id OR GT.trucks_C3=TD.tyre_id OR GT.trucks_C4=TD.tyre_id OR GT.trucks_C5=TD.tyre_id OR GT.trucks_C6=TD.tyre_id OR 
+				GT.trucks_C7=TD.tyre_id OR GT.trucks_C8=TD.tyre_id OR GT.trucks_C9=TD.tyre_id OR GT.trucks_C10=TD.tyre_id OR GT.trucks_C11=TD.tyre_id OR GT.trucks_C12=TD.tyre_id OR 
+				GT.trucks_C13=TD.tyre_id OR GT.trucks_C14=TD.tyre_id OR GT.trucks_C15=TD.tyre_id OR GT.trucks_C16=TD.tyre_id)
+			</isEqual>
+			<isEqual property="getGucheTyre" compareValue="false">
+				T.trucks_C1=TD.tyre_id OR T.trucks_C2=TD.tyre_id OR T.trucks_C3=TD.tyre_id OR T.trucks_C4=TD.tyre_id OR T.trucks_C5=TD.tyre_id OR T.trucks_C6=TD.tyre_id OR 
+				T.trucks_C7=TD.tyre_id OR T.trucks_C8=TD.tyre_id OR T.trucks_C9=TD.tyre_id OR T.trucks_C10=TD.tyre_id OR T.trucks_C11=TD.tyre_id OR T.trucks_C12=TD.tyre_id OR 
+				T.trucks_C13=TD.tyre_id OR T.trucks_C14=TD.tyre_id OR T.trucks_C15=TD.tyre_id OR T.trucks_C16=TD.tyre_id) 
+			</isEqual>
+		</isNotEmpty>
+		
+		WHERE T.trucks_id=#trucks_id# AND TD.tyre_health!=''
+		AND TD.tyre_id!=#tyre_id#
+	</select>
+	
+	<select id="getTyreHealth" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT IFNULL(SUM(TD.tyre_health),0) as totalHealth,COUNT(*) AS count FROM trucks T LEFT JOIN trucks GT ON T.guache_trucks_id=GT.trucks_id 
+		LEFT JOIN tyre_dynamic TD ON (T.trucks_A1=TD.tyre_id OR T.trucks_A2=TD.tyre_id OR T.trucks_A3=TD.tyre_id OR T.trucks_A4=TD.tyre_id OR T.trucks_A5=TD.tyre_id OR T.trucks_A6=TD.tyre_id OR 
+		T.trucks_B1=TD.tyre_id OR T.trucks_B2=TD.tyre_id OR T.trucks_B3=TD.tyre_id OR T.trucks_B4=TD.tyre_id OR T.trucks_B5=TD.tyre_id OR T.trucks_B6=TD.tyre_id OR T.trucks_B7=TD.tyre_id OR T.trucks_B8=TD.tyre_id OR 
+		<isNotEmpty prepend=" " property="getGucheTyre">
+			<isEqual property="getGucheTyre" compareValue="true">
+				GT.trucks_C1=TD.tyre_id OR GT.trucks_C2=TD.tyre_id OR GT.trucks_C3=TD.tyre_id OR GT.trucks_C4=TD.tyre_id OR GT.trucks_C5=TD.tyre_id OR GT.trucks_C6=TD.tyre_id OR 
+				GT.trucks_C7=TD.tyre_id OR GT.trucks_C8=TD.tyre_id OR GT.trucks_C9=TD.tyre_id OR GT.trucks_C10=TD.tyre_id OR GT.trucks_C11=TD.tyre_id OR GT.trucks_C12=TD.tyre_id OR 
+				GT.trucks_C13=TD.tyre_id OR GT.trucks_C14=TD.tyre_id OR GT.trucks_C15=TD.tyre_id OR GT.trucks_C16=TD.tyre_id)
+			</isEqual>
+			<isEqual property="getGucheTyre" compareValue="false">
+				T.trucks_C1=TD.tyre_id OR T.trucks_C2=TD.tyre_id OR T.trucks_C3=TD.tyre_id OR T.trucks_C4=TD.tyre_id OR T.trucks_C5=TD.tyre_id OR T.trucks_C6=TD.tyre_id OR 
+				T.trucks_C7=TD.tyre_id OR T.trucks_C8=TD.tyre_id OR T.trucks_C9=TD.tyre_id OR T.trucks_C10=TD.tyre_id OR T.trucks_C11=TD.tyre_id OR T.trucks_C12=TD.tyre_id OR 
+				T.trucks_C13=TD.tyre_id OR T.trucks_C14=TD.tyre_id OR T.trucks_C15=TD.tyre_id OR T.trucks_C16=TD.tyre_id) 
+			</isEqual>
+		</isNotEmpty>
+		
+		WHERE T.trucks_id=#trucks_id# AND TD.tyre_health!=''
+		
+	</select>
+	
+	
+	<select id="getTyreHealthWhenDriving" parameterClass="java.util.HashMap" resultClass="java.util.HashMap">
+		SELECT IFNULL(SUM(TD.tyre_health),0) as totalHealth,COUNT(*) AS count FROM trucks T LEFT JOIN tyre_dynamic TD ON 
+		<isNotEmpty prepend=" " property="onlyZhuche">
+			<isEqual property="onlyZhuche" compareValue="true">
+				(T.trucks_A1=TD.tyre_id OR T.trucks_A2=TD.tyre_id OR T.trucks_A3=TD.tyre_id OR T.trucks_A4=TD.tyre_id OR T.trucks_A5=TD.tyre_id OR T.trucks_A6=TD.tyre_id OR 
+				T.trucks_B1=TD.tyre_id OR T.trucks_B2=TD.tyre_id OR T.trucks_B3=TD.tyre_id OR T.trucks_B4=TD.tyre_id OR T.trucks_B5=TD.tyre_id OR T.trucks_B6=TD.tyre_id OR T.trucks_B7=TD.tyre_id OR T.trucks_B8=TD.tyre_id) 
+			</isEqual>
+			<isEqual property="onlyZhuche" compareValue="false">
+				(T.trucks_C1=TD.tyre_id OR T.trucks_C2=TD.tyre_id OR T.trucks_C3=TD.tyre_id OR T.trucks_C4=TD.tyre_id OR T.trucks_C5=TD.tyre_id OR T.trucks_C6=TD.tyre_id OR 
+				T.trucks_C7=TD.tyre_id OR T.trucks_C8=TD.tyre_id OR T.trucks_C9=TD.tyre_id OR T.trucks_C10=TD.tyre_id OR T.trucks_C11=TD.tyre_id OR T.trucks_C12=TD.tyre_id OR 
+				T.trucks_C13=TD.tyre_id OR T.trucks_C14=TD.tyre_id OR T.trucks_C15=TD.tyre_id OR T.trucks_C16=TD.tyre_id) 
+			</isEqual>
+		</isNotEmpty>
+		 WHERE T.trucks_id=#trucks_id# AND TD.tyre_health!=''
+	</select>
+	
+	<procedure id="Get_trucks_id" parameterClass="java.lang.String" resultClass="java.lang.String">
+		{call Get_trucks_id(#tyre_id#)}
+	</procedure>
+	
+</sqlMap>

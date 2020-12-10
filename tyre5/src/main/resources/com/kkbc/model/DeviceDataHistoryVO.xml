@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceDataHistoryVO" >
+	<typeAlias alias="DeviceDataHistoryVO" type="com.kkbc.vo.web.DeviceDataHistoryVO"/>
+	
+	<select id="queryHistoryDtu" parameterClass="java.util.HashMap" resultClass="DeviceDataHistoryVO">
+		SELECT DDH.id,DDH.dtu_id,DDH.create_time,DDH.float_caiji_time,DDH.string_caiji_time,DDH.offon_caiji_time,base_id,DDH.dingwei_id,DDH.offon_uuid,DDH.yaliwendu_uuid,DDH.trucks_id,DDH.warn,DDD.gps_status,DDD.dimian_sulu,DDD.longitude,DDD.latitude
+		FROM device_data_history DDH LEFT JOIN device D ON D.dtu_id=DDH.dtu_id LEFT JOIN device_data_dingwei DDD ON DDD.id=DDH.dingwei_id LEFT JOIN company CD ON CD.company_id=D.company_id 
+		WHERE (CD.company_id=#company_id# or CD.parent_id=#company_id#)
+		<isNotEmpty prepend="and" property="startTime">
+			DDH.create_time>=#startTime#
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="endTime">
+			#endTime#>=DDH.create_time
+		</isNotEmpty>
+		<isNotEmpty prepend="and" property="keyWord">
+			(D.dtu_id=#keyWord# or DDH.trucks_id=#keyWord#)
+		</isNotEmpty>
+		ORDER BY id DESC LIMIT #startIndex#,#pageSize#
+	</select>
+	
+</sqlMap>

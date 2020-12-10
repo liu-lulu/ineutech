@@ -1,0 +1,84 @@
+body {
+	margin: 0px;
+	/**padding: auto;**/
+	padding: 5px;
+}
+
+.content {
+	margin: auto;
+	/***ÎÒ¸Äwidth: 1024px;**/
+}
+
+.clear {
+	clear: both;
+}
+
+.title {
+	height: 64px;
+	background: black;
+	color: white;
+}
+
+.titleLeft {
+	font-size: 48px;
+}
+
+.titleRight {
+	
+}
+/*	
+
+border: 1px solid black;
+
+*/
+.editer-wrap {
+	float: left;
+	width: 360px;
+	padding: 10px;
+}
+
+.sender-wrap {
+	float: left;
+	/**width: 640px;**/
+	width: 580px;
+	height: 576px;
+}
+/*
+*/
+.btns {
+	padding: 13px;
+}
+
+.update {
+	padding: 6px 10px;
+	overflow-y: auto;
+}
+/*
+	position: fixed;
+*/
+.weui_dialog_alert {
+	z-index: 1000px;
+}
+/**/
+
+/**/
+.btn.active,.btn:active {
+	background-image: none;
+	outline: 0;
+	-webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px
+		rgba(0, 0, 0, 0.05);
+	-moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px
+		rgba(0, 0, 0, 0.05);
+	box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px
+		rgba(0, 0, 0, 0.05);
+}
+
+.btn.disabled,.btn[disabled] {
+	cursor: default;
+	background-image: none;
+	opacity: 0.65;
+	filter: alpha(opacity = 65);
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;
+}

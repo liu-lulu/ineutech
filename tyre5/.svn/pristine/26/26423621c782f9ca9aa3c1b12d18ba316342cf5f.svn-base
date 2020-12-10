@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceFasheqi" >
+	<typeAlias alias="DeviceFasheqi" type="com.kkbc.entity.DeviceFasheqi"/>
+	
+	<select id="queryByDtu" parameterClass="java.lang.String" resultClass="DeviceFasheqi">
+		SELECT id,create_time,caiji_time,fasheqi_id,louqi,gaoya,diya,gaowen,dianchi,fasheqidianchi,zhongduan,shilian,warn,yali,wendu,no,tyre_id,trucks_id,li_cheng,dtu_id 
+		FROM device_fasheqi
+		WHERE dtu_id=#dtu_id#
+	</select>
+	
+	<select id="queryPageByKeyWord" parameterClass="java.util.HashMap" resultClass="DeviceFasheqi">
+		select DISTINCT DF.id,DF.create_time,DF.caiji_time,DF.fasheqi_id,DF.louqi,gaoya,DF.diya,DF.gaowen,DF.dianchi,DF.fasheqidianchi,DF.zhongduan,DF.shilian,DF.warn,DF.yali,wendu,DF.`no`,DF.tyre_id,DF.trucks_id,DF.li_cheng,DF.dtu_id 
+		 FROM device_fasheqi DF LEFT JOIN device D ON D.dtu_id=DF.dtu_id LEFT JOIN company CD ON CD.company_id=D.company_id 
+		 where (CD.company_id=#company_id# or CD.parent_id=#company_id#)
+		 <isNotEmpty prepend="and" property="keyWord">
+			(DF.fasheqi_id like '%$keyWord$%' or D.dtu_id like '%$keyWord$%' or D.trucks_id like '%$keyWord$%')
+		</isNotEmpty>
+		order by DF.id desc LIMIT #startIndex#,#pageSize#
+	</select>
+	
+	<select id="queryCountByKeyWord" parameterClass="java.util.HashMap" resultClass="java.lang.Integer">
+		select count(DISTINCT DF.id)
+		FROM device_fasheqi DF LEFT JOIN device D ON D.dtu_id=DF.dtu_id 
+		 where D.company_id=#company_id#
+		 <isNotEmpty prepend="and" property="keyWord">
+			(DF.fasheqi_id like '%$keyWord$%' or D.dtu_id like '%$keyWord$%' or D.dtu_id like '%$keyWord$%')
+		</isNotEmpty>
+	</select>
+	
+	<select id="getByTyreId" parameterClass="java.lang.String" resultClass="DeviceFasheqi">
+		SELECT id,create_time,caiji_time,fasheqi_id,louqi,gaoya,diya,gaowen,dianchi,fasheqidianchi,zhongduan,shilian,warn,yali,wendu,no,tyre_id,trucks_id,li_cheng,dtu_id 
+		FROM device_fasheqi WHERE tyre_id=#tyre_id# LIMIT 1
+	</select>
+	
+	<update id="updateLicheng" parameterClass="DeviceFasheqi">
+		UPDATE device_fasheqi SET li_cheng=li_cheng+#li_cheng# WHERE dtu_id=#dtu_id#
+	</update>
+	
+	<update id="updateInfo" parameterClass="DeviceFasheqi">
+		UPDATE device_fasheqi SET caiji_time=#caiji_time#,louqi=#louqi#,gaoya=#gaoya#,diya=#diya#,gaowen=#gaowen#,dianchi=#dianchi#,fasheqidianchi=#fasheqidianchi#,zhongduan=#zhongduan#,shilian=#shilian#,warn=#warn#,yali=#yali#,wendu=#wendu#,no=#no#,tyre_id=#tyre_id#,trucks_id=#trucks_id#,dtu_id=#dtu_id# 
+		WHERE fasheqi_id=#fasheqi_id#
+	</update>
+	
+	<select id="getByFasheqiId" parameterClass="java.lang.String" resultClass="DeviceFasheqi">
+		SELECT * FROM device_fasheqi WHERE fasheqi_id=#fasheqi_id#
+	</select>
+	
+	<insert id="saveInfo" parameterClass="DeviceFasheqi">
+		insert into device_fasheqi(create_time,caiji_time,fasheqi_id,louqi,gaoya,diya,gaowen,dianchi,fasheqidianchi,zhongduan,shilian,warn,yali,wendu,no,tyre_id,trucks_id,li_cheng,dtu_id) 
+		values(#create_time#,#caiji_time#,#fasheqi_id#,#louqi#,#gaoya#,#diya#,#gaowen#,#dianchi#,#fasheqidianchi#,#zhongduan#,#shilian#,#warn#,#yali#,#wendu#,#no#,#tyre_id#,#trucks_id#,#li_cheng#,#dtu_id#)
+	</insert>
+	
+	<update id="updateNoDtu" parameterClass="java.lang.String">
+		UPDATE device_fasheqi SET tyre_id=null,trucks_id=null,dtu_id=null WHERE fasheqi_id in($fasheqi_ids$)
+	</update>
+	
+	<update id="updateCaijiTime" parameterClass="java.util.HashMap">
+		UPDATE device_fasheqi SET caiji_time=#caiji_time# WHERE fasheqi_id in($fasheqi_ids$)
+	</update>
+	
+	
+	
+</sqlMap>

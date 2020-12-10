@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="TrucksFasheqiPosVO" >
+	<typeAlias alias="TrucksFasheqiPosVO" type="com.kkbc.vo.web.TrucksFasheqiPosVO"/>
+	
+	<select id="queryByDtu" parameterClass="java.lang.String" resultClass="TrucksFasheqiPosVO">
+		SELECT DISTINCT T.id,T.trucks_id,T.trucks_brand,T.trucks_style,T.company_id,C.company,D.dtu_id 
+		FROM device D LEFT JOIN trucks T ON D.trucks_id=T.trucks_id LEFT JOIN company C ON C.company_id=T.company_id 
+		WHERE D.dtu_id=#dtu_id#
+	</select>
+</sqlMap>

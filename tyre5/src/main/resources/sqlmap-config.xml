@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+ "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+<sqlMapConfig>
+	<settings lazyLoadingEnabled="true" useStatementNamespaces="true"/>
+    <sqlMap resource="com/kkbc/model/user.xml" />
+    <sqlMap resource="com/kkbc/model/ExtEntity.xml" />
+    <sqlMap resource="com/kkbc/model/Device.xml" />
+    <sqlMap resource="com/kkbc/model/TrucksFasheqiPosVO.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceFasheqi.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceDataHistoryVO.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceDataOffon.xml" />
+    <sqlMap resource="com/kkbc/model/FasheqiDataHistoryVO.xml" />
+    <sqlMap resource="com/kkbc/model/UserTrucksTyreVO.xml" />
+    <sqlMap resource="com/kkbc/model/MessageVO.xml" />
+    <sqlMap resource="com/kkbc/model/TrucksVO.xml" />
+    <sqlMap resource="com/kkbc/model/TrucksByAdminVO.xml" />
+    <sqlMap resource="com/kkbc/model/TyreByAdminVO.xml" />
+    <sqlMap resource="com/kkbc/model/Trucks.xml" />
+    <sqlMap resource="com/kkbc/model/Company.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceOperationLog.xml" />
+    <sqlMap resource="com/kkbc/model/LoginLog.xml" />
+    <sqlMap resource="com/kkbc/model/Specification.xml" />
+    <sqlMap resource="com/kkbc/model/TyreBrand.xml" />
+    <sqlMap resource="com/kkbc/model/TyreHistory.xml" />
+    <sqlMap resource="com/kkbc/model/VersionBean.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceDataHistory.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceDataBase.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceDataDingwei.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceDataYaliWendu.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceTrucksVo.xml" />
+    <sqlMap resource="com/kkbc/model/DeviceLoginLog.xml" />
+    <sqlMap resource="com/kkbc/model/DrivingRecord.xml" />
+    <sqlMap resource="com/kkbc/model/DrivingRecordVo.xml" />
+    <sqlMap resource="com/kkbc/model/UserDrivingRecordCountVO.xml" />
+    <sqlMap resource="com/kkbc/model/TyreBase.xml" />
+    <sqlMap resource="com/kkbc/model/TyrePattern.xml" />
+    <sqlMap resource="com/kkbc/model/TyreVO.xml" />
+    <sqlMap resource="com/kkbc/model/TrucksWatchVO.xml" />
+    <sqlMap resource="com/kkbc/model/WorkOrder.xml" />
+    <sqlMap resource="com/kkbc/model/TyreRemarkVO.xml" />
+    <sqlMap resource="com/kkbc/model/TyreDynamic.xml" />
+    <sqlMap resource="com/kkbc/model/TyreCountVO.xml" />
+    <sqlMap resource="com/kkbc/model/UserToken.xml" />
+</sqlMapConfig>

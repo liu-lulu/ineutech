@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="DeviceDataOffon" >
+	<typeAlias alias="DeviceDataOffon" type="com.kkbc.entity.DeviceDataOffon"/>
+	
+	<select id="queryByUuid" parameterClass="java.lang.String" resultClass="DeviceDataOffon">
+		SELECT id,create_time,fasheqi_id,louqi,gaoya,diya,gaowen,dianchi,fasheqidianchi,zhongduan,shilian,warn,no,tyre_id,uuid 
+		FROM device_data_offon
+		WHERE uuid=#uuid#
+	</select>
+	
+	<insert id="saveList" parameterClass="java.util.List">
+		insert into device_data_offon(create_time,fasheqi_id,louqi,gaoya,diya,gaowen,dianchi,fasheqidianchi,zhongduan,shilian,warn,no,tyre_id,uuid) values 
+		<iterate conjunction=",">
+			(#offonInfo[].create_time#,#offonInfo[].fasheqi_id#,#offonInfo[].louqi#,#offonInfo[].gaoya#,#offonInfo[].diya#,#offonInfo[].gaowen#,#offonInfo[].dianchi#,#offonInfo[].fasheqidianchi#,#offonInfo[].zhongduan#,#offonInfo[].shilian#,#offonInfo[].warn#,#offonInfo[].no#,#offonInfo[].tyre_id#,#offonInfo[].uuid#)
+		</iterate>
+	</insert>
+</sqlMap>

@@ -1,0 +1,17 @@
+.vod-wrappper {
+	width: 100%;
+	overflow: hidden;
+}
+
+.title-wrappper {
+	padding-left: 13px;
+	padding-right: 13px;
+}
+
+video {
+	width: 100%;
+}
+
+img {
+	width: 100%
+}
