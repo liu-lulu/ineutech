@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>题目</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="http://www.jq22.com/jquery/1.9.1/jquery.min.js"></script>
+</head>
+<style type="text/css">
+	.img_box {
+	margin-top: 50px;
+	}
+	
+	.img_box ul {
+	width: 800px;
+	margin: 0 auto;
+	}
+	
+	.img_box ul li {
+	list-style: none;
+	display: block;
+	list-style: none;
+	float: left;
+	width: 200px;
+	height: 150px;
+	text-align: center;
+	}
+</style>
+<body>
+    <div class="container">
+     <h2>1-2</h2>
+        <div class="tbox" style="margin-bottom:50px;">
+            <div class="tiao"></div>
+        </div>
+        <!--  <div class="img_box">
+            <img  src="images/3.png">
+           </div>-->
+    </div>
+    <script type="text/javascript">
+        var i = 0;
+        /*add——创建tbx下的div加文字和变宽度的方法*/
+        function add(i) {
+            var tbox = $(".tbox");
+            var tiao = $(".tiao");
+            tiao.css("width", i + "%").html(i + "%");
+        }
+        function xh() {
+            if (i > 100) {
+                window.location.href = 'choose2.html?fenshu=' + GetQueryString("fenshu");
+            }
+            if (i <= 100) {
+                setTimeout("xh()", 100)
+                add(i);
+                i++;
+            }
+        }
+        /*调用xh()函数*/
+        $(document).ready(function () {
+            xh();
+        });
+
+        var i, j, tmp;
+        tmp = "|";
+        for (i = 0; i < 12; i++) {
+            j = parseInt(Math.random() * (18 - 1 + 1) + 1);
+            while (tmp.indexOf("|" + j + "|") != -1) {
+                j = parseInt(Math.random() * (18 - 1 + 1) + 1);
+            }
+            tmp += j + "|";
+            document.write("<div class='img_box'><ul><li><img src='images/one/2/" + j + ".png'></li></ul></div>");
+        }
+
+        function GetQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+            var r = window.location.search.substr(1).match(reg);
+            if (r != null) return unescape(r[2]); return null;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+@charset "utf-8";
+/* CSS Document */
+.container{
+	width:1000px;
+	margin:0 auto;
+}
+.container h2{
+	width:1000px;
+	margin-top:10px;
+}
+
+.img_box{
+	text-align:center;
+	margin-top:10px;
+}
+.tbox{
+	width:800px;
+	margin:0 auto; 
+	height:28px;
+	background:#bfbfbf;
+	margin-top:20px;
+	border-radius:20px;
+	margin-bottom:20px;
+ }
+.tbox div{
+	width:0px;
+	height:28px;
+	background:#0086fd;
+	text-align:center;
+	font-family:Tahoma; 
+	font-size:18px;
+	line-height:28px;
+	border-radius:20px;
+	color:#fd0000;
+	font-weight:bold;
+	margin-top:20px;
+}
+#choose_img{
+	width:100px;
+	margin:0 auto;
+	margin-top:50px;
+	margin-bottom:50px;
+}
+.choose{
+	width:400px;
+	height:200px;
+	margin:0 auto;
+	position:relative;
+	}
+ .true{
+	position:absolute;
+	left:50px;
+	top:20px;
+	border:none;
+ }
+.false{
+	position:absolute;
+	right:50px;
+	top:20px;
+	border:none;
+}
+.C_true{
+	border:8px solid #02892b;
+	border-radius:100%;
+}
+.C_false{
+	border:8px solid #bb0404;
+	border-radius:100%;
+}
+.question_img{
+	width:800px;
+	margin:0 auto;
+	text-align:center;
+	margin-top:50px;
+}
+.choose_one ul li{
+	list-style:none;
+	display:block;
+	float:left;
+	width:150px;
+	text-align:center;
+	font-size:18px;
+	color:#4e4e4e;
+	font-weight:bold;
+}
+.kind{
+	width:1200px;
+	margin:0 auto;
+	margin-top:50px;
+}
+.kind_1{
+	width:1000px;
+	margin:0 auto;
+	height:120px;
+	background:#e6f8ff;
+	margin-top:20px;
+	padding:10px;
+}
+.kind_1 li{
+	width:120px;
+	height:110px;
+	float:left;
+	display:block;
+	text-align:center;
+	margin-top:10px;
+}
+.kind1{
+	width:1200px;
+	margin:0 auto;
+	margin-top:50px;
+	}
+.next{
+	width:45px;
+	margin:0 auto;
+	margin-top:50px;
+}
+.tijiao{
+	width:167px;
+	height:47px;
+	margin:0 auto;
+	margin-top:50px;
+	}
+.bor{border:5px solid #ddd;}
+
+.animals ul {
+	width:910px;
+	margin:0 auto;
+}
+.animals ul li{
+	list-style:none;
+	display:block;
+	float:left;
+	width:130px;
+}
+.animals_box{
+	position:relative;
+}
+.animals_box .check{
+	position:absolute;
+	left:20px;
+	top:25px;
+	z-index:999;
+}
+.palyer{
+	margin-top:20px;
+}
+.palyer span{
+	font-size:18px;
+	font-weight:bold;
+	margin-right:10px;
+	vertical-align:middle;
+}
+   .selected{background-color:red;}

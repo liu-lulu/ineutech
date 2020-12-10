@@ -1,0 +1,75 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>题目</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="js/jquery.min.js.js"></script>
+    <!--<script src="js/timu.js"></script>-->
+</head>
+<body>
+    <div class="container">
+        <div id="choose_img">
+            <img src="images/one/1/1.png" />
+        </div>
+        <div class="choose">
+            <div class="true"><img id="right" src="images/勾.png" /></div>
+            <div class="false"><img id="arrow" src="images/叉.png" /></div>
+        </div>
+        <!-- <div style="clear:both;"></div>
+        <div class="next"><a href="question2.html"><img src="images/next.png" /></a></div>-->
+    </div>
+    <script type="text/javascript">
+        var fenshu = 0;
+        $(".container ul li").click(function () {
+            $(this).addClass("bor").siblings().removeClass("bor");
+        });
+        var arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 17, 18, 19, 20];
+        var count = 0;
+        //随机显示照片
+        function changeImg() {
+            $("#choose_img img").attr("src", 'images/one/1/' + arr[Math.floor(Math.random() * arr.length)] + '.png');
+        }
+        //setTimeout("changeImg();", 3000);
+        //选择对错
+        $(".true").click(function () {
+            if (count >= 5) {
+                window.location.href = 'question2.html?fenshu=' + fenshu;
+            }
+            if (true) {
+            	var imgzf = $(this).parent().prev().children().attr("src");
+                var srrStr = imgzf.substring(imgzf.lastIndexOf("/")+1, imgzf.lastIndexOf("."));
+                $(arr).each(function (index, item) {
+                    if (srrStr == item) {
+                        fenshu++;
+                    }
+                })
+            }
+            ++count;
+            //调动图片随机出函数
+            changeImg()
+            $(this).addClass("C_true");
+            $(".false").removeClass("C_false")
+        });
+        $(".false").click(function () {
+            if (count >= 5) {
+                window.location.href = 'question2.html?fenshu=' + fenshu;
+            }
+            if (true) {
+            	var imgzf = $(this).parent().prev().children().attr("src");
+                var srrStr = imgzf.substring(imgzf.lastIndexOf("/")+1, imgzf.lastIndexOf("."));
+                $(arr).each(function (index, item) {
+                    if (srrStr == item) {
+                        fenshu++;
+                    }
+                })
+            }
+            ++count;
+            //调动图片随机出函数
+            changeImg()
+            $(this).addClass("C_false");
+            $(".true").removeClass("C_true");
+        });
+    </script>
+</body>
+</html>
